@@ -1,0 +1,63 @@
+%flex-space-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+section {
+    @extend %flex-space-between;
+    font-family: 'Nunito';
+    background-color: #eceefe;
+    padding: 25px;
+
+    >img {
+        height: 70px;
+        width: 242px;
+        padding: 0 0 0 45px;
+    }
+
+    >input {
+        width: 589px;
+        border-radius: 42px;
+        padding-top: 17.5px;
+        padding-right: 45px;
+        padding-bottom: 17.5px;
+        padding-left: 45px;
+        border: white solid;
+        background-image: url('/icons/search.png');
+        background-repeat: no-repeat;
+        background-position: right 20px center;
+        background-size: 35px 35px;
+        padding-left: 35px;
+        height: 36px;
+        border: 1px solid #ccc;
+        outline: none;
+        background-color: white;
+
+    }
+
+    >input::placeholder {
+        color: #686868;
+        font-size: 24px;
+        font-family: 'Nunito';
+        font-weight: 400 !important;
+        opacity: 1;
+    }
+
+}
+
+.profile-menu {
+    @extend %flex-space-between;
+    padding-right: 45px;
+    gap: 25px;
+
+    p {
+        font-size: 32px;
+    }
+}
+
+
+.profile-img {
+    width: 70px;
+    height: 70px;
+}

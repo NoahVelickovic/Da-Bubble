@@ -1,1 +1,40 @@
-<p>menu works!</p>
+<mat-drawer-container class="container-height">
+    <mat-drawer #drawer class="sidenav" mode="side">
+        <div class="header-menu">
+            <div>
+                <img src="/icons/logo-menu-devspace.png" alt="">
+                <h2>Devspace</h2>
+            </div>
+            <img src="/icons/edit-square.png" alt="">
+        </div>
+
+        <div class="header-menu-channels">
+            <div>
+                <img src="/icons/arrow-drop-menu.png" alt="">
+                <img src="/icons/channel.png" alt="">
+                <h3>Channels</h3>
+            </div>
+            <img src="/icons/add-channel.png" alt="">
+        </div>
+
+        <div class="header-menu-channels">
+            <div>
+                <img src="/icons/arrow-drop-menu.png" alt="">
+                <img src="/icons/direct-person.png" alt="">
+                <h3>Direktnachrichten</h3>
+            </div>
+        </div>
+
+    </mat-drawer>
+
+    <div class="sidenav-content">
+        <div>
+            <button type="button" matButton (click)="drawer.toggle()">
+                Workspace-Menü schließen
+                <img src="/icons/workspace-menu.png" alt="">
+            </button>
+        </div>
+
+    </div>
+
+</mat-drawer-container>
