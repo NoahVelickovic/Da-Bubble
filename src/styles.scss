@@ -9,7 +9,60 @@
 body{
     margin: 0;
     background-color: #eceefe;
-;
+
 }
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+
+
+.menu {
+  width: 282px;
+  height: 181px;
+  border-top-left-radius: 30px !important;
+  border-bottom-right-radius: 30px !important;
+  border-bottom-left-radius: 30px !important;
+  background-color: white !important;
+  padding: 30px;
+  gap: 15px;
+  opacity: 1;
+    font-family: 'Nunito';
+  font-weight: 600;
+  font-size: 24px;
+  letter-spacing: 0%;
+   display: flex;
+    justify-content: center;
+  >button {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+
+::ng-deep .menu .mat-mdc-menu-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+::ng-deep .menu button.mat-mdc-menu-item {
+  justify-content: center;
+  text-align: center;
+  font-size: 20px;
+}
+
+::ng-deep .cdk-overlay-backdrop {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(2px);
+}
+
+
+.mat-drawer-content {
+  margin: 0 !important;
+  padding: 0 !important;
+  position: absolute !important;
+  left: 0;
+}
+
+.mat-drawer-inner-container {
+  height: 940px;
+}

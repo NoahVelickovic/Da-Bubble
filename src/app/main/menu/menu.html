@@ -1,11 +1,11 @@
-<mat-drawer-container class="container-height">
+<mat-drawer-container class="container-height" hasBackdrop="false">
     <mat-drawer #drawer class="sidenav" mode="side">
         <div class="header-menu">
             <div>
                 <img src="/icons/logo-menu-devspace.png" alt="">
                 <h2>Devspace</h2>
             </div>
-            <img src="/icons/edit-square.png" alt="">
+            <img src="/icons/edit-square.png" alt="" class="write-message">
         </div>
 
         <div class="header-menu-channels">
@@ -14,7 +14,7 @@
                 <img src="/icons/channel.png" alt="">
                 <h3>Channels</h3>
             </div>
-            <img src="/icons/add-channel.png" alt="">
+            <img src="/icons/add-channel.png" alt="" class="write-message" matButton (click)="openDialog()">
         </div>
 
         <div class="header-menu-channels">
@@ -28,12 +28,10 @@
     </mat-drawer>
 
     <div class="sidenav-content">
-        <div>
-            <button type="button" matButton (click)="drawer.toggle()">
-                Workspace-Menü schließen
-                <img src="/icons/workspace-menu.png" alt="">
-            </button>
-        </div>
+        <button type="button" matButton (click)="drawer.toggle()">
+            Workspace-Menü schließen
+            <img src="/icons/workspace-menu.png" alt="">
+        </button>
 
     </div>
 
