@@ -1,5 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import {MatMenuModule} from '@angular/material/menu';
+import { Profile } from './profile/profile';
+import { MatDialog } from '@angular/material/dialog';
+
 
 @Component({
   selector: 'app-header',
@@ -8,5 +11,10 @@ import {MatMenuModule} from '@angular/material/menu';
   styleUrl: './header.scss',
 })
 export class Header {
+ private dialog = inject(MatDialog);
 
+
+openDialog() {
+    this.dialog.open(Profile);
+  }
 }

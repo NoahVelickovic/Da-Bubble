@@ -20,10 +20,7 @@ export class Menu {
  private dialog = inject(MatDialog);
 
   openDialog() {
-    this.dialog.open(AddChannel, {
-      width: '400px',
-      panelClass: 'custom-dialog-container' 
-    });
+    this.dialog.open(AddChannel);
   }
 }
 
