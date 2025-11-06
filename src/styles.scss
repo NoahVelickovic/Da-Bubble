@@ -6,6 +6,15 @@
 }
 
 @font-face {
+  font-family: 'Nunito-semiBold';
+  src: url('/fonts/static/Nunito-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: SemiBold;
+
+}
+
+
+@font-face {
   font-family: 'Nunito-noBold';
   src: url('/fonts/static/Nunito-Regular.ttf') format('truetype');
   font-weight: 700;
@@ -30,12 +39,13 @@ body {
   padding: 30px;
   gap: 15px;
   opacity: 1;
-    font-family: 'Nunito';
+  font-family: 'Nunito';
   font-weight: 600;
   font-size: 24px;
   letter-spacing: 0%;
-   display: flex;
-    justify-content: center;
+  display: flex;
+  justify-content: center;
+
   >button {
     display: flex;
     justify-content: center;
@@ -76,20 +86,33 @@ body {
 }
 
 
-
-.mat-mdc-dialog-surface {
+.add-channel-dialog-panel .mat-mdc-dialog-surface {
   width: 872px !important;
   max-width: 872px !important;
   border-radius: 30px !important;
+  overflow: hidden;
 }
+
+.edit-profil-dialog-panel .mat-mdc-dialog-surface {
+  border-radius: 30px !important;
+  overflow: hidden;
+}
+
+
+.profile-dialog-panel .mat-mdc-dialog-surface {
+  border-top-left-radius: 30px !important;
+  border-bottom-right-radius: 30px !important;
+  border-bottom-left-radius: 30px !important;
+  overflow: hidden;
+}
+
 
 button {
   font-family: 'Nunito';
-  font-family: Nunito;
   font-size: 18px;
   line-height: 100%;
   letter-spacing: 0%;
-  width: 125px;
+  width: 141px;
   height: 49px;
   border-radius: 25px !important;
   gap: 10px;
@@ -122,3 +145,11 @@ input:focus {
   outline: none;
   color: #1a1a1a;
 }
+
+input::placeholder {
+        color: #686868;
+        font-size: 20px;
+        font-family: 'Nunito-noBold';
+        font-weight: 400 !important;
+        opacity: 1;
+    }

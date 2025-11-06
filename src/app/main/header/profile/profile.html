@@ -1,19 +1,23 @@
 <div class="profile-main">
-    <div class="add-channel-header">
-        <h2>Channel erstellen</h2>
-        <img src="/icons/close-channel.png" alt="">
+    <div class="profile-header">
+        <h2>Profil</h2>
+        <img src="/icons/close-channel.png" alt="" (click)="close()">
     </div>
-    <div>
+    <div class="profile-img-div">
         <img src="/icons/profile-img-dialog.png" alt="">
     </div>
-    <div>
-        <h2>Name</h2>
-        <p>Bearbeiten</p>
-        <p>Status</p>
+    <div class="profile-name">
+        <h2>Max Mustermann</h2>
+        <p (click)="openDialog()">Bearbeiten</p>
     </div>
-    <div>
-        <img src="" alt="">
+    <div class="status-div">
+        <img src="/icons/Online.png" alt="">
+        <p class="status">Status</p>
+
+    </div>
+    <div class="email-div">
+        <img src="/icons/mail.png" alt="">
         <p>E-Mail-Adresse</p>
     </div>
-    <p>oliverplit2005gmail.com</p>
+    <p class="email-name">oliverplit2005gmail.com</p>
 </div>
