@@ -2,16 +2,12 @@ import { Component } from '@angular/core';
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-
 @Component({
-  selector: 'app-landing-page',
+  selector: 'app-reset-password',
   imports: [RouterModule],
-  templateUrl: './landing-page.html',
-  styleUrl: './landing-page.scss',
+  templateUrl: './reset-password.html',
+  styleUrl: './reset-password.scss',
 })
-
-
-
-export class LandingPage {
+export class ResetPassword {
 
 }

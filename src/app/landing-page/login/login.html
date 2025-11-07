@@ -1,1 +1,36 @@
-<p>login works!</p>
+<div class="login-container">
+  <div class="login-card mat-elevation-z4">
+    <h1 class="title">Anmeldung</h1>
+    <p class="subtitle">
+      Wir empfehlen dir, die E-Mail-Adresse zu nutzen, die du bei der Arbeit verwendest.
+    </p>
+
+    <div class="input-wrapper">
+      <span class="material-symbols-outlined">mail</span>
+      <input type="email" placeholder="beispielname@email.com" [(ngModel)]="email" />
+    </div>
+
+    <div class="input-wrapper">
+      <span class="material-symbols-outlined">lock</span>
+      <input type="password" placeholder="Passwort" [(ngModel)]="password" />
+    </div>
+
+    <a routerLink="/reset-password" class="forgot-link">Passwort vergessen?</a>
+
+<div class="divider-wrapper">
+  <div class="line"></div>
+  <span class="oder">ODER</span>
+  <div class="line"></div>
+</div>
+
+  <button class="google-btn">
+  <img src="/icons/Google.png" alt="Google" />
+  <span>Anmelden mit Google</span>
+</button>
+
+    <div class="buttons">
+      <button mat-flat-button color="primary" class="sign-up-btn" (click)="login()">Anmelden</button>
+      <button mat-stroked-button color="primary" class="guest-btn" (click)="guestLogin()">Gäste-Login</button>
+    </div>
+  </div>
+</div>
