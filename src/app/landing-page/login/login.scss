@@ -150,18 +150,4 @@
   display: flex;
   justify-content: center;
   gap: 16px;
-
-  button {
-    border-radius: 20px;
-    min-width: 130px;
-  }
-
-  .sign-up-btn:hover {
-background-color: #4d87d9;
-  }
-
-  .guest-btn:hover {
-    background-color: var(--mat-sys-primary);
-    color: white;
-  }
 }

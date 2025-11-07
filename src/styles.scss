@@ -10,23 +10,18 @@
   src: url('/fonts/static/Nunito-SemiBold.ttf') format('truetype');
   font-weight: 600;
   font-style: SemiBold;
-
 }
-
 
 @font-face {
   font-family: 'Nunito-noBold';
   src: url('/fonts/static/Nunito-Regular.ttf') format('truetype');
   font-weight: 700;
   font-style: Regular;
-
 }
-
 
 body {
   margin: 0;
   background-color: #eceefe;
-
 }
 
 .menu {
@@ -46,7 +41,7 @@ body {
   display: flex;
   justify-content: center;
 
-  >button {
+  > button {
     display: flex;
     justify-content: center;
   }
@@ -83,7 +78,6 @@ body {
   max-height: 940px !important;
 }
 
-
 .add-channel-dialog-panel .mat-mdc-dialog-surface {
   width: 872px !important;
   max-width: 872px !important;
@@ -96,7 +90,6 @@ body {
   overflow: hidden;
 }
 
-
 .profile-dialog-panel .mat-mdc-dialog-surface {
   border-top-left-radius: 30px !important;
   border-bottom-right-radius: 30px !important;
@@ -104,13 +97,12 @@ body {
   overflow: hidden;
 }
 
-
 button {
   font-family: 'Nunito';
   font-size: 18px;
   line-height: 100%;
   letter-spacing: 0%;
-  width: 141px;
+  width: 160px;
   height: 49px;
   border-radius: 25px !important;
   gap: 10px;
@@ -119,27 +111,30 @@ button {
   padding-right: 25px;
   padding-bottom: 12px;
   padding-left: 25px;
-  background-color: #444DF2;
+  background-color: #444df2;
   color: white;
   border: 1px solid;
-}
 
+  &:hover {
+    background-color: #4d87d9;
+    cursor: pointer;
+  }
+}
 
 input {
   width: 742px;
   border-radius: 40px;
-  border: 1px solid #ADB0D9;
+  border: 1px solid #adb0d9;
   gap: 20px;
   padding-top: 18px;
   padding-right: 20px;
   padding-bottom: 18px;
   padding-left: 20px;
   border-width: 1px;
-
 }
 
 input:focus {
-  border-color: #444DF2;
+  border-color: #444df2;
   outline: none;
   color: #1a1a1a;
 }
@@ -153,7 +148,7 @@ input::placeholder {
 }
 
 .button-white {
-  width: 141px;
+  width: 160px;
   height: 49px;
   padding-top: 12px;
   padding-right: 25px;
@@ -163,7 +158,12 @@ input::placeholder {
   opacity: 1;
   border-radius: 50px;
   border-width: 1px;
-  color: #444DF2;
+  color: #444df2;
   background-color: white;
 
+  &:hover {
+    background-color: #444df2;
+    color: white;
+    cursor: pointer;
+  }
 }
