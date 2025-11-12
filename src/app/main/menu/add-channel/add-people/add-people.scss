@@ -40,6 +40,12 @@
     }
 }
 
+
+.checkboxen {
+    margin-left: -40px;
+}
+
+
 .button-end {
     display: flex;
     justify-content: end;
@@ -57,6 +63,9 @@ label {
         height: 20px;
         opacity: 0;
 
+        &:hover {
+            cursor: pointer;
+        }
     }
 
     >p {
@@ -79,4 +88,29 @@ label {
     &::after {
         background-color: #444df2;
     }
+}
+
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    top: 25%;
+    left: 25%;
+    background-color: #444df2;
+    border-radius: 50%;
+    width: 15px;
+    height: 15px;
+    transform: translate(-55%, -25%) scale(0);
+
+}
+
+.input-name {
+    width: 594px;
+    margin-left: 40px;
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+label>input:checked+.checkmark::after {
+    transform: translate(-15%, -15%) scale(1);
 }

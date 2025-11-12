@@ -1,1 +1,56 @@
-<p>edit-channel works!</p>
+<div class="add-channel-main">
+  <div class="add-channel-header">
+    <h2># Channelname</h2>
+    <img src="/icons/close-channel.png" alt="" (click)="close()">
+
+  </div>
+  <div *ngIf="showInputName">
+    <div class="name-header">
+      <label for="name">Channel-Name</label>
+      <p (click)="saveEditName()">Speichern</p>
+    </div>
+    <label for="name">Channel-Name</label>
+    <input type="text" id="name" name="name" placeholder="z.B. Kooperationsprojekte" class="input-channel">
+  </div>
+  <div class="name-div" *ngIf="closeName">
+
+    <div class="name-header">
+      <label for="name">Channel-Name</label>
+      <p (click)="toggleEditName()">Bearbeiten</p>
+    </div>
+    <p>#Channelname</p>
+  </div>
+  <div *ngIf="showInputDescription">
+    <div class="name-header">
+      <label for="name" class="description">Beschreibung <p> (optional)</p></label>
+
+      <p (click)="saveEditDescription()">Speichern</p>
+    </div>
+    <input type="text" id="name" name="name" placeholder="Dein Text hier">
+
+  </div>
+  <div class="beschreibung-div" *ngIf="closeDescription">
+
+    <div class="name-header">
+      <label for="name" class="description">Beschreibung</label>
+      <p (click)="toggleEditDescription()">Bearbeiten</p>
+    </div>
+    <p>Dieser Channel ist für alles rund um #dfsdf vorgesehen. Hier kannst du zusammen mit deinem Team Meetings
+      abhalten, Dokumente teilen und Entscheidungen treffen.</p>
+    <hr>
+    <div class="created">
+      <label for="name">Erstellt von</label>
+      <p>Oliver Plit</p>
+    </div>
+  </div>
+
+
+
+
+
+
+
+  <div class="add-button">
+    <button (click)="close()">Channel verlassen</button>
+  </div>
+</div>

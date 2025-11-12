@@ -106,6 +106,17 @@ body {
 }
 
 
+.edit-channel-dialog-panel .mat-mdc-dialog-surface {
+  width: 872px !important;
+  max-width: 872px !important;
+  height: 616px;
+  border-top-right-radius: 30px !important;
+  border-bottom-right-radius: 30px !important;
+  border-bottom-left-radius: 30px !important;
+  overflow: hidden;
+}
+
+
 button {
   font-family: 'Nunito';
   font-size: 18px;

@@ -1,21 +1,24 @@
 <div class="dialog">
     <div class="header">
         <h2>Leute hinzufügen</h2>
-        <img src="/icons/close.png" alt="">
+        <img src="/icons/close.png" alt="" (click)="closeDialog()">
     </div>
-    <div>
+    <div class="checkboxen">
         <label>
-            <input type="radio" name="option" value="option1">
+            <input type="radio" name="option" value="option1" (change)="toggleExtraField(false)">
             <span class="checkmark"></span>
 
             <p> Alle Mitglieder von Entwicklerteam hinzufügen</p>
         </label>
 
         <label>
-            <input type="radio" name="option" value="option2">
+            <input type="radio" name="option" value="option2" (change)="toggleExtraField(true)">
             <span class="checkmark"></span>
             <p> Bestimmte Leute hinzufügen</p>
         </label>
+        <div *ngIf="showExtraFields">
+            <input type="text" placeholder="Name eingeben" class="input-name">
+        </div>
     </div>
     <div class="button-end">
         <button>Erstellen</button>
