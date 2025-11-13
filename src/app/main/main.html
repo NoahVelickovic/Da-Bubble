@@ -1,2 +1,5 @@
 <app-header></app-header>
-<app-menu> </app-menu>
+<app-menu (openNewMessage)="toggleNewMessage()"></app-menu>
+
+<app-channel-messages [showNewMessages]="showNewMessages" (closeNewMessage)="closeNewMessage()"></app-channel-messages>
+<app-threads></app-threads>

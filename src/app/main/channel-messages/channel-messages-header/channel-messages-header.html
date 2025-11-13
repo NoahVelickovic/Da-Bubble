@@ -1,1 +1,35 @@
-<p>channel-messages-header works!</p>
+<header>
+    <div class="channel-title" (click)="openEditChannel()">
+        <h2>
+            <span class="icon-box">
+                <img class="icon default" src="icons/tag.png" alt="">
+                <img class="icon hover" src="icons/tag_purple.png" alt="">
+            </span>
+
+            {{ channelName }}
+        </h2>
+
+        <span class="icon-box drop-down">
+            <img class="icon default" src="icons/keyboard_arrow_down.png" alt="">
+            <img class="icon hover" src="icons/expand_more.png" alt="">
+        </span>
+    </div>
+
+    <div class="channel-members">
+        <div class="preview-members" (click)="openEditMembers()">
+            <ng-container *ngFor="let m of membersRtl">
+                <div class="avatar" role="img" [attr.aria-label]="m.name" [class.you]="m.isYou"
+                    [style.background-image]="m.avatar ? 'url(' + m.avatar + ')' : null">
+                    <span *ngIf="!m.avatar"></span>
+                </div>
+            </ng-container>
+            
+            <span class="counter">{{ memberCount }}</span>
+        </div>
+
+        <span class="icon-box" (click)="openAddMembers()">
+            <img class="default" src="icons/person_add.png" alt="">
+            <img class="hover" src="icons/person_add_purple.png" alt="">
+        </span>
+    </div>
+</header>

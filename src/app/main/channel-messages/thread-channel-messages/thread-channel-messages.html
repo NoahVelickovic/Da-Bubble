@@ -1,1 +1,66 @@
-<p>thread-channel-messages works!</p>
+<div class="messages">
+    <ng-container *ngFor="let m of messages">
+
+        <div class="time-separator" *ngIf="m.timeSeparator">
+            <span>{{ m.timeSeparator }}</span>
+        </div>
+
+        <article class="message" *ngIf="!m.timeSeparator" [class.you]="m.isYou">
+            <div class="avatar" [class.you]="m.isYou"
+                [style.background-image]="m.avatar ? 'url(' + m.avatar + ')' : null">
+                <span *ngIf="!m.avatar"></span>
+            </div>
+
+            <div class="message-body">
+                <div class="meta">
+                    <strong>{{ m.author }}</strong>
+                    <time>{{ m.time }}</time>
+                </div>
+
+                <div class="text bubble">
+                    {{ m.text }}
+                </div>
+
+                <div class="reactions" *ngIf="m.reactions?.length">
+                    <div class="reaction" *ngFor="let r of m.reactions" [class.active]="r.youReacted" type="button">
+                        <img class="emoji" src="{{ r.emoji }}" alt="">
+                        <span class="count-emoji">{{ r.count }}</span>
+                    </div>
+
+                    <div class="response" *ngFor="let r of m.reactions">
+                        <span class="count-answere">{{ r.countAnsweres }} Antworten</span>
+                        <span class="answere">Letzte Antwort {{ r.time }}</span>
+                    </div>
+                </div>
+            </div>
+        </article>
+    </ng-container>
+</div>
+
+<footer class="composer">
+    <div class="composer-input">
+        <textarea [(ngModel)]="draft" placeholder="Nachricht an #{{ channelName }}"></textarea>
+
+        <div class="composer-actions">
+            <div class="d-flex">
+                <span class="icon-box" (click)="openAddEmojis()">
+                    <img class="default" src="icons/emoji_grey.png" alt="">
+                    <img class="hover1" src="icons/emoji_black.png" alt="">
+                    <img class="hover2" src="icons/emoji_purple.png" alt="">
+                </span>
+                <span class="icon-box" (click)="openAtMembers()">
+                    <img class="default" src="icons/at_grey.png" alt="">
+                    <img class="hover1" src="icons/at_black.png" alt="">
+                    <img class="hover2" src="icons/at_purple.png" alt="">
+                </span>
+            </div>
+
+            <div>
+                <span class="icon-box" (click)="sendMessage()">
+                    <img class="default" src="icons/Send icon.png" alt="">
+                    <img class="hover1" src="icons/Send icon_light.png" alt="">
+                </span>
+            </div>
+        </div>
+    </div>
+</footer>
