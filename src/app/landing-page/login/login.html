@@ -5,15 +5,17 @@
       Wir empfehlen dir, die E-Mail-Adresse zu nutzen, die du bei der Arbeit verwendest.
     </p>
 
-<label class="input-wrapper">
+<label class="input-wrapper" [ngClass]="{'error': submitted && emailError}">´
   <span class="material-symbols-outlined">mail</span>
   <input type="email" placeholder="beispielname@email.com" [(ngModel)]="email" />
 </label>
+<p *ngIf="submitted && emailError" class="error-message">Diese E-Mail Adresse ist leider ungültig</p>
 
-<label class="input-wrapper">
+<label class="input-wrapper" [ngClass]="{'error': submitted && loginError}">
   <span class="material-symbols-outlined">lock</span>
   <input type="password" placeholder="Passwort" [(ngModel)]="password" />
 </label>
+<p *ngIf="submitted && loginError" class="error-message">Falsches Passwort oder E-Mail. Bitte noch einmal versuchen.</p>
 
     <a routerLink="/reset-password" class="forgot-link">Passwort vergessen?</a>
 

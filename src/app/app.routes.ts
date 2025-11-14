@@ -15,8 +15,6 @@ export const routes: Routes = [
     children: [
       { path: '', component: Login },
       { path: 'signup', component: Signup },
-      { path: 'impressum', component: LegalNotice },
-      { path: 'datenschutz', component: PrivacyPolicy },
       { path: 'reset-password', component: ResetPassword },
       { path: 'detail/:id', component: DetailPage },
     ],
@@ -26,6 +24,21 @@ export const routes: Routes = [
     component: Main,
     children: [
       { path: '', component: Main },
+    ],
+  }
+  ,
+  {
+    path: 'legal-notice',
+    component: LegalNotice,
+     children: [
+      { path: '', component: LegalNotice },
+    ],
+  },
+  {
+    path: 'privacy-policy',
+    component: PrivacyPolicy,
+    children: [
+      { path: '', component: PrivacyPolicy },
     ],
   }
 ];

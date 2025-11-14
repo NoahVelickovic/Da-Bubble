@@ -6,7 +6,7 @@
 </div>
 
 <header>
-  <div class="header-logo">
+  <div class="header-logo"  [class.no-intro]="!showIntro">
   <img src="/icons/Logo (1).png" />
   <p>DABubble</p>
   </div>
@@ -19,6 +19,6 @@
   <router-outlet></router-outlet>
 </main>
 <footer>
-  <a routerLink="/impressum">Impressum</a>
-  <a routerLink="/datenschutz">Datenschutz</a>
+  <a routerLink="/legal-notice">Impressum</a>
+  <a routerLink="/privacy-policy">Datenschutz</a>
 </footer>

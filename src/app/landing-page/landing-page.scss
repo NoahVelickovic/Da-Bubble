@@ -185,3 +185,8 @@ footer {
     opacity: 1;
   }
 }
+
+.header-logo.no-intro {
+  opacity: 1;
+  animation: none !important;
+}

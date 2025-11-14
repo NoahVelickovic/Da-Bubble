@@ -17,6 +17,12 @@ export class LandingPage {
 showIntro = true;
 
 ngOnInit() {
+    const skip = localStorage.getItem('skipIntro');
+
+  if (skip === 'true') {
+    this.showIntro = false;
+    localStorage.removeItem('skipIntro');
+  }
   setTimeout(() => {
     this.showIntro = false;
   }, 3400);
