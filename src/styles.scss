@@ -97,14 +97,12 @@ body {
   overflow: hidden;
 }
 
-
 .add-people-dialog-panel .mat-mdc-dialog-surface {
   width: 710px !important;
   max-width: 872px !important;
   border-radius: 30px !important;
   overflow: hidden;
 }
-
 
 .edit-channel-dialog-panel .mat-mdc-dialog-surface {
   width: 872px !important;
@@ -115,7 +113,6 @@ body {
   border-bottom-left-radius: 30px !important;
   overflow: hidden;
 }
-
 
 .edit-members-dialog-panel .mat-mdc-dialog-surface {
   width: 415px !important;
@@ -128,7 +125,6 @@ body {
   overflow: visible !important;
 }
 
-
 .add-members-dialog-panel .mat-mdc-dialog-surface {
   width: 514px !important;
   max-width: 514px !important;
@@ -140,7 +136,14 @@ body {
   overflow: visible !important;
 }
 
-
+.profile-card-dialog-panel .mat-mdc-dialog-surface {
+  width: auto !important;
+  max-width: auto !important;
+  height: auto !important;
+  max-height: auto !important;
+  border-radius: 30px !important;
+  overflow: hidden;
+}
 
 button {
   font-family: 'Nunito';
