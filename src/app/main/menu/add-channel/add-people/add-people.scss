@@ -118,3 +118,10 @@ label {
 label>input:checked+.checkmark::after {
     transform: translate(-15%, -15%) scale(1);
 }
+
+.error p {
+  color: red;
+  font-size: 12px;
+  margin: 2px 0;
+  margin-left: 40px;
+}

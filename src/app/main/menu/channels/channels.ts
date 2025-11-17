@@ -4,7 +4,8 @@ import { Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { AddChannel } from '../add-channel/add-channel';
-
+import { ChannelService } from '../channel-service';
+import { Channel} from "../channels/channel.model";
 
 
 
@@ -14,10 +15,20 @@ import { AddChannel } from '../add-channel/add-channel';
   templateUrl: './channels.html',
   styleUrl: './channels.scss',
 })
-export class Channels  {
+export class Channels  implements OnInit{
   firestore: Firestore = inject(Firestore);
   channels$: Observable<any[]> | undefined;
+  channels: Channel[] = [];
 private dialog = inject(MatDialog);
+
+constructor(private channelService : ChannelService) {}
+
+ngOnInit(): void {
+  this.channelService.channels$.subscribe(data => {
+    this.channels = data;
+  })
+}
+
 
   openDialog() {
     this.dialog.open(AddChannel, {

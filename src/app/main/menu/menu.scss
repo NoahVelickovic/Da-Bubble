@@ -5,8 +5,8 @@
 }
 
 body {
-    overflow: hidden; 
-    height: 100%;  
+    overflow: hidden;
+    height: 100%;
 }
 
 section {
@@ -112,9 +112,8 @@ section {
     padding-left: 12px;
     border-top-right-radius: 30px;
     border-bottom-right-radius: 30px;
-    border: none !important;
-
-
+ border: 1px solid transparent;
+    box-shadow: 0 0 5px 1px rgba(128,128,128,0.5);
     &:hover {
         cursor: pointer;
         color: #797ef3;

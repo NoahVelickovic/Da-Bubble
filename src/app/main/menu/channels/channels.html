@@ -1,12 +1,12 @@
-<section >
-    <div class="main-container">
+<section>
+    <div class="main-container" *ngFor=" let channel of channels">
         <img src="/icons/tag-black.png" alt="">
-        <p>Channelname</p>
+        <p>{{(channel.name)}}</p>
     </div>
 
 </section>
 
 <div class="add-container" (click)="openDialog()">
     <img src="/icons/add-circle-channel.png" alt="">
-    <p >Channel hinzufügen</p>
+    <p>Channel hinzufügen</p>
 </div>

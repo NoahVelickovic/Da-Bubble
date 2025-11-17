@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { MatDialogRef } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 
-import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-add-people',
@@ -14,7 +13,7 @@ import { MatDialog } from '@angular/material/dialog';
 export class AddPeople {
   dialogRef = inject(MatDialogRef<AddPeople>)
   showExtraFields = false;
-selectedOption: 'option1' | 'option2' | null = null;
+  selectedOption: 'option1' | 'option2' | null = null;
   inputName = "";
 
   toggleExtraField(status: boolean) {
@@ -26,20 +25,20 @@ selectedOption: 'option1' | 'option2' | null = null;
     this.dialogRef.close();
   }
 
-isFormValid() : boolean {
-if (!this.selectedOption) return false;
+  isFormValid(): boolean {
+    if (!this.selectedOption) return false;
 
-if (this.selectedOption == 'option2') {
-  return this.inputName.trim().length > 3 
-}
+    if (this.selectedOption == 'option2') {
+      return this.inputName.trim().length > 3
+    }
 
 
-return true;
-}
+    return true;
+  }
 
-create() {
-  console.log('erstellt');
-  
-}
+  create() {
+    console.log('erstellt');
+
+  }
 
 }

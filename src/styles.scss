@@ -41,11 +41,23 @@ body {
   display: flex;
   justify-content: center;
 
-  >button {
+  >p {
     display: flex;
     justify-content: center;
   }
 }
+
+
+.mat-mdc-menu-content {
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  >p {
+    margin-top: 5px;
+
+  }
+}
+
 
 ::ng-deep .menu .mat-mdc-menu-content {
   display: flex;

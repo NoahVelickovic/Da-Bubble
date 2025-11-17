@@ -51,6 +51,11 @@ section {
 
 }
 
+
+.menu {
+      @extend %flex-space-between;
+  
+}
 .profile-menu {
     @extend %flex-space-between;
     padding-right: 45px;
@@ -72,10 +77,10 @@ section {
 }
 
 
-button {
+p {
     &:hover {
         filter: invert(43%) sepia(63%) saturate(7492%) hue-rotate(229deg) brightness(97%) contrast(96%);
         box-shadow: 0 0 12px rgba(255, 255, 255, 0.3), 0 0 4px rgba(255, 255, 255, 0.2);
-        border-radius: 50%;
+        cursor: pointer;
     }
 }

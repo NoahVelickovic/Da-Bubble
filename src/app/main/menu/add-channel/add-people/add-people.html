@@ -3,26 +3,40 @@
         <h2>Leute hinzufügen</h2>
         <img src="/icons/close.png" alt="" (click)="closeDialog()">
     </div>
-    <div class="checkboxen">
-        <label>
-            <input type="radio" name="option" value="option1" 
-            (click)="toggleExtraField(false)" [(ngModel)]="selectedOption">
-            <span class="checkmark"></span>
+    <form #peopleForm="ngForm">
 
-            <p> Alle Mitglieder von Entwicklerteam hinzufügen</p>
-        </label>
+        <div class="checkboxen">
+            <label>
+                <input type="radio" name="option1" value="option1" (click)="toggleExtraField(false)"
+                    [(ngModel)]="selectedOption">
+                <span class="checkmark"></span>
 
-        <label>
-            <input type="radio" name="option" value="option2" 
-            (click)="toggleExtraField(true)" [(ngModel)]="selectedOption">
-            <span class="checkmark"></span>
-            <p> Bestimmte Leute hinzufügen</p>
-        </label>
-        <div *ngIf="showExtraFields">
-            <input type="text" placeholder="Name eingeben" 
-            class="input-name" [(ngModel)]="inputName">
+                <p> Alle Mitglieder von Entwicklerteam hinzufügen</p>
+            </label>
+
+            <label>
+                <input type="radio" name="option2" value="option2" (click)="toggleExtraField(true)"
+                    [(ngModel)]="selectedOption">
+                <span class="checkmark"></span>
+                <p> Bestimmte Leute hinzufügen</p>
+            </label>
+            <div class="error" *ngIf="!selectedOption">
+                <p>Es muss eine Option ausgewählt sein</p>
+            </div>
+
+            <div [style.display]="showExtraFields ? 'block' : 'none'">
+                <input name="people" type="text" placeholder="Name eingeben" class="input-name" [(ngModel)]="inputName"
+                    #people="ngModel" required minlength="5">
+
+              
+            </div>
+              <div class="error" *ngIf="people.invalid && people.touched">
+                    <p *ngIf="people.errors?.['minlength']">Beschreibung muss mehr als 5 Zeichen haben</p>
+                </div>
+
         </div>
-    </div>
+    </form>
+
     <div class="button-end">
         <button [disabled]="!isFormValid()" (click)="closeDialog()">Erstellen</button>
     </div>
