@@ -145,6 +145,17 @@ body {
   overflow: hidden;
 }
 
+.at-members-dialog-panel .mat-mdc-dialog-surface {
+  width: 350px !important;
+  max-width: 350px !important;
+  height: 467px !important;
+  max-height: 467px !important;
+  border-top-left-radius: 20px !important;
+  border-top-right-radius: 20px !important;
+  border-bottom-right-radius: 20px !important;
+  overflow: hidden;
+}
+
 button {
   font-family: 'Nunito';
   font-size: 18px;

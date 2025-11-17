@@ -81,9 +81,19 @@ export class ThreadChannelMessages {
     });
   }
 
-  openAtMembers() {
+  openAtMembers(trigger: HTMLElement) {
+    const r = trigger.getBoundingClientRect();
+    const gap = 24;
+    const dlgW = 350;
+    const dlgH = 467;
+
     this.dialog.open(AtMembers, {
-      panelClass: 'at-members-dialog-panel'
+      width: dlgW + 'px',
+      panelClass: 'at-members-dialog-panel',
+      position: {
+        bottom: `${dlgH + gap}px`,
+        left: `${100 + dlgW}px`
+      }
     });
   }
 
