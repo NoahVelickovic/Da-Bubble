@@ -25,6 +25,7 @@ showIntro = true;
       .subscribe((event: any) => {
 this.showHeaderText = 
   !event.url.includes('/signup') &&
+  !event.url.includes('/choose-avatar') &&
   !event.url.includes('/reset-password');
       });
   }

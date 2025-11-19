@@ -6,7 +6,8 @@ import { Signup } from './landing-page/signup/signup';
 import { LandingPage } from './landing-page/landing-page';
 import { ResetPassword } from './landing-page/reset-password/reset-password';
 import { Main } from './main/main';
-import { DetailPage } from './detail-page/detail-page'; 
+import { DetailPage } from './detail-page/detail-page';
+import { ChooseAvatar } from './landing-page/choose-avatar/choose-avatar'; 
 
 export const routes: Routes = [
   {
@@ -15,6 +16,7 @@ export const routes: Routes = [
     children: [
       { path: '', component: Login },
       { path: 'signup', component: Signup },
+      { path: 'choose-avatar', component: ChooseAvatar },
       { path: 'reset-password', component: ResetPassword },
       { path: 'detail/:id', component: DetailPage },
     ],

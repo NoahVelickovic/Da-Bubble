@@ -6,7 +6,6 @@
       Mit deinem Namen und deiner E-Mail Adresse hast du dein neues DABubble-Konto
     </p>
 
-    <!-- NAME -->
     <label class="input-wrapper" [ngClass]="{ error: submitted && nameError }">
       <span class="material-symbols-outlined">perm_identity</span>
       <input
@@ -20,7 +19,6 @@
       Bitte geben Sie einen Namen ein
     </p>
 
-    <!-- EMAIL -->
     <label class="input-wrapper" [ngClass]="{ error: submitted && emailError }">
       <span class="material-symbols-outlined">mail</span>
       <input
@@ -34,7 +32,6 @@
       Diese E-Mail Adresse ist leider ungültig
     </p>
 
-    <!-- PASSWORD -->
     <label class="input-wrapper" [ngClass]="{ error: submitted && passwordError }">
       <span class="material-symbols-outlined">lock</span>
       <input
@@ -48,7 +45,6 @@
       Bitte geben Sie ein Passwort ein
     </p>
 
-    <!-- PRIVACY CHECKBOX -->
     <div class="privacy-policy" [ngClass]="{ error: submitted && privacyError }">
       <input type="checkbox" [(ngModel)]="acceptedPrivacy" />
       <p>Ich stimme der <a routerLink="/privacy-policy" class="forgot-link">Datenschutzerklärung</a> zu</p>

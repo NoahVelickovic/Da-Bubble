@@ -5,12 +5,12 @@ import { Router } from '@angular/router';
 import { RouterModule } from '@angular/router';
 
 @Component({
-  selector: 'app-signup',
+  selector: 'app-choose-avatar',
   imports: [CommonModule, FormsModule , RouterModule],
-  templateUrl: './signup.html',
-  styleUrl: './signup.scss',
+  templateUrl: './choose-avatar.html',
+  styleUrl: './choose-avatar.scss',
 })
-export class Signup {
+export class ChooseAvatar {
   constructor(private router: Router) {}
 
   text = '';
@@ -30,22 +30,11 @@ export class Signup {
   }
 
   signUp() {
-    this.submitted = true;
-    this.nameError = this.text.trim() === '';
-    this.emailError = !this.isValidEmail(this.email);
-    this.passwordError = this.password.trim() === '';
-    this.privacyError = !this.acceptedPrivacy;
-
-    if (this.nameError || this.emailError || this.passwordError || this.privacyError) {
-      return;
-    }
-
-
-    this.router.navigate(['/choose-avatar']);
+    this.router.navigate(['/']);
   }
 
   goBack() {
     localStorage.setItem('skipIntro', 'true');
-    this.router.navigate(['/']);
+    this.router.navigate(['/signup']);
   }
 }

@@ -1,0 +1,97 @@
+
+.login-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Nunito", sans-serif;
+}
+
+.login-card {
+  background: white;
+  border-radius: 20px;
+  padding: 48px;
+  text-align: center;
+  width: 450px;
+}
+
+.title {
+  color: #405cff;
+  font-size: 38px;
+  margin-bottom: 8px;
+  font-weight: 500;
+  margin-bottom: 32px;
+  margin-top: 0;
+}
+
+.subtitle {
+  font-size: 16px;
+  font-weight: 400;
+  color: #333;
+  text-align: left;
+}
+
+.material-symbols-outlined {
+  font-size: 20px;
+  margin-right: 12px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: end;
+  gap: 16px;
+}
+
+button {
+    width: 120px;
+}
+
+.back-arrow {
+  position: absolute;
+  top: 56px;
+  left: 42px;
+
+  font-size: 32px;
+  color: #4d96f6;
+  cursor: pointer;
+
+  transition: .2s ease;
+  z-index: 2000;
+}
+
+.back-arrow:hover {
+  color: #084ba3;
+  transform: translateX(-4px);
+}
+
+.disabled-btn {
+  background-color: #8a8a8a;
+  cursor: not-allowed;
+}
+
+.avatar-image {
+height: 200px;
+border-radius: 100px;
+}
+
+.avatar-selection {
+display: flex;
+justify-content: center;
+gap: 8px;
+margin-bottom: 48px;
+}
+
+.avatar-option {
+height: 60px;
+border-radius: 100px;
+padding: 4px;
+cursor: pointer;
+
+&:hover {
+    padding: 4px;
+    background-color: rgb(210, 210, 210);
+}
+}
