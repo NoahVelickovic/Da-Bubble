@@ -13,13 +13,15 @@
 
     <div class="mobile-menu" *ngIf="mobileMenuOpen">
         <div class="mobile-menu-content">
-            <img src="./icons/mobile-menu.png" alt="" class="menu-bar">
-            <div>
+            <div class="menu-bar-div">
+                <img src="./icons/mobile-menu.png" alt="" class="menu-bar" (click)="closeMobileMenu()">
+            </div>
+            <div class="profile-logo">
                 <img src="/icons/direct-person.png" alt="">
                 <p (click)="openDialog()">Profile</p>
 
             </div>
-            <div>
+            <div class="profile-logo">
                 <img src="/icons/logout.png" alt="">
                 <p (click)="logout()">Log out</p>
 

@@ -1,5 +1,6 @@
-<mat-drawer-container class="container-height" hasBackdrop="false" [class.menu-open]="isMenuOpen">
-    <mat-drawer #drawer class="sidenav" mode="over" [(opened)]="isMenuOpen">
+<mat-drawer-container class="container-height" hasBackdrop="false" [class.menu-open]="isMenuOpen"
+    [class.mobile]="isMobile">
+    <mat-drawer #drawer class="sidenav" [mode]="isMobile ? 'side' : 'over'" [(opened)]="isMenuOpen">
         <div class="header-menu">
             <div>
                 <img src="/icons/logo-menu-devspace.png" alt="">
@@ -8,7 +9,7 @@
             <img src="/icons/edit-square.png" alt="" class="write-message" (click)="onOpenNewMessage()">
         </div>
 
-        <div class="header-menu-channels" >
+        <div class="header-menu-channels">
             <div (click)="toggleChannels()">
                 <img src="/icons/arrow-drop-menu.png" alt="">
                 <img src="/icons/channel.png" alt="">
@@ -34,8 +35,9 @@
 
         </div>
     </mat-drawer>
-
 </mat-drawer-container>
+    <img src="/icons/mobile-new-message.png" alt="" *ngIf="isMobile" class="mobile-message" (click)="onOpenNewMessage()">
+
 <button type="button" class="button-menu" (click)="isMenuOpen = !isMenuOpen">
     {{ isMenuOpen ? 'Workspace-Menü schließen' : 'Workspace-Menü öffnen' }}
     <img [src]="isMenuOpen ? 'icons/workspace-menu.png' : 'icons/open-menu.png' " alt="">

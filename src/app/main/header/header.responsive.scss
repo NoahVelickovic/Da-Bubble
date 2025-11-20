@@ -73,11 +73,17 @@
 }
 
 @media (max-width: 400px) {
+    .menu-bar-div {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 
     .menu-bar {
         width: 62px;
         height: 6px;
         border-radius: 23px;
+        margin-top: 30px;
     }
 
     .mobile-menu {
@@ -85,16 +91,13 @@
         bottom: 0;
         left: 0;
         right: 0;
-
+        z-index: 1000;
         height: 180px;
         width: 100%;
-
         background: white;
         border-top-left-radius: 30px;
         border-top-right-radius: 30px;
-
         box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
-
         display: flex;
         justify-content: center;
         align-items: center;
@@ -109,18 +112,21 @@
         font-size: 25px;
         text-align: center;
         width: 100%;
-        margin-left: 50px;
 
         >div {
             display: flex;
             justify-content: row;
             align-items: center;
             gap: 10px;
-
             &:hover {
                 cursor: pointer;
             }
         }
+    }
+
+    .profile-logo {
+                    margin-left: 50px;
+                    height: 70px;
     }
 
     @keyframes slideUp {

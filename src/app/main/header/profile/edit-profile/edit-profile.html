@@ -10,13 +10,16 @@
         <img src="/icons/direct-person.png" alt="">
         <h2>Vollständiger Name</h2>
     </div>
-    <div>
-        <input type="text" placeholder="Oliver Plit">
-    </div>
-    <div class="edit-buttons">
-       <button class="button-cancel">Abbrechen</button>
-       <button>Speichern</button>
+    <form #channelForm="ngForm">
 
-    </div>
- 
+        <div>
+            <input type="text" placeholder="Oliver Plit" name="nameInputEdit" ngModel>
+        </div>
+        <div class="edit-buttons">
+            <button class="button-cancel" (click)="close()">Abbrechen</button>
+            <button type="button" (click)="save(channelForm)">Speichern</button>
+
+        </div>
+    </form>
+
 </div>

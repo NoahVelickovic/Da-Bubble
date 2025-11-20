@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Output, HostListener } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { AddChannel } from '../menu/add-channel/add-channel';
@@ -13,9 +13,9 @@ import { CommonModule } from '@angular/common';
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [MatButtonModule, MatSidenavModule, Channels,DirectMessages, CommonModule],
+  imports: [MatButtonModule, MatSidenavModule, Channels, DirectMessages, CommonModule],
   templateUrl: './menu.html',
-  styleUrl: './menu.scss',
+  styleUrls: ['./menu.scss', './menu.responsive.scss'],
 })
 export class Menu {
   showFiller = false;
@@ -23,10 +23,20 @@ export class Menu {
   showMessages = false;
   isMenuOpen = false;
   showNewMessages = false;
-    @Output() openNewMessage = new EventEmitter<void>();
+  isMobile = false;
 
-constructor(private dialog: MatDialog) {}
 
+  @Output() openNewMessage = new EventEmitter<void>();
+
+  constructor(private dialog: MatDialog) { }
+  @HostListener('window:resize')
+  checkWidth() {
+    this.isMobile = window.innerWidth <= 550;
+  }
+
+  ngOnInit() {
+    this.checkWidth();
+  }
   openDialog() {
     this.dialog.open(AddChannel, {
       panelClass: 'add-channel-dialog-panel'
@@ -34,26 +44,26 @@ constructor(private dialog: MatDialog) {}
   }
 
   onOpenNewMessage() {
-    this.openNewMessage.emit(); // sagt Parent: toggle
- }
-toggleChannels() {
-  this.showChannels = !this.showChannels;
-  if (this.showChannels) {
-    this.showMessages = false; 
+    this.openNewMessage.emit();
   }
-}
+  toggleChannels() {
+    this.showChannels = !this.showChannels;
+    if (this.showChannels) {
+      this.showMessages = false;
+    }
+  }
 
-toggleMessages() {
-  this.showMessages = !this.showMessages;
-  if (this.showMessages) {
-    this.showChannels = false;
+  toggleMessages() {
+    this.showMessages = !this.showMessages;
+    if (this.showMessages) {
+      this.showChannels = false;
+    }
   }
-}
 
   onDrawerChange(open: boolean) {
     this.isMenuOpen = open;
   }
-  
+
 }
 
 

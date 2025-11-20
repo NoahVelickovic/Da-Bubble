@@ -1,0 +1,44 @@
+.mobile-message {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10009000;
+}
+
+
+@media (max-width: 550px) {
+    .button-menu {
+        display: none;
+    }
+
+    .header-menu {
+        display: none;
+    }
+
+.container-height.mobile {
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    border-radius: 0;
+    z-index: 2000;
+  }
+
+  .container-height.mobile .sidenav {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    top: 0;
+    left: 0;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .container-height.mobile .channel-list {
+    flex-grow: 1;
+    overflow-y: auto;
+  }
+
+}

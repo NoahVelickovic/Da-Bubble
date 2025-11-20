@@ -24,7 +24,7 @@ export class Header {
   openDialog() {
     this.dialog.open(Profile, {
       panelClass: 'profile-dialog-panel',
-      position: { top: '120px', right: '20px' }
+    ...(this.isMobile ? {} : { position: { top: '120px', right: '20px' } })
 
     });
   }
@@ -41,6 +41,9 @@ export class Header {
   @HostListener('window:resize')
   checkWidth() {
     this.isMobile = window.innerWidth <= 400; 
+      if (!this.isMobile) {
+    this.mobileMenuOpen = false;
+  }
   }
 
   openMenu() {

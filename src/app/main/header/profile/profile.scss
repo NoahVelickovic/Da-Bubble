@@ -1,6 +1,6 @@
 .profile-main {
     height: 600px;
-    width: 500px !important;
+    width: 500px;
     max-width: 500px;
     gap: 38px;
     padding-top: 45px;
@@ -23,6 +23,7 @@
     justify-content: space-between;
     align-items: center;
     margin-top: -20px;
+
 
     >img {
         &:hover {
@@ -112,3 +113,5 @@
     margin-top: -5px;
 
 }
+
+
