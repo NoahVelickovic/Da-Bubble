@@ -19,8 +19,6 @@ import { Channel } from "../channels/channel.model";
 export class Channels implements OnInit {
   firestore: Firestore = inject(Firestore);
   channels$: Observable<any[]> | undefined;
-  channels: Channel[] = [
-  ];
 
   constructor(private channelService: FirebaseService, private dialog: MatDialog) { }
 

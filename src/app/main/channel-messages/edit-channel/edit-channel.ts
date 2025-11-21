@@ -1,6 +1,11 @@
 import { Component, inject } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { CommonModule } from '@angular/common';
+import { FirebaseService } from '../../../services/firebase';
+import { Channel } from "../../../main/menu/channels/channel.model";
+import { Observable } from 'rxjs';
+import { ChannelStoreService } from '../edit-channel/edit-file.service';
+
 
 
 @Component({
@@ -15,6 +20,15 @@ export class EditChannel {
   showInputDescription = false;
   closeName = true;
   closeDescription = true;
+  channels: Channel[] = [];
+
+  constructor(private channelStore: ChannelStoreService) { }
+
+  async ngOnInit() {
+    await this.channelStore.loadChannels();
+    this.channels = this.channelStore.getChannelsSync();
+  }
+
 
   close() {
     this.dialogRef.close();
@@ -32,7 +46,7 @@ export class EditChannel {
 
   }
 
-   saveEditName() {
+  saveEditName() {
     this.showInputName = false;
     this.closeName = true;
   }
