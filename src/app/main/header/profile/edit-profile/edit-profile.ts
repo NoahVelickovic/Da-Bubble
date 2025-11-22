@@ -4,6 +4,9 @@ import { FormsModule, NgForm } from '@angular/forms';
 
 
 
+
+
+
 @Component({
   selector: 'app-edit-profile',
   imports: [FormsModule],
@@ -12,7 +15,8 @@ import { FormsModule, NgForm } from '@angular/forms';
 })
 export class EditProfile {
 
-   dialogRef = inject(MatDialogRef<EditProfile>);
+
+  dialogRef = inject(MatDialogRef<EditProfile>);
 
 
   close() {
@@ -20,11 +24,11 @@ export class EditProfile {
   }
 
   save(channelForm: NgForm) {
-let nameInput = channelForm.value.nameInputEdit;
+    let nameInput = channelForm.value.nameInputEdit;
 
 
 
-console.log('gespeichert', nameInput);
+    console.log('gespeichert', nameInput);
 
 
 
