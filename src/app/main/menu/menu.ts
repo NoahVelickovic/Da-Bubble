@@ -24,7 +24,9 @@ export class Menu {
   isMenuOpen = false;
   showNewMessages = false;
   isMobile = false;
+  isChannelMessagesVisible = true;
 
+  @Output() toggleChannelMessages = new EventEmitter<boolean>();
 
   @Output() openNewMessage = new EventEmitter<void>();
 
@@ -32,6 +34,12 @@ export class Menu {
   @HostListener('window:resize')
   checkWidth() {
     this.isMobile = window.innerWidth <= 550;
+    if (this.isMobile) {
+      this.toggleChannelMessages.emit(false);
+      this.isMenuOpen = true;
+    } else {
+      this.toggleChannelMessages.emit(true);
+    }
   }
 
   ngOnInit() {

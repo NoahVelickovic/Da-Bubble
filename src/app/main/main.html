@@ -1,10 +1,13 @@
 <app-header></app-header>
 
 <div class="workspace-wrapper">
-  <app-menu (openNewMessage)="toggleNewMessage()"></app-menu>
+  <app-menu (openNewMessage)="toggleNewMessage()"   (toggleChannelMessages)="setChannelMessagesVisible($event)">
+></app-menu>
 
   <div class="main-content">
     <app-channel-messages
+        *ngIf="isChannelMessagesVisible"
+
       [showNewMessages]="showNewMessages"
       (closeNewMessage)="closeNewMessage()"
       [ngStyle]="channelMessagesStyle">

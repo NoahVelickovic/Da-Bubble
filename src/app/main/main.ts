@@ -18,7 +18,11 @@ export class Main {
 showNewMessages = false;
   isMenuOpen = true;
   showThreads = false;
+  isChannelMessagesVisible = true;
 
+setChannelMessagesVisible(value: boolean) {
+  this.isChannelMessagesVisible = value;
+}
   
   toggleNewMessage() {
     this.showNewMessages = !this.showNewMessages;
