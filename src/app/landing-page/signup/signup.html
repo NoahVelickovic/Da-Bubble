@@ -42,7 +42,7 @@
       />
     </label>
     <p *ngIf="submitted && passwordError" class="error-message">
-      Bitte geben Sie ein Passwort ein
+      Das Passwort muss mindestens 6 Zeichen lang sein
     </p>
 
     <div class="privacy-policy" [ngClass]="{ error: submitted && privacyError }">

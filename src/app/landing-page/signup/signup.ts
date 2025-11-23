@@ -36,7 +36,7 @@ export class Signup {
 
     this.nameError = this.text.trim() === '';
     this.emailError = !this.isValidEmail(this.email);
-    this.passwordError = this.password.trim() === '';
+    this.passwordError = this.password.trim() === '' || this.password.length < 6;
     this.privacyError = !this.acceptedPrivacy;
 
     if (this.nameError || this.emailError || this.passwordError || this.privacyError) {
@@ -54,10 +54,7 @@ export class Signup {
       await setDoc(doc(this.firestore, 'users', uid), {
         name: this.text,
         email: this.email,
-        avatar: '',
-        provider: 'password',
-        isGuest: false,
-        isOnline: true,
+        avatar: 'avatar1.png',
         isYou: true
       });
 
