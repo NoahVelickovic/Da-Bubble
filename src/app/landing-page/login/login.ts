@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -27,20 +27,19 @@ import { Auth, signInWithEmailAndPassword } from '@angular/fire/auth';
 export class Login {
   email = '';
   password = '';
-  submitted = false;
-  emailError = false;
-  loginError = false;
+  submitted = signal(false);
+  emailError = signal(false);
+  loginError = signal(false);
 
   constructor(private router: Router, private auth: Auth) {}
 
   async login() {
-    this.submitted = true;
+    this.submitted.set(true);
 
-    this.emailError = !this.email || !this.email.includes('@');
-    this.loginError = false;
-
-    if (this.emailError || !this.password) {
-      this.loginError = true;
+    this.emailError.set(!this.email || !this.email.includes('@'));
+    this.loginError.set(false);
+    if (this.emailError() || !this.password) {
+      this.loginError.set(true);
       return;
     }
 
@@ -54,29 +53,30 @@ export class Login {
       switch (err.code) {
         case 'auth/user-not-found':
         case 'auth/invalid-email':
-        case 'auth/invalid-credential':
-          this.emailError = true;
+          this.emailError.set(true);
           break;
 
         case 'auth/wrong-password':
-          this.loginError = true;
+        case 'auth/invalid-credential':
+          this.loginError.set(true);
+          this.emailError.set(false);
           break;
 
         default:
-          this.loginError = true;
-          this.emailError = true;
+          this.loginError.set(true);
+          this.emailError.set(true);
       }
     }
   }
 
   guestLogin() {
-  const guestUser = {
-    uid: 'guest',       
-    name: 'Guest',
-    avatar: 'avatar1.png'
-  };
+    const guestUser = {
+      uid: 'guest',
+      name: 'Guest',
+      avatar: 'avatar1.png',
+    };
 
-  localStorage.setItem('currentUser', JSON.stringify(guestUser));
-   this.router.navigate(['/main']);
-}
+    localStorage.setItem('currentUser', JSON.stringify(guestUser));
+    this.router.navigate(['/main']);
+  }
 }
