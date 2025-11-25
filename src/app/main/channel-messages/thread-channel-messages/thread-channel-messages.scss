@@ -4,6 +4,7 @@ $hoverBg: #ECEEFE;
 $hoverBgYou: #797EF3;
 $line: #ADB0D9;
 $textYou: #FFFFFF;
+$hoverCard: #444DF2;
 
 .messages {
   overflow: auto;
@@ -101,6 +102,9 @@ $textYou: #FFFFFF;
       display: flex;
       align-items: center;
       gap: 15px;
+      // display: flex;
+      // flex-direction: column-reverse;
+      // align-items: end;
 
       .reaction {
         display: inline-flex;
@@ -220,9 +224,6 @@ $textYou: #FFFFFF;
     }
   }
 
-
-
-
   &.you {
     flex-direction: row-reverse;
   }
@@ -246,6 +247,53 @@ $textYou: #FFFFFF;
     // .count {
     //   color: #686868;
     // }
+  }
+
+
+  .reaction-panel {
+    position: absolute;
+    z-index: 10;
+    pointer-events: auto;
+    background: $hoverCard;
+    color: $textYou;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
+
+    .panel-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: $textYou;
+      padding-top: 15px;
+      padding-right: 10px;
+      padding-bottom: 15px;
+      padding-left: 10px;
+      gap: 5px;
+
+      .emoji {
+        width: 30px;
+        height: 30px;
+      }
+
+      .panel-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-family: 'Nunito';
+        font-size: 16px;
+
+        .title {
+          font-weight: 700;
+          font-style: bold;
+        }
+
+        .subtitle {
+          font-weight: 400;
+          font-style: 'regular';
+        }
+      }
+    }
   }
 }
 
