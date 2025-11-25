@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, ElementRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AddEmojis } from '../add-emojis/add-emojis';
@@ -15,13 +15,30 @@ type Message = {
   isYou?: boolean;
   timeSeparator?: string;
 };
+
+type ReactionUser = {
+  uid: string;
+  name: string;
+};
+
 type Reaction = {
   countAnsweres: number;
   isAnswered?: boolean;
   time: string,
   emoji: string;
   count: number;
-  youReacted?: boolean
+  youReacted?: boolean;
+  users: ReactionUser[];
+};
+
+type ReactionPanelState = {
+  show: boolean;
+  x: number;
+  y: number;
+  emoji: string;
+  title: string;
+  subtitle: string;
+  messageId?: string;
 };
 
 @Component({
@@ -31,7 +48,24 @@ type Reaction = {
   styleUrl: './thread-channel-messages.scss',
 })
 export class ThreadChannelMessages {
+  private dialog = inject(MatDialog);
+  private hideTimer: any = null;
+  private host = inject(ElementRef<HTMLElement>);
+
   channelName = 'Entwicklerteam';
+
+  currentUserId = 'u_oliver';
+  currentUserName = 'Oliver Plit';
+
+  reactionPanel: ReactionPanelState = {
+    show: false,
+    x: 0,
+    y: 0,
+    emoji: '',
+    title: '',
+    subtitle: '',
+    messageId: ''
+  };
 
   membersPreview = [
     { name: 'Noah Braun' },
@@ -65,15 +99,24 @@ export class ThreadChannelMessages {
         'efficitur lectus vestibulum, quis accumsan ante vulputate. Quisque tristique iaculis ' +
         'erat, eu faucibus lacus iaculis ac.',
       reactions: [
-        { countAnsweres: 0, isAnswered: false, time: '15:00', emoji: 'icons/emojis/emoji_rocket.png', count: 1, youReacted: true },
+        {
+          countAnsweres: 0,
+          isAnswered: false,
+          time: '15:00',
+          emoji: 'icons/emojis/emoji_rocket.png',
+          count: 1,
+          youReacted: true,
+          users: [
+            { uid: 'u_sofia', name: 'Sofia Müller' },
+            { uid: 'u_oliver', name: 'Oliver Plit' },
+          ]
+        },
         // { countAnsweres: 0, isAnswered: false, time: '15:00', emoji: 'icons/emojis/emoji_nerd face.png', count: 1, youReacted: false },
         // { countAnsweres: 0, isAnswered: false, time: '15:00', emoji: 'icons/emojis/emoji_person raising both hands in celebration.png', count: 1, youReacted: false },
       ],
       isYou: true,
     },
   ];
-
-  private dialog = inject(MatDialog)
 
   openAddEmojis() {
     this.dialog.open(AddEmojis, {
@@ -108,5 +151,69 @@ export class ThreadChannelMessages {
       reactions: [],
     });
     this.draft = '';
+  }
+
+  showReactionPanel(m: Message, reaction: Reaction, event: MouseEvent) {
+    const element = event.currentTarget as HTMLElement;
+
+    const messageElement = element.closest('.message') as HTMLElement;
+    if (!messageElement) return;
+
+    const reactionRect = element.getBoundingClientRect();
+    const messageRect = messageElement.getBoundingClientRect();
+
+    const x = reactionRect.left - messageRect.left + 40;
+    const y = reactionRect.top - messageRect.top - 110;
+
+    const youReacted = reaction.users.some(u => u.uid === this.currentUserId);
+    const names = reaction.users.map(u => u.name);
+
+    let title = '';
+    if (youReacted && names.length > 0) {
+      const otherUsers = names.filter(name => name !== this.currentUserName);
+      if (otherUsers.length > 0) {
+        title = `${otherUsers.slice(0, 2).join(' und ')} und Du`;
+      } else {
+        title = 'Du';
+      }
+    } else if (names.length > 0) {
+      title = names.slice(0, 2).join(' und ');
+    } else {
+      title = '';
+    }
+
+    const subtitle = reaction.users?.length > 1 ? 'haben reagiert' : 'hat reagiert';
+
+    this.reactionPanel = {
+      show: true,
+      x: Math.max(10, x),
+      y: Math.max(10, y),
+      emoji: reaction.emoji,
+      title,
+      subtitle,
+      messageId: m.id
+    };
+  }
+
+  clearReactionPanelHide() {
+    if (this.hideTimer) {
+      clearTimeout(this.hideTimer);
+      this.hideTimer = null;
+    }
+  }
+
+  scheduleReactionPanelHide(delay = 120) {
+    this.clearReactionPanelHide();
+    this.hideTimer = setTimeout(() => {
+      this.reactionPanel.show = false;
+      this.reactionPanel.messageId = '';
+    }, delay);
+  }
+
+  cancelReactionPanelHide() {
+    if (this.hideTimer) {
+      clearTimeout(this.hideTimer);
+      this.hideTimer = null;
+    }
   }
 }

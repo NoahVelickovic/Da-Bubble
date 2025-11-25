@@ -1,4 +1,3 @@
-
 <div class="messages">
     <ng-container *ngFor="let m of messages">
 
@@ -6,7 +5,7 @@
             <span>{{ m.timeSeparator }}</span>
         </div>
 
-        <article class="message" *ngIf="!m.timeSeparator" [class.you]="m.isYou">
+        <article class="message" *ngIf="!m.timeSeparator" [class.you]="m.isYou" #messageRef>
             <div class="avatar" [class.you]="m.isYou"
                 [style.background-image]="m.avatar ? 'url(' + m.avatar + ')' : null">
                 <span *ngIf="!m.avatar"></span>
@@ -23,14 +22,28 @@
                 </div>
 
                 <div class="reactions" [class.you]="m.isYou" *ngIf="m.reactions?.length">
+                    <div class="reaction" *ngFor="let r of m.reactions" [class.active]="r.youReacted" type="button"
+                        (mouseenter)="showReactionPanel(m, r, $event)" (mouseleave)="scheduleReactionPanelHide()">
+                        <img class="emoji" src="{{ r.emoji }}" alt="">
+                        <span class="count-emoji">{{ r.count }}</span>
+                    </div>
+
                     <div class="response" *ngFor="let r of m.reactions">
                         <span class="count-answere">{{ r.countAnsweres }} Antworten</span>
                         <span class="answere">Letzte Antwort {{ r.time }}</span>
                     </div>
+                </div>
+            </div>
 
-                    <div class="reaction" *ngFor="let r of m.reactions" [class.active]="r.youReacted" type="button">
-                        <img class="emoji" src="{{ r.emoji }}" alt="">
-                        <span class="count-emoji">{{ r.count }}</span>
+            <div class="reaction-panel" *ngIf="reactionPanel.show && reactionPanel.messageId === m.id" [style.left.px]="reactionPanel.x"
+                [style.top.px]="reactionPanel.y" (mouseenter)="cancelReactionPanelHide()"
+                (mouseleave)="scheduleReactionPanelHide()">
+
+                <div class="panel-content">
+                    <img *ngIf="reactionPanel.emoji" class="emoji" [src]="reactionPanel.emoji" alt="">
+                    <div class="panel-text">
+                        <div class="title">{{ reactionPanel.title }}</div>
+                        <div class="subtitle">{{ reactionPanel.subtitle }}</div>
                     </div>
                 </div>
             </div>
@@ -40,22 +53,22 @@
                     <img class="default" src="icons/emojis/emoji_white heavy check mark.png" alt="">
                     <img class="hover" src="icons/emojis/emoji_white heavy check mark.png" alt="">
                 </span>
-                
+
                 <span class="icon-box">
                     <img class="default" src="icons/emojis/emoji_person raising both hands in celebration.png" alt="">
                     <img class="hover" src="icons/emojis/emoji_person raising both hands in celebration.png" alt="">
                 </span>
-                
+
                 <span class="icon-box">
                     <img class="default" src="icons/add_reaction.png" alt="">
                     <img class="hover" src="icons/add_reaction_purple.png" alt="">
                 </span>
-                
+
                 <span class="icon-box">
                     <img class="default" src="icons/comment.png" alt="">
                     <img class="hover" src="icons/comment_purple.png" alt="">
                 </span>
-                
+
                 <span class="icon-box d-none" [class.you]="m.isYou">
                     <img class="default" src="icons/more_vert.png" alt="">
                     <img class="hover" src="icons/more_vert_purple.png" alt="">
