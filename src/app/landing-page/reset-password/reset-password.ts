@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { Auth, sendPasswordResetEmail } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-reset-password',
@@ -11,12 +12,31 @@ import { Router } from '@angular/router';
   styleUrl: './reset-password.scss',
 })
 export class ResetPassword {
-  constructor(private router: Router) {}
+  constructor(private router: Router, private auth: Auth) {}
 email = '';
 submitted = false;
 
-resetPassword() {
+async resetPassword() {
+  this.submitted = true;
 
+  if (!this.emailValid(this.email)) {
+    return;
+  }
+
+  try {
+    await sendPasswordResetEmail(this.auth, this.email.trim());
+    this.submitted = false;
+    
+    alert('Passwort-Reset E-Mail wurde gesendet!');
+    this.router.navigate(['/']);
+
+  } catch (error) {
+  }
+}
+
+emailValid(email: string) {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return regex.test(email);
 }
  goBack() {
     localStorage.setItem('skipIntro', 'true');
