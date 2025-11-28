@@ -14,7 +14,6 @@ $hoverCard: #444DF2;
   gap: 20px;
   padding-right: 35px;
   padding-left: 35px;
-
 }
 
 .time-separator {
@@ -87,6 +86,7 @@ $hoverCard: #444DF2;
     }
 
     .text {
+      max-width: 700px;
       border-radius: 0 30px 30px 30px;
       background-color: $hoverBg;
       padding: 15px;
@@ -163,6 +163,52 @@ $hoverCard: #444DF2;
     }
   }
 
+  .reaction-panel {
+    position: absolute;
+    z-index: 10;
+    pointer-events: auto;
+    background: $hoverCard;
+    color: $textYou;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
+
+    .panel-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: $textYou;
+      padding-top: 15px;
+      padding-right: 10px;
+      padding-bottom: 15px;
+      padding-left: 10px;
+      gap: 5px;
+
+      .emoji {
+        width: 30px;
+        height: 30px;
+      }
+
+      .panel-text {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-family: 'Nunito';
+        font-size: 16px;
+
+        .title {
+          font-weight: 700;
+          font-style: bold;
+        }
+
+        .subtitle {
+          font-weight: 400;
+          font-style: 'regular';
+        }
+      }
+    }
+  }
+
   .reaction-bar {
     position: absolute;
     top: -24px;
@@ -224,6 +270,47 @@ $hoverCard: #444DF2;
     }
   }
 
+  .edit-message-panel {
+    position: absolute;
+    top: 0px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    background-color: $textYou;
+    border-top-right-radius: 30px;
+    border-bottom-right-radius: 30px;
+    border-bottom-left-radius: 30px;
+    padding-top: 10px;
+    padding-right: 20px;
+    padding-bottom: 10px;
+    padding-left: 20px;
+    box-shadow: 0px 6px 14px 0px rgba(0, 0, 0, 0.2);
+
+    span {
+      background-color: $textYou;
+      border-radius: 100px;
+      padding-top: 10px;
+      padding-right: 20px;
+      padding-bottom: 10px;
+      padding-left: 20px;
+      font-family: 'Nunito';
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    &:hover {
+      span {
+        background-color: $hoverBg;
+        color: $primary;
+      }
+    }
+
+    &.you {
+      right: auto;
+      left: 250px;
+    }
+  }
+
   &.you {
     flex-direction: row-reverse;
   }
@@ -247,53 +334,6 @@ $hoverCard: #444DF2;
     // .count {
     //   color: #686868;
     // }
-  }
-
-
-  .reaction-panel {
-    position: absolute;
-    z-index: 10;
-    pointer-events: auto;
-    background: $hoverCard;
-    color: $textYou;
-    border-top-left-radius: 30px;
-    border-top-right-radius: 30px;
-    border-bottom-right-radius: 30px;
-
-    .panel-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: $textYou;
-      padding-top: 15px;
-      padding-right: 10px;
-      padding-bottom: 15px;
-      padding-left: 10px;
-      gap: 5px;
-
-      .emoji {
-        width: 30px;
-        height: 30px;
-      }
-
-      .panel-text {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        font-family: 'Nunito';
-        font-size: 16px;
-
-        .title {
-          font-weight: 700;
-          font-style: bold;
-        }
-
-        .subtitle {
-          font-weight: 400;
-          font-style: 'regular';
-        }
-      }
-    }
   }
 }
 

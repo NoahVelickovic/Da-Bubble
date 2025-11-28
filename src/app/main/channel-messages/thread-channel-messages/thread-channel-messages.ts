@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject } from '@angular/core';
+import { Component, ElementRef, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AddEmojis } from '../add-emojis/add-emojis';
@@ -50,7 +50,10 @@ type ReactionPanelState = {
 export class ThreadChannelMessages {
   private dialog = inject(MatDialog);
   private hideTimer: any = null;
+  private editHideTimer: any = null;
   private host = inject(ElementRef<HTMLElement>);
+
+  editForId: string | null = null;
 
   channelName = 'Entwicklerteam';
 
@@ -215,5 +218,47 @@ export class ThreadChannelMessages {
       clearTimeout(this.hideTimer);
       this.hideTimer = null;
     }
+  }
+
+  toggleEditMessagePanel(m: Message, ev: MouseEvent) {
+    ev.stopPropagation();
+    this.clearEditMessagePanelHide();
+    this.editForId = this.editForId === m.id ? null : m.id;
+  }
+
+  scheduleEditMessagePanelHide(m: Message) {
+    if (this.editForId !== m.id) return;
+    this.clearEditMessagePanelHide();
+    this.editHideTimer = setTimeout(() => {
+      this.editForId = null;
+    });
+  }
+
+  cancelEditMessagePanelHide(_: Message) {
+    this.clearEditMessagePanelHide();
+  }
+
+  private clearEditMessagePanelHide() {
+    if (this.editHideTimer) {
+      clearTimeout(this.editHideTimer);
+      this.editHideTimer = null;
+    }
+  }
+
+  editMessage(ev: MouseEvent) {
+    ev.stopPropagation();
+    this.editForId = null;
+  }
+
+  @HostListener('document:click', ['$event'])
+  closeOnOutsideClick(ev: MouseEvent) {
+    if (!this.host.nativeElement.contains(ev.target as Node)) {
+      this.editForId = null;
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  closeOnEsc() {
+    this.editForId = null;
   }
 }
