@@ -6,9 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Channels } from '../menu/channels/channels';
 import { DirectMessages } from '../menu/direct-messages/direct-messages';
 import { CommonModule } from '@angular/common';
-
-
-
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-menu',
@@ -30,7 +28,7 @@ export class Menu {
 
   @Output() openNewMessage = new EventEmitter<void>();
 
-  constructor(private dialog: MatDialog, ) { }
+  constructor(private dialog: MatDialog, private cd: ChangeDetectorRef) {}
   @HostListener('window:resize')
   checkWidth() {
     this.isMobile = window.innerWidth <= 550;
@@ -47,7 +45,7 @@ export class Menu {
   }
   openDialog() {
     this.dialog.open(AddChannel, {
-      panelClass: 'add-channel-dialog-panel'
+      panelClass: 'add-channel-dialog-panel',
     });
   }
 
@@ -68,10 +66,8 @@ export class Menu {
     }
   }
 
-  onDrawerChange(open: boolean) {
-    this.isMenuOpen = open;
+  onDrawerChange(boolean: any) {
+    this.isMenuOpen = !this.isMenuOpen;
+    this.cd.detectChanges();
   }
-
 }
-
-
