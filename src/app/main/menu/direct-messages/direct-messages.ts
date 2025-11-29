@@ -28,7 +28,14 @@ export class DirectMessages {
 
   async ngOnInit() {
     this.directMessage$ = this.firebaseService.getCollection$('directMessages');
-    this.initUserId()
+
+    await this.initUserId();
+    this.firebaseService.currentName$.subscribe((name) => {
+      if (name) {
+        this.userName = name;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
 
@@ -44,6 +51,7 @@ export class DirectMessages {
     if (snap.exists()) {
       const data: any = snap.data();
       this.userName = data.name;
+      this.firebaseService.setName(this.userName);
       this.cdr.detectChanges();
     }
 

@@ -25,11 +25,19 @@ export class Header {
   userAvatar = '';
 
   openDialog() {
-    this.dialog.open(Profile, {
+    const ref = this.dialog.open(Profile, {
       panelClass: 'profile-dialog-panel',
       ...(this.isMobile ? {} : { position: { top: '120px', right: '20px' } }),
     });
+
+    ref.afterClosed().subscribe((updatedName?: string) => {
+      if (updatedName) {
+        this.userName = updatedName;
+        this.cd.detectChanges();
+      }
+    });
   }
+
 
   logout() {
     this.router.navigate(['']);

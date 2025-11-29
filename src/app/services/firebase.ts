@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Firestore, doc, getDoc, collection, getDocs, addDoc, collectionData  } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 
 
 
@@ -9,7 +10,8 @@ import { Observable } from 'rxjs';
 })
 export class FirebaseService {
     private firestore = inject(Firestore);
-
+private nameSource = new BehaviorSubject<string>('');
+  currentName$ = this.nameSource.asObservable();
 
   constructor() {}
 
@@ -33,7 +35,9 @@ export class FirebaseService {
     return addDoc(colRef, data);
   }
 
-
+ setName(name: string) {
+    this.nameSource.next(name);
+  }
   
 
 }

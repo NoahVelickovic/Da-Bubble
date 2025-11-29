@@ -26,6 +26,8 @@ export class AddPeople implements OnInit {
  selectedPeople: { name: string, avatar?: string }[] = [];
 allPeople: { name: string, avatar?: string }[] = [];
 filteredPeople: { name: string, avatar?: string }[] = [];
+hasFocus: boolean = false;
+activeIndex: number = -1;
 
 
 
@@ -75,15 +77,19 @@ filteredPeople: { name: string, avatar?: string }[] = [];
 
 
   selectPerson(person: { name: string, avatar?: string }) {
-    debugger; 
-    if (this.selectedPeople.find(p => p.name === person.name && p.avatar === person.avatar)) return
-    this.selectedPeople.push(person);
 
-  this.allPeople = this.allPeople.filter(p => p.name !== person.name || p.avatar !== person.avatar);
-    this.filterPeople();
+  if (this.selectedPeople.some(p => p.name === person.name)) return;
 
-    this.inputName = '';
-  }
+  this.selectedPeople.push(person);
+
+  // Remove from full list
+  this.allPeople = this.allPeople.filter(
+    p => p.name !== person.name || p.avatar !== person.avatar
+  );
+
+  this.inputName = '';
+  this.filteredPeople = [];
+}
 
 
   removePerson(person: { name: string }) {

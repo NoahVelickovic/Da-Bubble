@@ -8,6 +8,9 @@ import { DirectMessages } from '../menu/direct-messages/direct-messages';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
 
+
+
+
 @Component({
   selector: 'app-menu',
   standalone: true,
@@ -45,7 +48,7 @@ export class Menu {
   }
   openDialog() {
     this.dialog.open(AddChannel, {
-      panelClass: 'add-channel-dialog-panel',
+      panelClass: 'add-channel-dialog-panel'
     });
   }
 
@@ -66,8 +69,11 @@ export class Menu {
     }
   }
 
-  onDrawerChange(boolean: any) {
+   onDrawerChange(boolean: any) {
     this.isMenuOpen = !this.isMenuOpen;
     this.cd.detectChanges();
   }
+
 }
+
+
