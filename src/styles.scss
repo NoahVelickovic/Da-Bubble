@@ -159,6 +159,15 @@ body {
   overflow: hidden;
 }
 
+.add-emojis-dialog-panel .mat-mdc-dialog-surface {
+  width: auto !important;
+  height: auto !important;
+  border-top-left-radius: 20px !important;
+  border-top-right-radius: 20px !important;
+  border-bottom-right-radius: 20px !important;
+  overflow: hidden;
+}
+
 .at-members-dialog-panel .mat-mdc-dialog-surface {
   width: 350px !important;
   max-width: 350px !important;

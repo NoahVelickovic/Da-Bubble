@@ -121,9 +121,19 @@ export class ThreadChannelMessages {
     },
   ];
 
-  openAddEmojis() {
+  openAddEmojis(trigger: HTMLElement) {
+    const r = trigger.getBoundingClientRect();
+    const gap = 24;
+    const dlgW = 350;
+    const dlgH = 467;
+
     this.dialog.open(AddEmojis, {
-      panelClass: 'add-emojis-dialog-panel'
+      width: dlgW + 'px',
+      panelClass: 'add-emojis-dialog-panel',
+      position: {
+        bottom: `${dlgH + gap}px`,
+        left: `${64 + dlgW}px`
+      }
     });
   }
 
