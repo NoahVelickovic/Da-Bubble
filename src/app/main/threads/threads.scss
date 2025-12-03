@@ -2,6 +2,10 @@
     background-color: #FFFFFF !important;
 }
 
+app-threads-header {
+    z-index: 1;
+}
+
 aside {
     width: 485px;
     height: 940px;
@@ -9,4 +13,9 @@ aside {
     position: absolute;
     top: 157px;
     left: 1415px;
+
+    display: grid;
+    grid-template-rows: auto 1fr;
+    min-height: 0;
+    overflow: hidden;
 }
