@@ -23,9 +23,9 @@ export class AddPeople implements OnInit {
   inputName: string = "";
   peopleList: string[] = [];
   directMessagePeople: Observable<any[]> | undefined;
-  selectedPeople: { name: string, avatar?: string }[] = [];
-  allPeople: { name: string, avatar?: string }[] = [];
-  filteredPeople: { name: string, avatar?: string }[] = [];
+  selectedPeople: { name: string, avatar?: string, email?: string }[] = [];
+  allPeople: { name: string, avatar?: string, email?: string }[] = [];
+  filteredPeople: { name: string, avatar?: string, email?: string }[] = [];
   hasFocus: boolean = false;
   activeIndex: number = -1;
 
@@ -34,13 +34,24 @@ export class AddPeople implements OnInit {
 
   ngOnInit() {
     const dmRef = collection(this.firestore, 'directMessages');
+
     collectionData(dmRef, { idField: 'id' })
-      .pipe(map(users => users.map(u => ({ name: u['name'] as string, avatar: u['avatar'] as string }))))
+      .pipe(
+        map(users =>
+          users.map(u => ({
+            name: u['name'] as string,
+            avatar: u['avatar'] as string,
+            email: (u['email'] as string) ?? ''
+          }))
+        )
+      )
       .subscribe(users => {
         this.allPeople = users;
         this.filteredPeople = [];
       });
   }
+
+
   onOptionChange(opt: 'option1' | 'option2') {
     this.selectedOption = opt;
     if (opt === 'option2') {
@@ -127,6 +138,7 @@ export class AddPeople implements OnInit {
     const uid = user.uid;
     const userName = user.name || 'Unbekannt';
     const userAvatar = user.avatar || '';
+    const userEmail = user.email || 'keine Mail';
 
     const channelId = this.data.channelId;
     const membershipRef = doc(
@@ -137,14 +149,15 @@ export class AddPeople implements OnInit {
     // Stelle sicher, dass members existiert
     await setDoc(membershipRef, { members: [] }, { merge: true });
 
-    // Option 2: ausgewählte Personen hinzufügen
     if (this.selectedOption === 'option2') {
       for (let p of this.selectedPeople) {
         await updateDoc(membershipRef, {
           members: arrayUnion({
             name: p.name,
             avatar: p.avatar ?? '',
-            status: 'online'
+            status: 'online',
+            email: p.email ?? ''
+
           })
         });
       }
@@ -160,7 +173,8 @@ export class AddPeople implements OnInit {
             members: arrayUnion({
               name: user['name'],
               avatar: user['avatar'] ?? '',
-              status: 'online'
+              status: 'online',
+              email: user['email']
             })
           });
         }
@@ -171,7 +185,8 @@ export class AddPeople implements OnInit {
       members: arrayUnion({
         name: userName,
         avatar: userAvatar,
-        status: 'online'
+        status: 'online',
+        email: userEmail,
       })
     });
 

@@ -7,6 +7,8 @@ import { Channels } from '../menu/channels/channels';
 import { DirectMessages } from '../menu/direct-messages/direct-messages';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectorRef } from '@angular/core';
+import { directMessageContact } from '../menu/direct-messages/direct-messages.model'; // ← Import hinzufügen
+
 
 
 
@@ -29,8 +31,10 @@ export class Menu {
   userName: string = '';
 
   @Output() toggleChannelMessages = new EventEmitter<boolean>();
+ @Output() ChatDirectMessage = new EventEmitter<directMessageContact>();
+  @Output() ChatDirectYou = new EventEmitter<void>();
 
-  @Output() openNewMessage = new EventEmitter<void>();
+   @Output() openNewMessage = new EventEmitter<void>();
 
   constructor(private dialog: MatDialog, private cd: ChangeDetectorRef) {}
   @HostListener('window:resize')
@@ -48,6 +52,15 @@ export class Menu {
     this.checkWidth();
   }
   
+onChatDirectMessage(dm: directMessageContact) {
+    console.log('Menu: Event empfangen, leite weiter...'); // DEBUG
+    this.ChatDirectMessage.emit(dm); // Leite es weiter nach oben
+  }
+
+  onChatDirectYou() {
+    console.log('Menu: Event empfangen, leite weiter...'); // DEBUG
+    this.ChatDirectYou.emit(); // Leite es weiter nach oben
+  }
 
  
   openDialog() {
@@ -59,6 +72,8 @@ export class Menu {
   onOpenNewMessage() {
     this.openNewMessage.emit();
   }
+
+
   toggleChannels() {
     this.showChannels = !this.showChannels;
     if (this.showChannels) {

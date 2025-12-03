@@ -1,10 +1,10 @@
-<div class="main-container">
+<div class="main-container" (click)="openChatYou()">
     <img src="/icons/profile-menu.png" alt="">
     <p>{{userName}} (Du)</p>
 
 </div>
 
-<div class="main-container" *ngFor="let dm of directMessage$ | async">
+<div class="main-container" *ngFor="let dm of directMessage$ | async" (click)="openChatDirectMessage(dm)">
     <img [src]="'/icons/avatars/' + dm.avatar" alt="" class>
     <p>{{dm.name}}</p>
 

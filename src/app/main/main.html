@@ -1,18 +1,34 @@
 <app-header></app-header>
 
 <div class="workspace-wrapper">
-  <app-menu (openNewMessage)="toggleNewMessage()"   (toggleChannelMessages)="setChannelMessagesVisible($event)">
-></app-menu>
+  <app-menu 
+    (openNewMessage)="toggleNewMessage()" 
+    (ChatDirectMessage)="toggleNewDirectChat($event)"
+        (ChatDirectYou)="toggleNewDirectChatYou()"   
+   
+    (toggleChannelMessages)="setChannelMessagesVisible($event)">
+  </app-menu>
+  
+  <!-- HIER FEHLT app-direct-messages! -->
+  <app-direct-messages 
+    (ChatDirectMessage)="toggleNewDirectChat($event)">
+  </app-direct-messages>
 
   <div class="main-content">
     <app-channel-messages
-        *ngIf="isChannelMessagesVisible"
-
+      *ngIf="isChannelMessagesVisible"
       [showNewMessages]="showNewMessages"
       (closeNewMessage)="closeNewMessage()"
       [ngStyle]="channelMessagesStyle">
     </app-channel-messages>
 
-    <app-threads ></app-threads>
+    <!-- chat-direct-message MUSS AUF GLEICHER EBENE wie channel-messages sein! -->
+     <app-chat-direct-message
+      *ngIf="showNewMessagesChat && selectedChatUser"
+      [chatUser]="selectedChatUser"
+      (closeChat)="closeDirectChat()">
+    </app-chat-direct-message>
+
+    <app-threads></app-threads>
   </div>
 </div>

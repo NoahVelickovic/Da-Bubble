@@ -31,7 +31,7 @@
 
         </div>
         <div class="channel-list" *ngIf="showMessages">
-            <app-direct-messages></app-direct-messages>
+            <app-direct-messages (ChatDirectMessage)="onChatDirectMessage($event)" (ChatDirectYou)="onChatDirectYou()"></app-direct-messages>
 
         </div>
     </mat-drawer>

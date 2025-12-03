@@ -24,7 +24,7 @@
     <p class="email-name">{{ data.email }}</p>
 
     <footer class="footer">
-        <button class="button">
+        <button class="button" (click)="openChatDirectMessage(data)">
             <img src="/icons/mode_comment.png" alt="">
             <span>Nachricht</span>
         </button>

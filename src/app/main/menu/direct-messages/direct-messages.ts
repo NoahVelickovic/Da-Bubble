@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, EventEmitter, Output, HostListener, inject } from '@angular/core';
 import { directMessageContact } from './direct-messages.model';
 import { FirebaseService } from '../../../services/firebase';
 import { Observable } from 'rxjs';
@@ -11,14 +11,20 @@ import { ChangeDetectorRef } from '@angular/core';
 
 
 
+
+
 @Component({
   selector: 'app-direct-messages',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule,],
   templateUrl: './direct-messages.html',
   styleUrl: './direct-messages.scss',
 })
 export class DirectMessages {
+ @Output() ChatDirectMessage = new EventEmitter<directMessageContact>();
+  @Output() ChatDirectYou = new EventEmitter<void>();
+
+
   directMessage: directMessageContact[] = [];
   private firestore = inject(Firestore);
   private cdr: ChangeDetectorRef = inject(ChangeDetectorRef);
@@ -26,6 +32,7 @@ export class DirectMessages {
   userAvatar: string = '';
   constructor(private firebaseService: FirebaseService) { }
   directMessage$: Observable<directMessageContact[]> | undefined;
+
 
   async ngOnInit() {
     this.directMessage$ = this.firebaseService.getCollection$('directMessages');
@@ -56,5 +63,16 @@ export class DirectMessages {
       this.cdr.detectChanges();
     }
 
+  }
+
+
+  openChatDirectMessage(dm: directMessageContact) {
+    console.log('Klick erkannt'); 
+    this.ChatDirectMessage.emit(dm);
+  }
+
+   openChatYou() {
+    console.log('Klick erkannt'); 
+    this.ChatDirectMessage.emit();
   }
 }

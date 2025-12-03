@@ -6,16 +6,15 @@ import { AtMembers } from '../../channel-messages/at-members/at-members';
 import { CommonModule } from '@angular/common';
 import { directMessageContact } from '../direct-messages/direct-messages.model';
 import { ProfileCard } from '../../../shared/profile-card/profile-card';
-
-
 @Component({
-  selector: 'app-chat-direct-message',
-  imports: [CommonModule, FormsModule],
-  templateUrl: './chat-direct-message.html',
-  styleUrl: './chat-direct-message.scss',
+  selector: 'app-chat-direct-you',
+  imports: [],
+  templateUrl: './chat-direct-you.html',
+  styleUrl: './chat-direct-you.scss',
 })
-export class ChatDirectMessage {
-  @Input() chatUser: directMessageContact | null = null;
+export class ChatDirectYou {
+
+ @Input() chatUser: directMessageContact | null = null;
 @Output() close = new EventEmitter<void>();
     private dialog = inject(MatDialog)
 
@@ -48,3 +47,4 @@ export class ChatDirectMessage {
       });
     }
 }
+
