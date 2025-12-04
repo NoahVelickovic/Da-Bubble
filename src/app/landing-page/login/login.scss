@@ -163,3 +163,14 @@ box-shadow: 0 0 0 1px red;
   margin: -24px 0 8px 8px;
   font-size: 12px;
 }
+
+@media (max-width: 500px) {
+  .login-card {
+    width: 300px;
+    padding: 32px;
+  }
+
+  button {
+    font-size: 14px;
+  }
+}
