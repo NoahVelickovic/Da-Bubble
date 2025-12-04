@@ -25,55 +25,45 @@
             </div>
 
             <div *ngIf="showExtraFields" class="multi-select">
-<ng-container *ngFor="let person of selectedPeople">
-                        <span class="chip">
-                            <img class="avatar"
-                                 [src]="'/icons/avatars/' + person.avatar"
-                                 [alt]="person.name" />
-                            
-                            <span class="name">{{ person.name }}</span>
+                <ng-container *ngFor="let person of selectedPeople">
+                    <span class="chip">
+                        <img class="avatar" [src]="'/icons/avatars/' + person.avatar" [alt]="person.name" />
 
-                            <span class="icon-box-remove" (click)="removePerson(person)">
-                                <img class="default" src="/icons/close.png" alt="">
-                                <img class="hover" src="/icons/close_purple.png" alt="">
-                            </span>
+                        <span class="name">{{ person.name }}</span>
+
+                        <span class="icon-box-remove" (click)="removePerson(person)">
+                            <img class="default" src="/icons/close.png" alt="">
+                            <img class="hover" src="/icons/close_purple.png" alt="">
                         </span>
-                    </ng-container>
+                    </span>
+                </ng-container>
 
-                    <!-- Input im Chip-Feld -->
-                    <input class="input-name"
-                           type="text"
-                           placeholder="{{ selectedPeople.length ? '' : 'Name eingeben...'}}"
-                           [(ngModel)]="inputName"
-                           [ngModelOptions]="{standalone: true}"
-                           (input)="filterPeople()"
-                           (keydown)="onInputKeydown($event)">
+                <!-- Input im Chip-Feld -->
+                <input class="input-name" type="text" placeholder="{{ selectedPeople.length ? '' : 'Name eingeben...'}}"
+                    [(ngModel)]="inputName" [ngModelOptions]="{standalone: true}" (input)="filterPeople()"
+                    (keydown)="onInputKeydown($event)">
 
-                    <!-- Dropdown -->
-                    <div class="dropdown"
-                         *ngIf="inputName.length >= 1 && filteredPeople.length > 0 && selectedOption === 'option2'">
+                <!-- Dropdown -->
+                <div class="dropdown"
+                    *ngIf="inputName.length >= 1 && filteredPeople.length > 0 && selectedOption === 'option2'">
 
-                        <button class="option"
-                                *ngFor="let p of filteredPeople"
-                                (mousedown)="$event.preventDefault()"
-                                (click)="selectPerson(p)">
-                            
-                            <img class="avatar"
-                                 [src]="'/icons/avatars/' + p.avatar"
-                                 [alt]="p.name">
+                    <button class="option" *ngFor="let p of filteredPeople" (mousedown)="$event.preventDefault()"
+                        (click)="selectPerson(p)">
 
-                            <div class="meta">
-                                <div class="row">
-                                    <span class="name">{{ p.name }}</span>
-                                   
-                                </div>
+                        <img class="avatar" [src]="'/icons/avatars/' + p.avatar" [alt]="p.name">
+
+                        <div class="meta">
+                            <div class="row">
+                                <span class="name">{{ p.name }}</span>
+
                             </div>
+                        </div>
 
-                        </button>
+                    </button>
 
-                    </div>
+                </div>
 
-                
+
 
             </div>
             <div class="button-end">

@@ -58,8 +58,8 @@ onChatDirectMessage(dm: directMessageContact) {
   }
 
   onChatDirectYou() {
-    console.log('Menu: Event empfangen, leite weiter...'); // DEBUG
-    this.ChatDirectYou.emit(); // Leite es weiter nach oben
+    console.log('Menu: Event empfangen, leite weiter...'); 
+    this.ChatDirectYou.emit(); 
   }
 
  

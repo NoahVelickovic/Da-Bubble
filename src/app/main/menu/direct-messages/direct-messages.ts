@@ -22,8 +22,7 @@ import { ChangeDetectorRef } from '@angular/core';
 })
 export class DirectMessages {
  @Output() ChatDirectMessage = new EventEmitter<directMessageContact>();
-  @Output() ChatDirectYou = new EventEmitter<void>();
-
+  @Output() ChatDirectYou = new EventEmitter<void>(); 
 
   directMessage: directMessageContact[] = [];
   private firestore = inject(Firestore);
@@ -71,8 +70,8 @@ export class DirectMessages {
     this.ChatDirectMessage.emit(dm);
   }
 
-   openChatYou() {
+   openChatYou() { 
     console.log('Klick erkannt'); 
-    this.ChatDirectMessage.emit();
+    this.ChatDirectYou.emit();
   }
 }

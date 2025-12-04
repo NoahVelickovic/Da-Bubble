@@ -4,15 +4,9 @@
   <app-menu 
     (openNewMessage)="toggleNewMessage()" 
     (ChatDirectMessage)="toggleNewDirectChat($event)"
-        (ChatDirectYou)="toggleNewDirectChatYou()"   
-   
+    (ChatDirectYou)="toggleNewDirectChatYou()"   
     (toggleChannelMessages)="setChannelMessagesVisible($event)">
   </app-menu>
-  
-  <!-- HIER FEHLT app-direct-messages! -->
-  <app-direct-messages 
-    (ChatDirectMessage)="toggleNewDirectChat($event)">
-  </app-direct-messages>
 
   <div class="main-content">
     <app-channel-messages
@@ -22,12 +16,18 @@
       [ngStyle]="channelMessagesStyle">
     </app-channel-messages>
 
-    <!-- chat-direct-message MUSS AUF GLEICHER EBENE wie channel-messages sein! -->
-     <app-chat-direct-message
+    <!-- DIRECT CHAT FÜR USER -->
+    <app-chat-direct-message
       *ngIf="showNewMessagesChat && selectedChatUser"
       [chatUser]="selectedChatUser"
       (closeChat)="closeDirectChat()">
     </app-chat-direct-message>
+
+    <!-- DIRECT CHAT FÜR DICH SELBST -->
+   <app-chat-direct-you
+  *ngIf="showNewMessagesYou"
+  (close)="closeDirectChatYou()">
+</app-chat-direct-you>
 
     <app-threads></app-threads>
   </div>

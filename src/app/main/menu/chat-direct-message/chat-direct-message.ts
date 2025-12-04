@@ -6,6 +6,7 @@ import { AtMembers } from '../../channel-messages/at-members/at-members';
 import { CommonModule } from '@angular/common';
 import { directMessageContact } from '../direct-messages/direct-messages.model';
 import { ProfileCard } from '../../../shared/profile-card/profile-card';
+import { DirectChatService } from '../../../services/direct-chat-service';
 
 
 @Component({
@@ -16,35 +17,52 @@ import { ProfileCard } from '../../../shared/profile-card/profile-card';
 })
 export class ChatDirectMessage {
   @Input() chatUser: directMessageContact | null = null;
-@Output() close = new EventEmitter<void>();
-    private dialog = inject(MatDialog)
+  @Output() close = new EventEmitter<void>();
+  private dialog = inject(MatDialog)
+constructor(private directChatService: DirectChatService) {}
 
+ngOnInit() {
+  this.directChatService.chatUser$.subscribe(user => {
+    if (user) {
+      this.chatUser = user;
+    }
+  });
+}
 
   closeMessage() {
-    this.close.emit(); 
+    this.close.emit();
   }
 
 
   openAddEmojis() {
-      this.dialog.open(AddEmojis, {
-        panelClass: 'add-emojis-dialog-panel'
-      });
-    }
-  
-    openAtMembers() {
-      this.dialog.open(AtMembers, {
-        panelClass: 'at-members-dialog-panel'
-      });
-    }
-
-    sendMessage() {
-  
+    this.dialog.open(AddEmojis, {
+      panelClass: 'add-emojis-dialog-panel'
+    });
   }
 
-  openProfile(member: any) {
-      this.dialog.open(ProfileCard, {
-      data: member,
-        panelClass: 'profile-dialog-panel'
-      });
-    }
+  openAtMembers() {
+    this.dialog.open(AtMembers, {
+      panelClass: 'at-members-dialog-panel'
+    });
+  }
+
+  sendMessage() {
+
+  }
+
+ openProfile(member: directMessageContact) {
+  const dialogRef = this.dialog.open(ProfileCard, {
+    data: member,
+    panelClass: 'profile-dialog-panel'
+  });
+
+  // WICHTIG: Type cast nötig, sonst TS meckert
+  const profileComponent = dialogRef.componentInstance as ProfileCard;
+
+  profileComponent.ChatDirectMessage.subscribe((dm: directMessageContact) => {
+    console.log('Event vom ProfileCard empfangen:', dm);
+    this.chatUser = dm;        // Chat auf den gewählten User wechseln
+    this.close.emit();          // optional: alte Chat-Komponente schließen
+  });
+}
 }

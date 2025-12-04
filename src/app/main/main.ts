@@ -8,24 +8,38 @@ import { Threads } from "./threads/threads";
 import { CommonModule } from '@angular/common';
 import { DirectMessages } from '../main/menu/direct-messages/direct-messages';
 import { ChatDirectMessage } from '../main/menu/chat-direct-message/chat-direct-message';
-import { directMessageContact } from '../main/menu/direct-messages/direct-messages.model'; // ← Import hinzufügen
+import { directMessageContact } from '../main/menu/direct-messages/direct-messages.model'; 
+import { ChatDirectYou } from '../main/menu/chat-direct-you/chat-direct-you';
+import { DirectChatService } from '../services/direct-chat-service';
 
 
 
 @Component({
   selector: 'app-main',
-  imports: [Header, ChatDirectMessage, Menu, ChannelMessages, DirectMessages, Threads, CommonModule, MatButtonModule, MatSidenavModule],
+  imports: [Header, ChatDirectMessage, Menu, ChannelMessages, DirectMessages, ChatDirectYou, Threads, CommonModule, MatButtonModule, MatSidenavModule],
   templateUrl: './main.html',
   styleUrl: './main.scss',
 })
 export class Main {
   showNewMessages = false;
-  showNewMessagesChat = false
+  showNewMessagesChat = false;
+    showNewMessagesYou = false
   isMenuOpen = true;
   showThreads = false;
   isChannelMessagesVisible = true;
   selectedChatUser: directMessageContact | null = null;
 
+constructor(private directChatService: DirectChatService) {}
+
+
+ngOnInit() {
+  this.directChatService.chatUser$.subscribe(user => {
+    if (user) {
+      this.selectedChatUser = user;
+      this.showNewMessagesChat = true; // WICHTIG: sonst wird *ngIf nie true
+    }
+  });
+}
 
   setChannelMessagesVisible(value: boolean) {
     this.isChannelMessagesVisible = value;
@@ -35,22 +49,26 @@ export class Main {
     this.showNewMessages = !this.showNewMessages;
   }
 
-  toggleNewDirectChat(dm: directMessageContact) { // ← Parameter hinzufügen
+  toggleNewDirectChat(dm: directMessageContact) {
     console.log('3. Main: Event empfangen!', dm);
     this.selectedChatUser = dm;
-    this.showNewMessagesChat = true; // ← Immer auf true setzen
+    this.showNewMessagesChat = true; 
     console.log('4. Main: Chat geöffnet für:', this.selectedChatUser);
   }
 
-  toggleNewDirectChatYou() { // ← Parameter hinzufügen
-    console.log('3. Main: Event empfangen!');
-    this.showNewMessagesChat = true; // ← Immer auf true setzen
-    console.log('4. Main: Chat geöffnet für:', this.selectedChatUser);
+  toggleNewDirectChatYou() { 
+    console.log('3. Main: You empfangen!');
+    this.showNewMessagesYou = true; 
+    
   }
 
   closeNewMessage() {
     this.showNewMessages = false;
   }
+
+  closeDirectChatYou() {
+  this.showNewMessagesYou = false;
+}
 
   get channelMessagesStyle(): { [key: string]: string } {
     const style: { [key: string]: string } = {};

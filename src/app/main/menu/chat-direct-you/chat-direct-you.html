@@ -1,14 +1,16 @@
-<div class="main-container" *ngIf="chatUser as user">
+<div class="main-container">
     <div class="header">
         <img src="/icons/avatars/avatar2.png" alt="" class="avatar">
-        <h2>Du</h2>
+        <h2>{{userName}} (Du)</h2>
     </div>
     <div class="second-container">
         <div>
-        <img src="/icons/avatars/avatar2.png" alt="" class="avatar">
-            <h2>Du</h2>
+            <img src="/icons/avatars/avatar2.png" alt="" class="avatar">
+            <h2 (click)="openProfileHeader()">{{userName}} (Du)</h2>
         </div>
-        <p>Diese Unterhaltung findet nur zwischen <span (click)="openProfile(user)" class="name-color">@{{user.name}}</span> und dir statt.</p>
+        <p>Dieser Raum ist nur für dich da.</p> <span> Mache dir Notizen, liste deine To-dos auf oder bewahre Links und
+            Dateien griffbereit auf. Du kannst hier
+            auch gerne Dinge mit dir selbst besprechen</span>
     </div>
     <footer class="composer">
         <div class="composer-input">
