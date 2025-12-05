@@ -19,6 +19,7 @@ $hoverCard: #444DF2;
   flex-direction: column;
   gap: 20px;
   min-height: 0;
+  padding-top: 30px;
 }
 
 .messages {
@@ -58,7 +59,8 @@ $hoverCard: #444DF2;
 }
 
 .thread-root,
-.replies {
+.reply {
+  position: relative;
   display: flex;
   //flex-direction: column;
   gap: 20px;
@@ -238,7 +240,7 @@ $hoverCard: #444DF2;
     }
   }
 
-.reaction-bar {
+  .reaction-bar {
     position: absolute;
     top: -24px;
     right: 20px;
@@ -301,7 +303,8 @@ $hoverCard: #444DF2;
 
   .edit-message-panel {
     position: absolute;
-    top: 0px;
+    top: 10px;
+    left: 120px;
     z-index: 2;
     display: flex;
     align-items: center;
@@ -336,7 +339,6 @@ $hoverCard: #444DF2;
 
     &.you {
       right: auto;
-      left: 250px;
     }
   }
 
@@ -363,16 +365,10 @@ $hoverCard: #444DF2;
 }
 
 .replies {
+  display: flex;
   flex-direction: column;
+  gap: 20px;
 }
-
-
-
-
-
-
-
-
 
 .composer {
   border: 1px solid $line;

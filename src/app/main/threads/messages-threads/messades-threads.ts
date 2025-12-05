@@ -71,11 +71,23 @@ export class MessadesThreads implements AfterViewInit {
   currentUserId = 'u_oliver';
   currentUserName = 'Oliver Plit';
 
-  root = {
+  root: Reply = {
+    id: 'root',
     author: 'Noah Braun',
     time: '14:25 Uhr',
     avatar: 'icons/avatars/avatar3.png',
     text: 'Welche Version ist aktuell von Angular?',
+    reactions: [
+        {
+          emoji: 'icons/emojis/emoji_rocket.png',
+          count: 2,
+          youReacted: true,
+          users: [
+            { uid: 'u_sofia', name: 'Sofia Müller' },
+            { uid: 'u_oliver', name: 'Oliver Plit' },
+          ]
+        }
+      ],
     isYou: false,
   };
 
@@ -167,13 +179,6 @@ export class MessadesThreads implements AfterViewInit {
 
   draft = '';
 
-
-
-
-
-
-  
-
   openAddEmojis(trigger: HTMLElement) {
     const r = trigger.getBoundingClientRect();
     const gap = 24;
@@ -222,14 +227,14 @@ export class MessadesThreads implements AfterViewInit {
   showReactionPanel(reply: Reply, r: Reaction, event: MouseEvent) {
     const element = event.currentTarget as HTMLElement;
 
-    const messageElement = element.closest('.message') as HTMLElement;
-    if (!messageElement) return;
+    const host = element.closest('.reply, .thread-root') as HTMLElement;
+    if (!host) return;
 
     const reactionRect = element.getBoundingClientRect();
-    const messageRect = messageElement.getBoundingClientRect();
+    const hostRect = host.getBoundingClientRect();
 
-    const x = reactionRect.left - messageRect.left + 40;
-    const y = reactionRect.top - messageRect.top - 110;
+    const x = reactionRect.left - hostRect.left + 40;
+    const y = reactionRect.top - hostRect.top - 110;
 
     const youReacted = r.users.some(u => u.uid === this.currentUserId);
     const names = r.users.map(u => u.name);
