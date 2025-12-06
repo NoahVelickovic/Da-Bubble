@@ -1,44 +1,43 @@
-<mat-drawer-container class="container-height" hasBackdrop="false" [class.menu-open]="isMenuOpen"
-    [class.mobile]="isMobile">
-    <mat-drawer #drawer class="sidenav" [mode]="isMobile ? 'side' : 'over'" [(opened)]="isMenuOpen">
-        <div class="header-menu">
-            <div>
-                <img src="/icons/logo-menu-devspace.png" alt="">
-                <h2>Devspace</h2>
-            </div>
-            <img src="/icons/edit-square.png" alt="" class="write-message" (click)="onOpenNewMessage()">
-        </div>
+<mat-drawer-container class="container-height" hasBackdrop="false" [class.menu-open]="isMenuOpen" [class.mobile]="isMobile">
+  <mat-drawer #drawer class="sidenav" [mode]="isMobile ? 'side' : 'over'" [(opened)]="isMenuOpen">
+    <div class="header-menu">
+      <div>
+        <img src="/icons/logo-menu-devspace.png" alt="">
+        <h2>Devspace</h2>
+      </div>
+      <img src="/icons/edit-square.png" alt="" class="write-message" (click)="onOpenNewMessage()">
+    </div>
 
-        <div class="header-menu-channels">
-            <div (click)="toggleChannels()">
-                <img src="/icons/arrow-drop-menu.png" alt="">
-                <img src="/icons/channel.png" alt="">
-                <h3>Channels</h3>
-            </div>
-            <img src="/icons/add-channel.png" alt="" class="write-message" matButton (click)="openDialog()">
+    <div class="header-menu-channels">
+      <div (click)="toggleChannels()">
+        <img src="/icons/arrow-drop-menu.png" alt="">
+        <img src="/icons/channel.png" alt="">
+        <h3>Channels</h3>
+      </div>
+      <img src="/icons/add-channel.png" alt="" class="write-message" matButton (click)="openDialog()">
+    </div>
+    
+    <div class="channel-list" *ngIf="showChannels">
+      <app-channels></app-channels>
+    </div>
 
-        </div>
-        <div class="channel-list" *ngIf="showChannels">
-            <app-channels ></app-channels>
-        </div>
-
-        <div class="header-menu-channels" (click)="toggleMessages()">
-            <div>
-                <img src="/icons/arrow-drop-menu.png" alt="">
-                <img src="/icons/direct-person.png" alt="">
-                <h3>Direktnachrichten</h3>
-            </div>
-
-        </div>
-        <div class="channel-list" *ngIf="showMessages">
-            <app-direct-messages (ChatDirectMessage)="onChatDirectMessage($event)" (ChatDirectYou)="onChatDirectYou()"></app-direct-messages>
-
-        </div>
-    </mat-drawer>
+    <div class="header-menu-channels" (click)="toggleMessages()">
+      <div>
+        <img src="/icons/arrow-drop-menu.png" alt="">
+        <img src="/icons/direct-person.png" alt="">
+        <h3>Direktnachrichten</h3>
+      </div>
+    </div>
+    
+    <div class="channel-list" *ngIf="showMessages">
+      <app-direct-messages></app-direct-messages>
+    </div>
+  </mat-drawer>
 </mat-drawer-container>
-    <img src="/icons/mobile-new-message.png" alt="" *ngIf="isMobile" class="mobile-message" (click)="onOpenNewMessage()">
+
+<img src="/icons/mobile-new-message.png" alt="" *ngIf="isMobile" class="mobile-message" (click)="onOpenNewMessage()">
 
 <button type="button" class="button-menu" (click)="onDrawerChange($event)">
-    {{ isMenuOpen ? 'Workspace-Menü schließen' : 'Workspace-Menü öffnen' }}
-    <img [src]="isMenuOpen ? 'icons/workspace-menu.png' : 'icons/open-menu.png' " alt="">
+  {{ isMenuOpen ? 'Workspace-Menü schließen' : 'Workspace-Menü öffnen' }}
+  <img [src]="isMenuOpen ? 'icons/workspace-menu.png' : 'icons/open-menu.png'" alt="">
 </button>

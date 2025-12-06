@@ -18,3 +18,16 @@ app-threads {
   width: 485px;
   flex-shrink: 0; /* verhindert schrumpfen */
 }
+
+
+ .main-layout {
+      display: flex;
+      height: 100vh;
+      width: 100%;
+    }
+
+    .content-area {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }

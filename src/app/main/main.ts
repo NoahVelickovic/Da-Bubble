@@ -11,12 +11,13 @@ import { ChatDirectMessage } from '../main/menu/chat-direct-message/chat-direct-
 import { directMessageContact } from '../main/menu/direct-messages/direct-messages.model'; 
 import { ChatDirectYou } from '../main/menu/chat-direct-you/chat-direct-you';
 import { DirectChatService } from '../services/direct-chat-service';
+import { RouterOutlet } from '@angular/router';
 
 
 
 @Component({
   selector: 'app-main',
-  imports: [Header, ChatDirectMessage, Menu, ChannelMessages, DirectMessages, ChatDirectYou, Threads, CommonModule, MatButtonModule, MatSidenavModule],
+  imports: [Header, RouterOutlet, ChatDirectMessage, Menu, ChannelMessages, DirectMessages, ChatDirectYou, Threads, CommonModule, MatButtonModule, MatSidenavModule],
   templateUrl: './main.html',
   styleUrl: './main.scss',
 })
@@ -34,14 +35,7 @@ export class Main {
 constructor(private directChatService: DirectChatService) {}
 
 
-ngOnInit() {
-  this.directChatService.chatUser$.subscribe(user => {
-    if (user) {
-      this.selectedChatUser = user;
-      this.showNewMessagesChat = true;
-    }
-  });
-}
+
 
 
 openChatYou() {

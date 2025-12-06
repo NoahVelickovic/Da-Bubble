@@ -3,4 +3,5 @@ export interface directMessageContact {
     name: string;
     avatar: string;
     state: boolean;
+    id : string;
 }

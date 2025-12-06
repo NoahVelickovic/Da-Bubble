@@ -1,34 +1,10 @@
 <app-header></app-header>
 
-<div class="workspace-wrapper">
-  <app-menu 
-    (openNewMessage)="toggleNewMessage()" 
-    (ChatDirectMessage)="toggleNewDirectChat($event)"
-    (ChatDirectYou)="toggleNewDirectChatYou()"   
-    (toggleChannelMessages)="setChannelMessagesVisible($event)">
-  </app-menu>
+<div class="workspace-wrapper main-layout">
+  <app-menu></app-menu>
 
   <div class="main-content">
-    <app-channel-messages
-      *ngIf="isChannelMessagesVisible"
-      [showNewMessages]="showNewMessages"
-      (closeNewMessage)="closeNewMessage()"
-      [ngStyle]="channelMessagesStyle">
-    </app-channel-messages>
-
-    <!-- DIRECT CHAT FÜR USER -->
-    <app-chat-direct-message
-      *ngIf="showNewMessagesChat && selectedChatUser"
-      [chatUser]="selectedChatUser"
-      (closeChat)="closeDirectChat()">
-    </app-chat-direct-message>
-
-    <!-- DIRECT CHAT FÜR DICH SELBST -->
-   <app-chat-direct-you
-  *ngIf="showNewMessagesYou"
-  (close)="closeDirectChatYou()">
-</app-chat-direct-you>
-
+    <router-outlet></router-outlet>
     <app-threads></app-threads>
   </div>
 </div>

@@ -1,11 +1,10 @@
-import { Component, inject, OnInit, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Router } from '@angular/router';
 import { Firestore, collection, doc, collectionData } from '@angular/fire/firestore';
 import { CommonModule } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { AddChannel } from '../add-channel/add-channel';
-import { getDoc } from '@angular/fire/firestore';
-import { ChannelStateService } from '../channels/channel.service'
-
+import { ChannelStateService } from './channel.service';
 
 @Component({
   selector: 'app-channels',
@@ -16,12 +15,16 @@ import { ChannelStateService } from '../channels/channel.service'
 })
 export class Channels implements OnInit {
   firestore: Firestore = inject(Firestore);
+  router = inject(Router);
   memberships: any[] = [];
-  selectedChannel: any = null;
+  selectedChannelId: string = '';
 
+  constructor(
+    private dialog: MatDialog, 
+    private cdr: ChangeDetectorRef, 
+    private channelState: ChannelStateService
+  ) { }
 
-  constructor(private dialog: MatDialog, private cdr: ChangeDetectorRef, private channelState: ChannelStateService ) { }
-@Output() channelClicked = new EventEmitter<any>();
   ngOnInit() {
     this.loadData();
   }
@@ -40,7 +43,7 @@ export class Channels implements OnInit {
       this.memberships = memberships;
       this.cdr.detectChanges();
 
-        if (memberships.length > 0) {
+      if (memberships.length > 0 && !this.selectedChannelId) {
         this.onChannelClick(memberships[0]);
       }
     });
@@ -50,9 +53,9 @@ export class Channels implements OnInit {
     this.dialog.open(AddChannel, { panelClass: 'add-channel-dialog-panel' });
   }
 
-onChannelClick(channel: any) {
-    this.selectedChannel = channel;
+  onChannelClick(channel: any) {
+    this.selectedChannelId = channel.id;
     this.channelState.selectChannel(channel);
-    
+    this.router.navigate(['/main/channels']);
   }
 }

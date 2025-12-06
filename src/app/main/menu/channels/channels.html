@@ -1,12 +1,14 @@
 <section>
-  <div class="main-container" *ngFor="let membership of memberships" (click)="onChannelClick(membership)">
-        <img src="/icons/tag-black.png" alt="">
-        <p>{{membership.name}}</p>
-    </div>
-
+  <div class="main-container" 
+       *ngFor="let membership of memberships" 
+       (click)="onChannelClick(membership)"
+       [class.active]="selectedChannelId === membership.id">
+    <img src="/icons/tag-black.png" alt="">
+    <p>{{membership.name}}</p>
+  </div>
 </section>
 
 <div class="add-container" (click)="openDialog()">
-    <img src="/icons/add-circle-channel.png" alt="">
-    <p>Channel hinzufügen</p>
+  <img src="/icons/add-circle-channel.png" alt="">
+  <p>Channel hinzufügen</p>
 </div>

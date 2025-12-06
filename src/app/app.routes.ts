@@ -1,3 +1,4 @@
+// app.routes.ts
 import { Routes } from '@angular/router';
 import { LegalNotice } from './landing-page/legal-notice/legal-notice';
 import { Login } from './landing-page/login/login';
@@ -8,6 +9,9 @@ import { ResetPassword } from './landing-page/reset-password/reset-password';
 import { Main } from './main/main';
 import { DetailPage } from './detail-page/detail-page';
 import { ChooseAvatar } from './landing-page/choose-avatar/choose-avatar'; 
+import { ChannelMessages } from './main/channel-messages/channel-messages';
+import { ChatDirectMessage } from './main/menu/chat-direct-message/chat-direct-message';
+import { ChatDirectYou } from './main/menu/chat-direct-you/chat-direct-you';
 
 export const routes: Routes = [
   {
@@ -25,22 +29,18 @@ export const routes: Routes = [
     path: 'main',
     component: Main,
     children: [
-      { path: '', component: Main },
+      { path: '', redirectTo: 'channels', pathMatch: 'full' },
+      { path: 'channels', component: ChannelMessages },
+      { path: 'direct-message/:id', component: ChatDirectMessage },
+      { path: 'direct-you', component: ChatDirectYou }
     ],
-  }
-  ,
+  },
   {
     path: 'legal-notice',
     component: LegalNotice,
-     children: [
-      { path: '', component: LegalNotice },
-    ],
   },
   {
     path: 'privacy-policy',
     component: PrivacyPolicy,
-    children: [
-      { path: '', component: PrivacyPolicy },
-    ],
   }
 ];
