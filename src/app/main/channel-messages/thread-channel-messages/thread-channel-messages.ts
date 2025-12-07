@@ -11,12 +11,12 @@ type Message = {
   username: string;
   avatar: string;
   isYou: boolean;
-  createdAt: string;
+  createdAt: string | Date;
   text: string;
   reactions: Reaction[];
   repliesCount: number;
-  lastReplyTime?: string,
-  timeSeparator?: string;       // über createdAt abgleichen?
+  lastReplyTime?: string | Date;
+  timeSeparator?: string;
 };
 
 type Reaction = {
@@ -73,8 +73,109 @@ export class ThreadChannelMessages implements AfterViewInit {
     messageId: ''
   };
 
+  messagesView: Message[] = [];
+
   ngAfterViewInit() {
+    this.rebuildMessagesView();
     queueMicrotask(() => this.scrollToBottom());
+  }
+
+  private toDate(x: unknown): Date | null {
+    if (x instanceof Date) return isNaN(x.getTime()) ? null : x;
+
+    if (typeof x === 'string') {
+      const date = new Date(x);
+      if (!isNaN(date.getTime())) return date;
+
+      const m = /^(\d{1,2}):(\d{2})$/.exec(x.trim());
+      if (m) {
+        const date = new Date();
+        date.setHours(parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);
+        return date;
+      }
+    }
+
+    return null;
+  }
+
+  private getTimeSafe(date: string | Date | null | undefined): number {
+    const d = this.toDate(date);
+    return d ? d.getTime() : Number.POSITIVE_INFINITY;
+  }
+
+  private dayKey(date: Date | null): string | null {
+    if (!date) return null;
+
+    const y = date.getFullYear();
+    const m = (date.getMonth() + 1).toString().padStart(2, '0');
+    const d = date.getDate().toString().padStart(2, '0');
+
+    return `${y}-${m}-${d}`;
+  }
+
+  private startOfDay(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  }
+
+  private formatDayLabel(date: Date): string {
+    const now = this.startOfDay(new Date());
+    const today = this.startOfDay(date);
+    const diffDays = Math.round((now.getTime() - today.getTime()) / 86400000);
+
+    if (diffDays === 0) return 'heute';
+    if (diffDays === 1) return 'gestern';
+
+    const timeSeparator = new Intl.DateTimeFormat('de-DE', {
+      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    }).format(date);
+
+    return timeSeparator.charAt(0).toUpperCase() + timeSeparator.slice(1);
+  }
+
+  private compareByCreatedAtAsc = (a: Message, b: Message) =>
+    this.getTimeSafe(a.createdAt) - this.getTimeSafe(b.createdAt);
+
+  private rebuildMessagesView() {
+    const sorted = [...this.messages].sort(this.compareByCreatedAtAsc);
+    const out: Message[] = [];
+    let lastKey: string | null = null;
+
+    for (const m of sorted) {
+      const d = this.toDate(m.createdAt);
+      const key = this.dayKey(d);
+
+      if (!d || !key) {
+        out.push(m);
+        continue;
+      }
+
+      if (key !== lastKey) {
+        out.push({
+          messageId: '',
+          username: '',
+          avatar: '',
+          isYou: false,
+          createdAt: d,
+          text: '',
+          reactions: [],
+          repliesCount: 0,
+          timeSeparator: this.formatDayLabel(d),
+        });
+        lastKey = key;
+      }
+
+      out.push({ ...m, timeSeparator: undefined });
+    }
+
+    this.messagesView = out;
+  }
+
+  timeOf(x: string | Date | undefined | null): string {
+    const date = this.toDate(x);
+
+    if (!date) return '';
+
+    return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr';
   }
 
   getEmojiSrc(emojiId: EmojiId | string) {
@@ -91,44 +192,22 @@ export class ThreadChannelMessages implements AfterViewInit {
 
   messages: Message[] = [
     {
-      messageId: 'd1',
-      username: '',
-      avatar: '',
-      isYou: false,
-      createdAt: '',
-      text: '',
-      reactions: [],
-      repliesCount: 0,
-      timeSeparator: 'Dienstag, 14 Januar'
-    },
-    {
       messageId: 'm1',
       username: 'Noah Braun',
       avatar: 'icons/avatars/avatar3.png',
       isYou: false,
-      createdAt: '14:25 Uhr',
+      createdAt: '2025-01-14T14:25:00+01:00',
       text: 'Welche Version ist aktuell von Angular?',
       reactions: [],
       repliesCount: 2,
-      lastReplyTime: '14:56'
-    },
-    {
-      messageId: 'd2',
-      username: '',
-      avatar: '',
-      isYou: false,
-      createdAt: '',
-      text: '',
-      reactions: [],
-      repliesCount: 0,
-      timeSeparator: 'Freitag, 27 Januar'
+      lastReplyTime: '2025-01-14T14:56:00+01:00'
     },
     {
       messageId: 'm2',
       username: 'Oliver Plit',
       avatar: 'icons/avatars/avatar6.png',
       isYou: true,
-      createdAt: '15:06 Uhr',
+      createdAt: '2025-01-27T15:06:00+01:00',
       text:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque blandit odio ' +
         'efficitur lectus vestibulum, quis accumsan ante vulputate. Quisque tristique iaculis ' +
@@ -145,25 +224,14 @@ export class ThreadChannelMessages implements AfterViewInit {
         },
       ],
       repliesCount: 1,
-      lastReplyTime: '15:20'
-    },
-    {
-      messageId: 'd3',
-      username: '',
-      avatar: '',
-      isYou: false,
-      createdAt: '',
-      text: '',
-      reactions: [],
-      repliesCount: 0,
-      timeSeparator: 'Sonntag, 11 Februar'
+      lastReplyTime: '2025-01-27T15:20:00+01:00'
     },
     {
       messageId: 'm3',
       username: 'Max Mustermann',
       avatar: 'icons/avatars/avatar3.png',
       isYou: false,
-      createdAt: '11:36 Uhr',
+      createdAt: '2025-02-11T11:36:00+01:00',
       text:
         'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque blandit odio ' +
         'efficitur lectus vestibulum, quis accumsan ante vulputate. Quisque tristique iaculis ' +
@@ -182,52 +250,30 @@ export class ThreadChannelMessages implements AfterViewInit {
       repliesCount: 0
     },
     {
-      messageId: 'd4',
-      username: '',
-      avatar: '',
-      isYou: false,
-      createdAt: '',
-      text: '',
-      reactions: [],
-      repliesCount: 0,
-      timeSeparator: 'Montag, 12 Februar'
-    },
-    {
       messageId: 'm4',
       username: 'Emily Mustermann',
       avatar: 'icons/avatars/avatar5.png',
       isYou: false,
-      createdAt: '23:55 Uhr',
+      createdAt: '2025-02-12T23:55:00+01:00',
       text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque blandit odio ' +
         'efficitur lectus vestibulum, quis accumsan ante vulputate. Quisque tristique iaculis ' +
         'erat, eu faucibus lacus iaculis ac.',
       reactions: [],
       repliesCount: 8,
-      lastReplyTime: '23:58'
-    },
-    {
-      messageId: 'd5',
-      username: '',
-      avatar: '',
-      isYou: false,
-      createdAt: '',
-      text: '',
-      reactions: [],
-      repliesCount: 0,
-      timeSeparator: 'heute'
+      lastReplyTime: '2025-02-12T23:58:00+01:00'
     },
     {
       messageId: 'm5',
       username: 'Noah Braun',
       avatar: 'icons/avatars/avatar3.png',
       isYou: false,
-      createdAt: '21:05 Uhr',
+      createdAt: '2025-12-07T11:38:00+01:00',
       text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque blandit odio ' +
         'efficitur lectus vestibulum, quis accumsan ante vulputate. Quisque tristique iaculis ' +
         'erat, eu faucibus lacus iaculis ac.',
       reactions: [],
       repliesCount: 53,
-      lastReplyTime: '4:17'
+      lastReplyTime: '2025-12-07T04:17:00+01:00'
     },
   ];
 
@@ -265,17 +311,19 @@ export class ThreadChannelMessages implements AfterViewInit {
 
   sendMessage() {
     if (!this.draft.trim()) return;
+
     this.messages.push({
       messageId: crypto.randomUUID(),
       username: 'Oliver Plit',
-      avatar: '',
+      avatar: 'icons/avatars/avatar6.png',
       isYou: true,
-      createdAt: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr',
+      createdAt: new Date(),
       text: this.draft.trim(),
       reactions: [],
       repliesCount: 0,
     });
     this.draft = '';
+    this.rebuildMessagesView();
     this.scrollToBottom();
   }
 

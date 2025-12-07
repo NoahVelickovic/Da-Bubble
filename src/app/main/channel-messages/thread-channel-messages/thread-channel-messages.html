@@ -1,5 +1,5 @@
 <div #messagesEl class="messages">
-    <ng-container *ngFor="let m of messages">
+    <ng-container *ngFor="let m of messagesView">
 
         <div class="time-separator" *ngIf="m.timeSeparator">
             <span>{{ m.timeSeparator }}</span>
@@ -16,7 +16,7 @@
             <div class="message-body" [class.you]="m.isYou">
                 <div class="meta" [class.you]="m.isYou">
                     <strong>{{ m.username }}</strong>
-                    <time>{{ m.createdAt }}</time>
+                    <time>{{ timeOf(m.createdAt) }}</time>
                 </div>
 
                 <div class="text bubble" [class.you]="m.isYou">
@@ -39,7 +39,7 @@
 
                     <div class="response" *ngIf="m.repliesCount > 0">
                         <span class="count-answere">{{ m.repliesCount }} Antworten</span>
-                        <span class="answere">Letzte Antwort {{ m.lastReplyTime }}</span>
+                        <span class="answere">Letzte Antwort {{ timeOf(m.lastReplyTime) }}</span>
                     </div>
                 </div>
             </div>
