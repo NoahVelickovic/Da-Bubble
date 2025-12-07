@@ -67,3 +67,32 @@ a {
   color: #084ba3;
   transform: translateX(-4px);
 }
+
+@media (max-width: 500px) {
+  .login-card {
+    width: 280px;
+    padding: 12px;
+    margin-top: 32px;
+  }
+
+  .header-text {
+    margin-top: 0;
+  }
+
+  p {
+    font-size: 14px;
+  }
+
+  .back-arrow {
+   position: static;
+    font-size: 28px;
+  }
+
+  .header-logo {
+    position: static;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-top: 24px;
+}
+}

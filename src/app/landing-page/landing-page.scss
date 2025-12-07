@@ -223,16 +223,25 @@ footer {
     animation-delay: 3.5s !important;
   }
 
-  .responsive {
-    display: none;
-  }
-
   .header-text-responsive {
     display: block;
   }
 
   footer {
     position: static;
+    flex-direction: column;
+
+    a {
+      border: 1px solid #b4b4b4;
+      border-radius: 16px;
+      padding: 5px 9px;
+      color: #084ba3 !important;
+    }
+  }
+
+  .footer-flex {
+    display: flex;
+    gap: 12px;
   }
 
   .intro-content {
@@ -242,14 +251,12 @@ footer {
 
   .intro-logo {
     width: 90px;
-      animation:
-    introLogoIn 0.6s ease forwards,
-    introLogoShift 0.5s ease forwards 0.6s,
+    animation: introLogoIn 0.6s ease forwards, introLogoShift 0.5s ease forwards 0.6s;
   }
 
   .intro-text {
     font-size: 41.5px;
-    animation: textSlideOutMobile 0.5s ease forwards 0.8s, textFadeOut 4s ease forwards 2.3s
+    animation: textSlideOutMobile 0.5s ease forwards 0.8s, textFadeOut 4s ease forwards 2.3s;
   }
 
   @keyframes introFlyToHeaderMobile {
