@@ -1,8 +1,16 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { Firestore, doc, getDoc, collection, getDocs, addDoc, collectionData  } from '@angular/fire/firestore';
 import { Observable } from 'rxjs';
 import { BehaviorSubject } from 'rxjs';
+import { map } from 'rxjs';
 
+
+export type Member = {
+  uid: string;
+  name: string;
+  avatar?: string;
+  status?: string;
+};
 
 
 @Injectable({
@@ -12,6 +20,7 @@ export class FirebaseService {
     private firestore = inject(Firestore);
 private nameSource = new BehaviorSubject<string>('');
   currentName$ = this.nameSource.asObservable();
+  membersSignal = signal<Member[]>([]);
 
   constructor() {}
 
@@ -39,5 +48,19 @@ private nameSource = new BehaviorSubject<string>('');
     this.nameSource.next(name);
   }
   
+
+   loadMembers(channelId: string) {
+    const col = collection(this.firestore, `channels/${channelId}/members`);
+    collectionData(col, { idField: 'uid' })
+      .pipe(
+        map(list => list.map(u => ({ uid: u['uid'], name: u['name'], avatar: u['avatar'] })))
+      )
+      .subscribe(list => this.membersSignal.set(list));
+  }
+
+   addMembers(channelId: string, newMembers: Member[]) {
+    this.membersSignal.update(old => [...old, ...newMembers]);
+    // 🔹 Hier kannst du auch Firestore updateDoc() aufrufen
+  }
 
 }

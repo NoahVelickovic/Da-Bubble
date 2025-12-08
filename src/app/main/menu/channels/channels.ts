@@ -27,6 +27,7 @@ export class Channels implements OnInit {
 
   ngOnInit() {
     this.loadData();
+    
   }
 
   loadData() {

@@ -4,4 +4,5 @@ export interface directMessageContact {
     avatar: string;
     state: boolean;
     id : string;
+    email: string
 }
