@@ -7,6 +7,8 @@ import { Firestore, doc, updateDoc, collection } from '@angular/fire/firestore';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
+import { ChannelStateService } from '../../menu/channels/channel.service';
+
 
 
 
@@ -31,7 +33,7 @@ export class EditChannel {
   closeName = true;
   closeDescription = true;
 
-  constructor( private cdr: ChangeDetectorRef) { }
+  constructor( private cdr: ChangeDetectorRef, private channelState: ChannelStateService) { }
 
  
 ngOnInit() {
@@ -39,10 +41,7 @@ ngOnInit() {
     this.editedName = this.channel.name || '';
     this.editedDescription = this.channel.description || '';
 
-
   }
-
-
 
 
   close() {
@@ -77,9 +76,12 @@ ngOnInit() {
 
   await updateDoc(membershipDocRef, { name: this.editedName.trim() });
   this.channel.name = this.editedName.trim();
+  this.channelState.selectChannel(this.channel);
+
   this.showInputName = false;
   this.closeName = true;
   this.cdr.detectChanges();
+  
 }
 
 async saveEditDescription() {
@@ -97,35 +99,25 @@ async saveEditDescription() {
   this.cdr.detectChanges();
 }
 
-  async leaveChannel() {
-    const confirmed = confirm(`Möchten Sie den Channel "${this.channel.name}" wirklich verlassen?`);
-    if (!confirmed) return;
+async leaveChannel() {
+  const confirmed = confirm(`Möchten Sie den Channel "${this.channel.name}" wirklich verlassen?`);
+  if (!confirmed) return;
 
-    try {
-      const storedUser = localStorage.getItem('currentUser');
-      if (!storedUser) return;
+  try {
+    const storedUser = localStorage.getItem('currentUser');
+    if (!storedUser) return;
+    const uid = JSON.parse(storedUser).uid;
 
-      const uid = JSON.parse(storedUser).uid;
-      
-      // Membership aus der users/memberships Collection entfernen
-      const membershipRef = doc(
-        this.firestore, 
-        'users', 
-        uid, 
-        'memberships', 
-        this.channel.id
-      );
-      
-      // Hier würde deleteDoc verwendet werden
-      // import { deleteDoc } from '@angular/fire/firestore';
-      // await deleteDoc(membershipRef);
+    // 🔹 Aktuellen Channel aus ChannelState entfernen
+    this.channelState.removeChannel(this.channel.id);
 
-      this.dialogRef.close({ action: 'left' });
-    } catch (error) {
-      console.error('Fehler beim Verlassen des Channels:', error);
-      alert('Fehler beim Verlassen des Channels');
-    }
+    // 🔹 Dialog schließen
+    this.dialogRef.close({ action: 'left', channelId: this.channel.id });
+  } catch (error) {
+    console.error('Fehler beim Verlassen des Channels:', error);
+    alert('Fehler beim Verlassen des Channels');
   }
+}
 
 
 }

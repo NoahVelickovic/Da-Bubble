@@ -61,14 +61,12 @@ export class DirectMessages {
   }
 
   openChatDirectMessage(dm: directMessageContact) {
-    console.log('Direct Message öffnen:', dm);
     this.selectedDmId = dm.id;
     this.isYouSelected = false;
     this.directChatService.openChat(dm);
 this.router.navigate(['/main/direct-message', dm.name]);   }
 
   openChatYou() { 
-    console.log('Chat You öffnen');
     this.selectedDmId = '';
     this.isYouSelected = true;
     this.router.navigate(['/main/direct-you']);

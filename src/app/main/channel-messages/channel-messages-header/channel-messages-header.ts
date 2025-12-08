@@ -1,4 +1,4 @@
-import { Component, Input, inject, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, inject, OnChanges, SimpleChanges, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -6,7 +6,9 @@ import { EditChannel } from '../edit-channel/edit-channel';
 import { EditMembers } from '../edit-members/edit-members';
 import { AddMembers } from '../add-members/add-members';
 import { Firestore, doc, getDoc } from '@angular/fire/firestore';
-import { ChannelStateService } from '../../menu/channels/channel.service'
+import { ChannelStateService } from '../../menu/channels/channel.service';
+import { Subscription } from 'rxjs';
+
 
 
 type Member = { id: string; name: string; avatar?: string; isYou?: boolean };
@@ -17,7 +19,7 @@ type Member = { id: string; name: string; avatar?: string; isYou?: boolean };
   templateUrl: './channel-messages-header.html',
   styleUrl: './channel-messages-header.scss',
 })
-export class ChannelMessagesHeader implements OnChanges {
+export class ChannelMessagesHeader implements OnInit, OnDestroy {
   @Input() fullChannel: any = null;
   @Input() channel = '';
   @Input() channelId = '';
@@ -25,18 +27,36 @@ export class ChannelMessagesHeader implements OnChanges {
   @Input() createdBy = '';
   selectedChannel: any = null;
 
-constructor(private channelState: ChannelStateService ){}
+  constructor(private channelState: ChannelStateService) { }
   @Input() members: Member[] = [];
 
   private firestore = inject(Firestore);
 
+  private subscription: Subscription | null = null;
   private dialog = inject(MatDialog);
 
 
-   ngOnChanges(changes: SimpleChanges) {
-    if (changes['fullChannel'] && changes['fullChannel'].currentValue) {
-      console.log('Header: Channel Update empfangen:', this.fullChannel);
-    }
+  ngOnInit() {
+    this.subscription = this.channelState.selectedChannel$.subscribe(channel => {
+      if (channel && channel.id === this.channelId) {
+        this.channel = channel.name;
+
+        const storedUser = localStorage.getItem('currentUser');
+        const uid = storedUser ? JSON.parse(storedUser).uid : '';
+
+        this.members = (channel.members || []).map((m: any) => ({
+          id: m.uid,
+          name: m.name,
+          avatar: m.avatar,
+          isYou: m.uid === uid
+        }));
+      }
+    });
+
+  }
+
+  ngOnDestroy() {
+    this.subscription?.unsubscribe();
   }
 
 
@@ -108,7 +128,8 @@ constructor(private channelState: ChannelStateService ){}
       },
       data: {
         channelId: this.channelId,
-        members: this.members
+        members: this.members,
+        channelState: this.channelState
       }
     });
   }
@@ -128,7 +149,8 @@ constructor(private channelState: ChannelStateService ){}
       data: {
         channelId: this.channelId,
         channelName: this.channel,
-        members: this.members
+        members: this.members,
+        channelState: this.channelState
       }
     });
   }

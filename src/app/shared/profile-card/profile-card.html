@@ -7,21 +7,21 @@
         </span>
     </div>
     <div class="profile-img-div">
-        <img src="/icons/profile-img-dialog.png" alt="">
+<img [src]="'/icons/avatars/' + data.avatar" alt="" class="avatar">
     </div>
     <div class="profile-name">
         <h2>{{ data.name }}</h2>
     </div>
     <div class="status-div">
         <img src="/icons/Online.png" alt="">
-        <p class="status">Status</p>
+        <p class="status">Status</p>Ö
 
     </div>
     <div class="email-div">
         <img src="/icons/mail.png" alt="">
         <p>E-Mail-Adresse</p>
     </div>
-    <p class="email-name">{{ data.name }}</p>
+    <p class="email-name">{{ data.email }}</p>
 
     <footer class="footer">
         <button class="button" (click)="openChatDirectMessage(data)">

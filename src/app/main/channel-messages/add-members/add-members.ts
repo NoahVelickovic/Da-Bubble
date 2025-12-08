@@ -1,13 +1,12 @@
-import { Component, inject, signal, computed, effect, Input } from '@angular/core';
+import { Component, inject, signal, computed, ChangeDetectorRef, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
-import { setDoc, Firestore, doc, updateDoc, arrayUnion, collection, collectionData } from '@angular/fire/firestore';
+import { Firestore, doc, updateDoc, arrayUnion, collection, collectionData } from '@angular/fire/firestore';
 import { map } from 'rxjs';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
-
-
-
+import { ChannelStateService } from '../../menu/channels/channel.service';
+import { getDoc } from '@angular/fire/firestore';
 
 type Member = {
   uid: string;
@@ -15,6 +14,16 @@ type Member = {
   avatar?: string;
   status?: string;
   isYou?: boolean;
+};
+
+type DialogData = {
+  channelName?: string;
+  members?: Member[];
+  currentUserId?: string;
+  channelId?: string;
+  fullChannel?: any; // 🔥 Hinzufügen, damit TS nicht mehr meckert
+  existingMembers?: Member[];
+  channelState?: any;
 };
 
 @Component({
@@ -26,46 +35,73 @@ type Member = {
 export class AddMembers {
   private dialogRef = inject(MatDialogRef<AddMembers>);
   data = inject(MAT_DIALOG_DATA);
-  @Input() fullChannel: any = null;
+  private cd = inject(ChangeDetectorRef);
+  firestore = inject(Firestore);
+  
+fullChannel: any = null;
   @Input() channel = '';
   @Input() channelId = '';
   @Input() members: Member[] = [];
-  firestore = inject(Firestore);
+  
   allMembers: Member[] = [];
   channelName = this.data.channelName;
-  ngOnInit() {
-    const dmRef = collection(this.firestore, 'directMessages');
-
-    collectionData(dmRef, { idField: 'uid' })
-      .pipe(
-        map(users =>
-          users.map(u => ({
-            uid: u['uid'] ?? crypto.randomUUID(),
-            name: u['name'],
-            avatar: u['avatar'],
-            status: u['status'] ?? 'offline'
-          }))
-        )
-      )
-      .subscribe(list => {
-        this.allMembers = list;
-        this.members = list;
-      });
-  }
-
+  existingMembers = signal<Member[]>([]);
 
   query = signal('');
   hasFocus = signal(false);
   activeIndex = signal<number>(-1);
   selected = signal<Member[]>([]);
+  isSubmitting = signal(false);
+  constructor( private cdr: ChangeDetectorRef, private channelState: ChannelStateService) { }
+
+  ngOnInit() {
+    // 1. Daten übernehmen
+   const data = this.data as DialogData; // 🔥 Sicherstellen, dass das Interface genutzt wird
+
+  this.channelId = data.channelId || '';
+  this.channelName = data.channelName || '';
+  
+  // 🔥 Hier wird das Objekt aus dem vorherigen Dialog übernommen
+  this.fullChannel = data.fullChannel;
+
+  if (data.existingMembers) {
+    this.existingMembers.set(data.existingMembers);
+  }
+
+    // User laden (dein bestehender Code)
+    const dmRef = collection(this.firestore, 'directMessages');
+collectionData(dmRef, { idField: 'uid' })
+  .pipe(
+    map(users => users.map(u => ({ 
+        uid: u['uid'] ?? crypto.randomUUID(), 
+        name: u['name'] ?? 'Unbekannter Benutzer', // 🔥 Fallback für fehlenden Namen
+        avatar: u['avatar'] ?? 'default-avatar.png', // 🔥 Optionaler Fallback für Avatar
+        status: u['status'] ?? 'offline' 
+    } as Member))) // 🔥 Expliziter Cast auf Member
+  )
+  .subscribe(list => {
+    this.allMembers = list;
+    // Da wir allMembers updaten, sollten wir auch this.members updaten, 
+    // falls diese für die suggestions genutzt werden:
+    this.members = list; 
+    this.cd.detectChanges();
+  });
+  }
 
   suggestions = computed(() => {
     const q = this.query().trim().toLowerCase();
     if (!q) return [];
-    const chosen = new Set(this.selected().map(u => u.uid));
-    return this.members
-      .filter(m => !chosen.has(m.uid) && m.name.toLowerCase().includes(q))
+    
+    const existingIds = new Set(this.existingMembers().map(u => u.uid));
+    const selectedIds = new Set(this.selected().map(u => u.uid));
+    const allExcluded = new Set([...existingIds, ...selectedIds]);
+    
+    const filtered = this.members
+      .filter(m => !allExcluded.has(m.uid) && m.name.toLowerCase().includes(q))
       .slice(0, 6);
+    
+    console.log('🔍 Suggestions gefiltert:', filtered.length, 'von', this.members.length);
+    return filtered;
   });
 
   showDropdown = computed(() =>
@@ -78,12 +114,10 @@ export class AddMembers {
 
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      const next = (this.activeIndex() + 1) % list.length;
-      this.activeIndex.set(next);
+      this.activeIndex.set((this.activeIndex() + 1) % list.length);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      const next = (this.activeIndex() - 1 + list.length) % list.length;
-      this.activeIndex.set(next);
+      this.activeIndex.set((this.activeIndex() - 1 + list.length) % list.length);
     } else if (e.key === 'Enter') {
       e.preventDefault();
       const idx = this.activeIndex();
@@ -95,41 +129,58 @@ export class AddMembers {
   }
 
   selectUser(u: Member) {
-    if (this.selected().find(x => x.uid === u.uid)) return;
+    if (this.selected().find(x => x.uid === u.uid)) {
+      return;
+    }
+    if (this.existingMembers().find(x => x.uid === u.uid)) {
+      return;
+    }
+    
     this.selected.update(arr => [...arr, u]);
     this.query.set('');
     this.activeIndex.set(-1);
   }
 
   removeSelected(uid: string) {
+    const user = this.selected().find(u => u.uid === uid);
     this.selected.update(arr => arr.filter(u => u.uid !== uid));
   }
 
-  async addMembers() {
+ async addMembers() {
+    if (this.isSubmitting()) return;
+    if (!this.selected().length) { this.close(); return; }
+
+    this.isSubmitting.set(true);
+
     const storedUser = localStorage.getItem('currentUser');
     if (!storedUser) return;
     const uid = JSON.parse(storedUser).uid;
+    
+    const membershipRef = doc(this.firestore, `users/${uid}/memberships/${this.channelId}`);
 
-    const channelId = this.data.channelId
-     const membershipRef = doc(
-      this.firestore,
-      `users/${uid}/memberships/${channelId}`
-    );
+    try {
+      const newMembers = this.selected().map(u => ({ ...u, status: 'online' }));
+      
+      await updateDoc(membershipRef, { members: arrayUnion(...newMembers) });
 
-    for (const user of this.selected()) {
-      await updateDoc(membershipRef, {
-        members: arrayUnion({
-          uid: user.uid,
-          name: user.name,
-          avatar: user.avatar ?? '',
-          status: 'online'
-        })
-      });
+      const snap = await getDoc(membershipRef);
+      if (snap.exists()) {
+        const freshChannelData = snap.data();
+        const channelWithId = { ...freshChannelData, id: this.channelId };
+        
+        this.channelState.selectChannel(channelWithId);
+      }
+
+      await new Promise(r => setTimeout(r, 300));
+      this.dialogRef.close({ success: true, added: this.selected() });
+
+    } catch (err) {
+      console.error('Fehler beim Hinzufügen:', err);
+      this.isSubmitting.set(false);
     }
-    this.dialogRef.close({ added: this.selected() });
-  }
-
+}
   close() {
+    console.log('🚪 Dialog geschlossen ohne Änderungen');
     this.dialogRef.close();
   }
 }
