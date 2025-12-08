@@ -3,7 +3,7 @@
     <span class="material-symbols-outlined back-arrow" (click)="goBack()">arrow_back</span>
     <h1 class="title">Wähle deinen Avatar</h1>
     <img [src]="'/icons/avatars/' + selectedAvatar" class="avatar-image" />
-    <h2 class="name">Frederik Beck</h2>
+    <h2 class="name">{{currentUserName}}</h2>
     <p class="subtitle">Aus der Liste wählen</p>
     <div class="avatar-selection">
       <img

@@ -65,6 +65,7 @@ export class Signup {
       });
 
       localStorage.setItem('currentUser', uid);
+      localStorage.setItem("currentUserName", this.text);
 
       this.router.navigate(['/choose-avatar']);
 

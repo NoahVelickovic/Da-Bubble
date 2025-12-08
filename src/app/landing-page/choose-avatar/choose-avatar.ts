@@ -15,6 +15,7 @@ import { ChangeDetectorRef } from '@angular/core';
 export class ChooseAvatar {
   
   selectedAvatar: string = 'avatar1.png';
+  currentUserName: string = localStorage.getItem("currentUserName") || "User";
 
   constructor(private firestore: Firestore, private router: Router, private cd: ChangeDetectorRef) {}
 

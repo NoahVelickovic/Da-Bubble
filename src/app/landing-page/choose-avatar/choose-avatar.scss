@@ -99,3 +99,50 @@ button {
     background-color: rgb(210, 210, 210);
   }
 }
+
+@media (max-width: 500px) {
+  .login-container {
+    margin-top: 24px;
+    margin-bottom: 24px;
+    position: static;
+    transform: none;
+  }
+
+  .login-card {
+    width: 280px !important;
+    height: 500px;
+    padding: 12px;
+  }
+
+  .back-arrow {
+   position: static;
+   align-items: flex-start;
+   display: flex;
+   margin: 12px 0 0 12px;
+  }
+
+     h1 {
+    font-size: 28px !important;
+    margin-bottom: 0!important;
+  }
+
+    .subtitle {
+    font-size: 14px;
+    margin-top: 12px;
+    margin-bottom:12px;
+    width: 260px;
+  }
+
+  .avatar-selection {
+    gap: 4px;
+  margin: 24px 0;
+  }
+
+  .avatar-image {
+    height: 150px;
+  }
+
+  .avatar-option {
+    height: 35px;
+  }
+}

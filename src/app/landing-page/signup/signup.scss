@@ -1,4 +1,3 @@
-
 .login-container {
   position: absolute;
   left: 50%;
@@ -7,7 +6,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: "Nunito", sans-serif;
+  font-family: 'Nunito', sans-serif;
 }
 
 .login-card {
@@ -73,7 +72,7 @@
   font-size: 0.85rem;
   cursor: pointer;
   text-decoration: none;
- padding: 6px;
+  padding: 6px;
   &:hover {
     text-decoration: none;
     background-color: #edf6ff;
@@ -84,21 +83,20 @@
 }
 
 .privacy-policy {
-    display: flex;
-    height: 48px;
-    width: 100%;
-    align-items: center;
-    gap: 12px;
+  display: flex;
+  height: 48px;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
 
-
-    input {
-        width: 16px;
-        height: 16px;
-    }
+  input {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 .error {
-box-shadow: 0 0 0 1px red;
+  box-shadow: 0 0 0 1px red;
 }
 
 .buttons {
@@ -108,7 +106,7 @@ box-shadow: 0 0 0 1px red;
 }
 
 button {
-    width: 120px;
+  width: 120px;
 }
 
 .error-message {
@@ -127,7 +125,7 @@ button {
   color: #4d96f6;
   cursor: pointer;
 
-  transition: .2s ease;
+  transition: 0.2s ease;
   z-index: 2000;
 }
 
@@ -139,4 +137,60 @@ button {
 .disabled-btn {
   background-color: #8a8a8a;
   cursor: not-allowed;
+}
+
+@media (max-width: 500px) {
+  .login-container {
+    margin-top: 24px;
+    margin-bottom: 24px;
+    position: static;
+    transform: none;
+  }
+
+  .login-card {
+    width: 280px !important;
+    height: 500px;
+    padding: 12px;
+  }
+
+  .back-arrow {
+   position: static;
+   align-items: flex-start;
+   display: flex;
+   margin: 12px 0 0 12px;
+  }
+
+   h1 {
+    font-size: 28px !important;
+    margin-bottom: 0!important;
+  }
+
+    .subtitle {
+    font-size: 14px;
+    margin-top: 12px;
+    margin-bottom:12px;
+    width: 260px;
+  }
+
+  .input-wrapper {
+    width: 240px;
+    height: 44px;
+    margin-bottom: 24px;
+  }
+
+  input {
+    font-size: 14px !important;
+
+    &::placeholder {
+      font-size: 14px !important;
+    }
+  }
+
+  p {
+    font-size: 12px;
+  }
+
+  .forgot-link {
+    font-size: 12px;
+  }
 }
