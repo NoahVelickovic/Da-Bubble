@@ -75,6 +75,8 @@ export class Login {
     }
   }
 
+  
+
 async loginWithGoogle() {
   try {
     const provider = new GoogleAuthProvider();

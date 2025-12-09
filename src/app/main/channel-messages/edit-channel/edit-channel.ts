@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
 import { ChangeDetectorRef } from '@angular/core';
-import { Firestore, doc, updateDoc, collection } from '@angular/fire/firestore';
+import { Firestore, doc, updateDoc, collection, deleteDoc, getDoc } from '@angular/fire/firestore';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
@@ -100,19 +100,42 @@ async saveEditDescription() {
 }
 
 async leaveChannel() {
-  const confirmed = confirm(`Möchten Sie den Channel "${this.channel.name}" wirklich verlassen?`);
-  if (!confirmed) return;
-
   try {
     const storedUser = localStorage.getItem('currentUser');
     if (!storedUser) return;
     const uid = JSON.parse(storedUser).uid;
+    const channelId = this.channel.id;
 
-    // 🔹 Aktuellen Channel aus ChannelState entfernen
-    this.channelState.removeChannel(this.channel.id);
+    const userRef = doc(this.firestore, 'users', uid);
+    const membershipRef = doc(userRef, 'memberships', channelId);
+    await deleteDoc(membershipRef);
 
-    // 🔹 Dialog schließen
-    this.dialogRef.close({ action: 'left', channelId: this.channel.id });
+
+    const allMembers: any[] = this.channel.members || [];
+
+    for (const member of allMembers) {
+      if (member.uid === uid) continue;
+
+      const otherUserRef = doc(this.firestore, `users/${member.uid}/memberships/${channelId}`);
+      const otherSnap = await getDoc(otherUserRef);
+
+      if (otherSnap.exists()) {
+        const data = otherSnap.data();
+
+        const updatedMembers = (data['members'] || []).filter((m: any) => m.uid !== uid);
+
+        await updateDoc(otherUserRef, {
+          members: updatedMembers
+        });
+      }
+    }
+
+
+    // 3️⃣ Channel aus UI entfernen
+    this.channelState.removeChannel(channelId);
+    await this.channelState.loadFirstAvailableChannel();
+    this.dialogRef.close({ action: 'left', channelId });
+
   } catch (error) {
     console.error('Fehler beim Verlassen des Channels:', error);
     alert('Fehler beim Verlassen des Channels');

@@ -8,6 +8,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { FormsModule, NgForm } from '@angular/forms';
 import { FirebaseService } from '../../../services/firebase';
 import { Firestore, collection, collectionData, doc, setDoc, getDoc } from '@angular/fire/firestore';
+import { ChannelStateService } from '../../menu/channels/channel.service';
 
 
 
@@ -24,7 +25,7 @@ export class AddChannel {
   firestore: Firestore = inject(Firestore);
   memberships: any[] = [];
 
-  constructor(private firebaseService: FirebaseService) { }
+  constructor(  private channelState: ChannelStateService) { }
   dialogRef = inject(MatDialogRef<AddChannel>);
 
   close() {
@@ -65,7 +66,18 @@ export class AddChannel {
       createdBy: userData['name']
     });
 
-
+this.channelState.selectChannel({
+    id: channelId,
+    name,
+    description,
+    members: [{
+      uid: uid,
+      name: `${userData['name']} (Du)`,
+      avatar: userData['avatar'] || 'avatar-0.png',
+      email: userData['email'] || '',
+      isYou: true
+    }]
+  });
     this.dialog.open(AddPeople, {
       panelClass: 'add-people-dialog-panel',
       data: { channelId }
@@ -74,4 +86,5 @@ export class AddChannel {
     this.close();
   }
 }
+
 

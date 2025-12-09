@@ -31,7 +31,7 @@ export class Signup {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
-  async signUp() {
+async signUp() {
     this.submitted = true;
 
     this.nameError = this.text.trim() === '';
@@ -51,21 +51,24 @@ export class Signup {
       );
 
       const uid = userCredential.user.uid;
+
       await setDoc(doc(this.firestore, 'users', uid), {
+        uid,
         name: this.text,
         email: this.email,
         avatar: 'avatar1.png',
-        isYou: true
+        createdAt: new Date()
       });
 
-      await setDoc(doc(this.firestore, 'directMessages', uid), {
-        createdAt: new Date(),
+      await this.saveUserToDirectMessages({
+        uid,
         name: this.text,
-        avatar: 1,
+        email: this.email,
+        avatar: 'avatar1.png'
       });
 
       localStorage.setItem('currentUser', uid);
-      localStorage.setItem("currentUserName", this.text);
+      localStorage.setItem('currentUserName', this.text);
 
       this.router.navigate(['/choose-avatar']);
 
@@ -76,6 +79,19 @@ export class Signup {
         this.emailError = true;
       }
     }
+  }
+
+   async saveUserToDirectMessages(user: any) {
+    const dmRef = doc(this.firestore, 'directMessages', user.uid);
+
+    await setDoc(dmRef, {
+      uid: user.uid,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar || 'avatar-0.png',
+      status: 'online',
+      createdAt: new Date()
+    });
   }
 
   goBack() {

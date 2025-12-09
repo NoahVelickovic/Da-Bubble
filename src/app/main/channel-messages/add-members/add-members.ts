@@ -2,7 +2,7 @@ import { Component, inject, signal, computed, ChangeDetectorRef, Input } from '@
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialogRef } from '@angular/material/dialog';
-import { Firestore, doc, updateDoc, arrayUnion, collection, collectionData } from '@angular/fire/firestore';
+import { Firestore, doc, updateDoc, arrayUnion, collection, collectionData, setDoc } from '@angular/fire/firestore';
 import { map } from 'rxjs';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ChannelStateService } from '../../menu/channels/channel.service';
@@ -14,6 +14,7 @@ type Member = {
   avatar?: string;
   status?: string;
   isYou?: boolean;
+  email?: string;
 };
 
 type DialogData = {
@@ -68,7 +69,6 @@ fullChannel: any = null;
     this.existingMembers.set(data.existingMembers);
   }
 
-    // User laden (dein bestehender Code)
     const dmRef = collection(this.firestore, 'directMessages');
 collectionData(dmRef, { idField: 'uid' })
   .pipe(
@@ -77,12 +77,11 @@ collectionData(dmRef, { idField: 'uid' })
         name: u['name'] ?? 'Unbekannter Benutzer', // 🔥 Fallback für fehlenden Namen
         avatar: u['avatar'] ?? 'default-avatar.png', // 🔥 Optionaler Fallback für Avatar
         status: u['status'] ?? 'offline' 
-    } as Member))) // 🔥 Expliziter Cast auf Member
+    } as Member))) 
   )
   .subscribe(list => {
     this.allMembers = list;
-    // Da wir allMembers updaten, sollten wir auch this.members updaten, 
-    // falls diese für die suggestions genutzt werden:
+    
     this.members = list; 
     this.cd.detectChanges();
   });
@@ -146,39 +145,103 @@ collectionData(dmRef, { idField: 'uid' })
     this.selected.update(arr => arr.filter(u => u.uid !== uid));
   }
 
- async addMembers() {
-    if (this.isSubmitting()) return;
-    if (!this.selected().length) { this.close(); return; }
+async addMembers() {
+  if (this.isSubmitting()) return;
+  if (!this.selected().length) { this.close(); return; }
 
-    this.isSubmitting.set(true);
+  this.isSubmitting.set(true);
 
-    const storedUser = localStorage.getItem('currentUser');
-    if (!storedUser) return;
-    const uid = JSON.parse(storedUser).uid;
-    
-    const membershipRef = doc(this.firestore, `users/${uid}/memberships/${this.channelId}`);
+  const storedUser = localStorage.getItem('currentUser');
+  if (!storedUser) return;
+  const currentUid = JSON.parse(storedUser).uid;
+  const channelId = this.channelId;
 
-    try {
-      const newMembers = this.selected().map(u => ({ ...u, status: 'online' }));
-      
-      await updateDoc(membershipRef, { members: arrayUnion(...newMembers) });
+  try {
+    // 1️⃣ Alle UIDs zusammenstellen (der aktuelle User + ausgewählte Mitglieder)
+    let memberUids: string[] = [currentUid];
 
-      const snap = await getDoc(membershipRef);
-      if (snap.exists()) {
-        const freshChannelData = snap.data();
-        const channelWithId = { ...freshChannelData, id: this.channelId };
-        
-        this.channelState.selectChannel(channelWithId);
-      }
+    // Ausgewählte Personen hinzufügen
+    memberUids.push(...this.selected().map(u => u.uid));
 
-      await new Promise(r => setTimeout(r, 300));
-      this.dialogRef.close({ success: true, added: this.selected() });
+    // Duplikate entfernen
+    memberUids = Array.from(new Set(memberUids));
 
-    } catch (err) {
-      console.error('Fehler beim Hinzufügen:', err);
-      this.isSubmitting.set(false);
+    // 2️⃣ Für jede UID die Membership erstellen/aktualisieren
+    for (const userUid of memberUids) {
+      await this.handleUserChannelMembership(userUid, channelId, memberUids);
     }
+
+    // 3️⃣ Channel-State direkt aktualisieren
+    const membershipRef = doc(this.firestore, `users/${currentUid}/memberships/${channelId}`);
+    const snap = await getDoc(membershipRef);
+    if (snap.exists()) {
+      const freshChannelData = snap.data();
+      const channelWithId = { ...freshChannelData, id: channelId };
+      this.channelState.selectChannel(channelWithId);
+    }
+
+    await new Promise(r => setTimeout(r, 200)); // kleine Verzögerung für UI
+    this.dialogRef.close({ success: true, added: this.selected() });
+
+  } catch (err) {
+    console.error('Fehler beim Hinzufügen von Mitgliedern:', err);
+    this.isSubmitting.set(false);
+  }
 }
+
+
+ async handleUserChannelMembership(userUid: string, channelId: string, allMemberUids: string[]) {
+    try {
+      const storedUser = localStorage.getItem('currentUser');
+      const currentUid = storedUser ? JSON.parse(storedUser).uid : '';
+
+      const channelData = await this.fetchChannelData(currentUid, channelId);
+      const allMembers = await this.fetchMemberDetails(currentUid, allMemberUids);
+
+      await this.setChannelMembership(userUid, channelId, channelData, allMembers);
+    } catch (err) {
+      console.error(`Fehler für User ${userUid}:`, err);
+    }
+  }
+
+  async fetchChannelData(currentUid: string, channelId: string) {
+    const ref = doc(this.firestore, `users/${currentUid}/memberships/${channelId}`);
+    const snap = await getDoc(ref);
+    return snap.exists() ? snap.data() : {};
+  }
+
+  async fetchMemberDetails(currentUid: string, allMemberUids: string[]) {
+    const allMembers: Member[] = [];
+    for (const uid of allMemberUids) {
+      const dmRef = doc(this.firestore, `directMessages/${uid}`);
+      const dmSnap = await getDoc(dmRef);
+      if (dmSnap.exists()) {
+        const userData = dmSnap.data();
+        allMembers.push({
+          uid,
+          name: uid === currentUid ? `${userData['name']} (Du)` : userData['name'],
+          avatar: userData['avatar'] || 'avatar-0.png',
+          email: userData['email'] || '',
+          status: 'online',
+          isYou: uid === currentUid
+        });
+      }
+    }
+    return allMembers;
+  }
+
+  async setChannelMembership(userUid: string, channelId: string, channelData: any, allMembers: Member[]) {
+    const ref = doc(this.firestore, `users/${userUid}/memberships/${channelId}`);
+    await setDoc(ref, {
+      channelId,
+      name: channelData['name'] || 'Neuer Channel',
+      description: channelData['description'] || '',
+      joinedAt: new Date(),
+      createdBy: channelData['createdBy'] || 'Unbekannt',
+      members: allMembers
+    });
+  }
+
   close() {
     console.log('🚪 Dialog geschlossen ohne Änderungen');
     this.dialogRef.close();

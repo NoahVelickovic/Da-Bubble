@@ -234,7 +234,7 @@ constructor(private firebase: FirebaseService) {}
       const channelsSnapshot = await getDocs(channelsRef);
 
       for (const channelDoc of channelsSnapshot.docs) {
-        const messagesRef = collection(this.firestore, 'channels', channelDoc.id, 'messages');
+    const channelsRef = collection(userRef, 'memberships', 'messages');
         const messagesSnapshot = await getDocs(query(messagesRef, orderBy('timestamp', 'desc'), limit(50)));
 
         messagesSnapshot.forEach((msgDoc) => {

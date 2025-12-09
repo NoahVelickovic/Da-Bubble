@@ -23,9 +23,9 @@ export class AddPeople implements OnInit {
   inputName: string = "";
   peopleList: string[] = [];
   directMessagePeople: Observable<any[]> | undefined;
-  selectedPeople: { name: string, avatar?: string, email?: string }[] = [];
-  allPeople: { name: string, avatar?: string, email?: string }[] = [];
-  filteredPeople: { name: string, avatar?: string, email?: string }[] = [];
+  selectedPeople: { uid: string, name: string, avatar: string, email: string }[] = [];
+  allPeople: { uid: string, name: string, avatar: string, email: string }[] = [];
+  filteredPeople: { uid: string, name: string, avatar: string, email: string }[] = [];
   hasFocus: boolean = false;
   activeIndex: number = -1;
 
@@ -35,10 +35,11 @@ export class AddPeople implements OnInit {
   ngOnInit() {
     const dmRef = collection(this.firestore, 'directMessages');
 
-    collectionData(dmRef, { idField: 'id' })
+    collectionData(dmRef, { idField: 'uid' })
       .pipe(
         map(users =>
           users.map(u => ({
+            uid: u['uid'] as string,
             name: u['name'] as string,
             avatar: u['avatar'] as string,
             email: (u['email'] as string) ?? ''
@@ -76,7 +77,7 @@ export class AddPeople implements OnInit {
 
     this.filteredPeople = this.allPeople
       .filter(u => u.name.toLowerCase().includes(value))
-      .filter(u => !this.selectedPeople.some(sp => sp.name === u.name));
+      .filter(u => !this.selectedPeople.some(sp => sp.uid === u.uid));
   }
 
   onInputKeydown(event: KeyboardEvent) {
@@ -87,23 +88,20 @@ export class AddPeople implements OnInit {
   }
 
 
-  selectPerson(person: { name: string, avatar?: string }) {
-
-    if (this.selectedPeople.some(p => p.name === person.name)) return;
+  selectPerson(person: { uid: string, name: string, avatar: string, email: string }) {
+    if (this.selectedPeople.some(p => p.uid === person.uid)) return;
 
     this.selectedPeople.push(person);
 
-    this.allPeople = this.allPeople.filter(
-      p => p.name !== person.name || p.avatar !== person.avatar
-    );
+    this.allPeople = this.allPeople.filter(p => p.uid !== person.uid);
 
     this.inputName = '';
     this.filteredPeople = [];
   }
 
 
-  removePerson(person: { name: string }) {
-    this.selectedPeople = this.selectedPeople.filter(p => p.name !== person.name);
+  removePerson(person: { uid: string, name: string, avatar: string, email: string }) {
+    this.selectedPeople = this.selectedPeople.filter(p => p.uid !== person.uid);
     this.allPeople.push(person);
     this.allPeople.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -126,98 +124,124 @@ export class AddPeople implements OnInit {
       return this.selectedPeople.length > 0;
     }
 
-
     return true;
   }
 
 
-async addMember() {
-  const storedUser = localStorage.getItem('currentUser');
-  if (!storedUser) {
-    return;
-  }
-  
-  const user = JSON.parse(storedUser);
-  const uid = user.uid;
-  
-  const userRef = doc(this.firestore, 'users', uid);
-  const userSnap = await getDoc(userRef);
-  
-  let userName = 'Unbekannt';
-  let userAvatar = 'avatar-0.png';
-  let userEmail = user.email || '';
+ async addMember() {
+    const storedUser = localStorage.getItem('currentUser');
+    if (!storedUser) return;
 
-  if (userSnap.exists()) {
-    const userData: any = userSnap.data();
-    userName = userData.name || 'Unbekannt';
-    userAvatar = userData.avatar || 'avatar-0.png';
-    userEmail = userData.email || userEmail;
-  }
+    const currentUid = JSON.parse(storedUser).uid;
+    const channelId = this.data.channelId;
 
+    try {
+        // 1. UIDs basierend auf der Auswahl ermitteln
+        const memberUids: string[] = await this.getMemberUids(currentUid);
 
-  const channelId = this.data.channelId;
-  const membershipRef = doc(
-    this.firestore,
-    `users/${uid}/memberships/${channelId}`
-  );
-
-  await setDoc(membershipRef, { members: [] }, { merge: true });
-
-  await updateDoc(membershipRef, {
-    members: arrayUnion({
-      uid: uid,
-      name: `${userName} (Du)`,
-      avatar: userAvatar,
-      status: 'online',
-      email: userEmail,
-      isYou: true
-    })
-  });
-
-  if (this.selectedOption === 'option2') {
-    for (let p of this.selectedPeople) {
-      await updateDoc(membershipRef, {
-        members: arrayUnion({
-          uid: p.email || p.name, 
-          name: p.name,
-          avatar: p.avatar ?? 'avatar-0.png',
-          status: 'online',
-          email: p.email ?? ''
-        })
-      });
-    }
-  }
-
-  else if (this.selectedOption === 'option1') {
-    const dmRef = collection(this.firestore, 'directMessages');
-    const dmSnap = await firstValueFrom(collectionData(dmRef, { idField: 'id' }));
-    
-    if (dmSnap && dmSnap.length > 0) {
-      for (let dmUser of dmSnap) {
-        if (dmUser['uid'] === uid || dmUser['email'] === userEmail) {
-          continue;
+        // 2. Für jede UID die Channel-Mitgliedschaft erstellen/aktualisieren
+        for (const memberUid of memberUids) {
+            await this.handleUserChannelMembership(memberUid, channelId, memberUids);
         }
-        
-        await updateDoc(membershipRef, {
-          members: arrayUnion({
-            uid: dmUser['uid'] || dmUser['id'],
-            name: dmUser['name'],
-            avatar: dmUser['avatar'] ?? 'avatar-0.png',
-            status: 'online',
-            email: dmUser['email'] ?? ''
-          })
-        });
-      }
-    }
-  }
 
-  this.closeDialog();
+        this.closeDialog();
+    } catch (error) {
+        console.error('Fehler beim Hinzufügen von Mitgliedern:', error);
+    }
 }
+
+
+async getMemberUids(currentUid: string): Promise<string[]> {
+    let memberUids: string[] = [currentUid]; // Der aktuelle User ist immer dabei
+
+    if (this.selectedOption === 'option2') {
+        // Option 2: Ausgewählte Personen hinzufügen
+        memberUids.push(...this.selectedPeople.map(p => p.uid));
+    } else if (this.selectedOption === 'option1') {
+        // Option 1: Alle DirectMessages-User hinzufügen
+        const dmRef = collection(this.firestore, 'directMessages');
+        // Holen aller UIDs aus der directMessages Collection
+        const dmSnap = await firstValueFrom(collectionData(dmRef, { idField: 'uid' }));
+        memberUids = dmSnap.map(u => u['uid'] as string);
+    }
+
+    // Stellen Sie sicher, dass keine Duplikate existieren
+    return Array.from(new Set(memberUids));
+}
+
+
+async handleUserChannelMembership(userUid: string, channelId: string, allMemberUids: string[]) {
+    try {
+        const storedUser = localStorage.getItem('currentUser');
+        const currentUid = storedUser ? JSON.parse(storedUser).uid : '';
+
+        // 1. Channel-Informationen vom Ersteller holen
+        const channelData = await this.fetchChannelData(currentUid, channelId);
+
+        // 2. Alle Member-Daten (Name, Avatar etc.) holen
+        const allMembers = await this.fetchMemberDetails(currentUid, allMemberUids);
+
+        // 3. Channel-Membership für diesen User erstellen/aktualisieren
+        await this.setChannelMembership(userUid, channelId, channelData, allMembers);
+
+    } catch (error) {
+        console.error(`Fehler beim Bearbeiten der Channel-Mitgliedschaft für User ${userUid}:`, error);
+    }
+}
+
+
+async fetchChannelData(currentUid: string, channelId: string): Promise<any> {
+    const creatorMembershipRef = doc(
+        this.firestore,
+        `users/${currentUid}/memberships/${channelId}`
+    );
+    const creatorSnap = await getDoc(creatorMembershipRef);
+    return creatorSnap.exists() ? creatorSnap.data() : {};
+}
+
+
+
+async fetchMemberDetails(currentUid: string, allMemberUids: string[]): Promise<any[]> {
+    const allMembers = [];
+    for (const uid of allMemberUids) {
+        const dmUserRef = doc(this.firestore, 'directMessages', uid);
+        const dmUserSnap = await getDoc(dmUserRef);
+
+        if (dmUserSnap.exists()) {
+            const userData = dmUserSnap.data();
+            allMembers.push({
+                uid: uid,
+                name: uid === currentUid ? `${userData['name']} (Du)` : userData['name'],
+                avatar: userData['avatar'] || 'avatar-0.png',
+                email: userData['email'] || '',
+                status: 'online',
+                isYou: uid === currentUid
+            });
+        }
+    }
+    return allMembers;
+}
+
+async setChannelMembership(userUid: string, channelId: string, channelData: any, allMembers: any[]) {
+    const membershipRef = doc(
+        this.firestore,
+        `users/${userUid}/memberships/${channelId}`
+    );
+
+    await setDoc(membershipRef, {
+        channelId,
+        name: channelData['name'] || 'Neuer Channel',
+        description: channelData['description'] || '',
+        joinedAt: new Date(),
+        createdBy: channelData['createdBy'] || 'Unbekannt',
+        members: allMembers ,
+    });
+}
+
 
   create() {
     this.addMember();
     console.log('erstellt');
-
   }
 
 }
