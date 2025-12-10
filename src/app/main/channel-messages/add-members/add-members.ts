@@ -160,18 +160,14 @@ async addMembers() {
     // 1️⃣ Alle UIDs zusammenstellen (der aktuelle User + ausgewählte Mitglieder)
     let memberUids: string[] = [currentUid];
 
-    // Ausgewählte Personen hinzufügen
     memberUids.push(...this.selected().map(u => u.uid));
 
-    // Duplikate entfernen
     memberUids = Array.from(new Set(memberUids));
 
-    // 2️⃣ Für jede UID die Membership erstellen/aktualisieren
     for (const userUid of memberUids) {
       await this.handleUserChannelMembership(userUid, channelId, memberUids);
     }
 
-    // 3️⃣ Channel-State direkt aktualisieren
     const membershipRef = doc(this.firestore, `users/${currentUid}/memberships/${channelId}`);
     const snap = await getDoc(membershipRef);
     if (snap.exists()) {
@@ -180,7 +176,7 @@ async addMembers() {
       this.channelState.selectChannel(channelWithId);
     }
 
-    await new Promise(r => setTimeout(r, 200)); // kleine Verzögerung für UI
+    await new Promise(r => setTimeout(r, 200)); 
     this.dialogRef.close({ success: true, added: this.selected() });
 
   } catch (err) {
@@ -230,17 +226,41 @@ async addMembers() {
     return allMembers;
   }
 
-  async setChannelMembership(userUid: string, channelId: string, channelData: any, allMembers: Member[]) {
-    const ref = doc(this.firestore, `users/${userUid}/memberships/${channelId}`);
-    await setDoc(ref, {
-      channelId,
-      name: channelData['name'] || 'Neuer Channel',
-      description: channelData['description'] || '',
-      joinedAt: new Date(),
-      createdBy: channelData['createdBy'] || 'Unbekannt',
-      members: allMembers
-    });
+ async setChannelMembership(
+  userUid: string,
+  channelId: string,
+  channelData: any,
+  allMembers: Member[]
+) {
+
+  const ref = doc(this.firestore, `users/${userUid}/memberships/${channelId}`);
+  const snap = await getDoc(ref);
+
+  let existingMembers: Member[] = [];
+
+  if (snap.exists()) {
+    const data = snap.data();
+    existingMembers = Array.isArray(data['members']) ? data['members'] : [];
   }
+
+  const mergedMembers = [
+    ...existingMembers,
+    ...allMembers.filter(newUser =>
+      !existingMembers.some(old => old.uid === newUser.uid)
+    ),
+  ];
+
+  const updatedData = {
+    channelId,
+    name: channelData['name'] || 'Neuer Channel',
+    description: channelData['description'] || '',
+    joinedAt: snap.exists() ? snap.data()['joinedAt'] : new Date(),
+    createdBy: channelData['createdBy'] || 'Unbekannt',
+    members: mergedMembers,
+  };
+
+  await setDoc(ref, updatedData);
+}
 
   close() {
     console.log('🚪 Dialog geschlossen ohne Änderungen');

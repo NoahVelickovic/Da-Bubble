@@ -64,40 +64,71 @@ ngOnInit() {
 
   }
 
- async saveEditName() {
-  if (!this.editedName.trim()) return;
+  async saveEditName() {
+    if (!this.editedName.trim()) return;
 
-  const storedUser = localStorage.getItem('currentUser');
-  if (!storedUser) return;
-  const uid = JSON.parse(storedUser).uid;
-  const userRef = doc(this.firestore, 'users', uid);
-  const membershipsRef = collection(userRef, 'memberships');
-  const membershipDocRef = doc(membershipsRef, this.channel.id);
+    const storedUser = localStorage.getItem('currentUser');
+    if (!storedUser) return;
 
-  await updateDoc(membershipDocRef, { name: this.editedName.trim() });
-  this.channel.name = this.editedName.trim();
-  this.channelState.selectChannel(this.channel);
+    const uid = JSON.parse(storedUser).uid;
+    const channelId = this.channel.id;
+    const newName = this.editedName.trim();
 
-  this.showInputName = false;
-  this.closeName = true;
-  this.cdr.detectChanges();
-  
-}
+    try {
+      await this.updateAllMembersChannelData(channelId, { name: newName });
+      this.channel.name = newName;
+      this.channelState.selectChannel(this.channel);
+      this.showInputName = false;
+      this.closeName = true;
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren des Channel-Namens:', error);
+      alert('Fehler beim Speichern des Namens');
+    }
+  }
 
-async saveEditDescription() {
-  const storedUser = localStorage.getItem('currentUser');
-  if (!storedUser) return;
-  const uid = JSON.parse(storedUser).uid;
-  const userRef = doc(this.firestore, 'users', uid);
-  const membershipsRef = collection(userRef, 'memberships');
-  const membershipDocRef = doc(membershipsRef, this.channel.id);
+  async saveEditDescription() {
+    const storedUser = localStorage.getItem('currentUser');
+    if (!storedUser) return;
 
-  await updateDoc(membershipDocRef, { description: this.editedDescription.trim() });
-  this.channel.description = this.editedDescription.trim();
-  this.showInputDescription = false;
-  this.closeDescription = true;
-  this.cdr.detectChanges();
-}
+    const uid = JSON.parse(storedUser).uid;
+    const channelId = this.channel.id;
+    const newDescription = this.editedDescription.trim();
+
+    try {
+      await this.updateAllMembersChannelData(channelId, { description: newDescription });
+
+      this.channel.description = newDescription;
+      this.showInputDescription = false;
+      this.closeDescription = true;
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren der Channel-Beschreibung:', error);
+      alert('Fehler beim Speichern der Beschreibung');
+    }
+  }
+
+
+  async updateAllMembersChannelData(channelId: string, updates: { name?: string, description?: string }) {
+    const allMembers: any[] = this.channel.members || [];
+
+    const updatePromises = allMembers.map(async (member) => {
+      try {
+        const memberChannelRef = doc(
+          this.firestore,
+          `users/${member.uid}/memberships/${channelId}`
+        );
+        const memberSnap = await getDoc(memberChannelRef);
+        if (memberSnap.exists()) {
+          await updateDoc(memberChannelRef, updates);
+        }
+      } catch (error) {
+        console.error(`Fehler beim Update für Member ${member.uid}:`, error);
+      }
+    });
+
+    await Promise.all(updatePromises);
+  }
 
 async leaveChannel() {
   try {

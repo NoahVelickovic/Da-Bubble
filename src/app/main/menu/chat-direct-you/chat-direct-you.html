@@ -1,11 +1,11 @@
 <div class="main-container">
     <div class="header">
-        <img src="/icons/avatars/avatar2.png" alt="" class="avatar">
+        <img [src]="'/icons/avatars/' + userAvatar" alt="" class="avatar">
         <h2>{{userName}} (Du)</h2>
     </div>
     <div class="second-container">
         <div>
-            <img src="/icons/avatars/avatar2.png" alt="" class="avatar">
+            <img [src]="'/icons/avatars/' + userAvatar" class="avatar">
             <h2 (click)="openProfileHeader()">{{userName}} (Du)</h2>
         </div>
         <p>Dieser Raum ist nur für dich da.</p> <span> Mache dir Notizen, liste deine To-dos auf oder bewahre Links und

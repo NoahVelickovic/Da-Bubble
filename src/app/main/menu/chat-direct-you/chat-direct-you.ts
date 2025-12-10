@@ -57,11 +57,13 @@ export class ChatDirectYou {
 
     if (!uid) return;
 
-    const userRef = doc(this.firestore, 'direct', uid);
+    const userRef = doc(this.firestore, 'directMessages', uid);
     const snap = await getDoc(userRef);
     if (snap.exists()) {
       const data: any = snap.data();
       this.userName = data.name;
+            this.userAvatar = data.avatar;
+
       this.firebaseService.setName(this.userName);
       this.cdr.detectChanges();
     }

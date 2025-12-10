@@ -30,8 +30,14 @@ selectAvatar(avatar: string) {
     if (!userId) return;
 
     const userRef = doc(this.firestore, `users/${userId}`);
+        const dmRef = doc(this.firestore, `directMessages/${userId}`);
+
 
     await updateDoc(userRef, {
+      avatar: this.selectedAvatar
+    });
+
+    await updateDoc(dmRef, {
       avatar: this.selectedAvatar
     });
 

@@ -165,7 +165,6 @@ async getMemberUids(currentUid: string): Promise<string[]> {
         memberUids = dmSnap.map(u => u['uid'] as string);
     }
 
-    // Stellen Sie sicher, dass keine Duplikate existieren
     return Array.from(new Set(memberUids));
 }
 

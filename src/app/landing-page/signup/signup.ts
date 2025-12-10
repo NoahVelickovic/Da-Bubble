@@ -31,7 +31,7 @@ export class Signup {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 
-async signUp() {
+  async signUp() {
     this.submitted = true;
 
     this.nameError = this.text.trim() === '';
@@ -57,7 +57,9 @@ async signUp() {
         name: this.text,
         email: this.email,
         avatar: 'avatar1.png',
-        createdAt: new Date()
+        createdAt: new Date(),
+        isYou: true
+
       });
 
       await this.saveUserToDirectMessages({
@@ -81,7 +83,7 @@ async signUp() {
     }
   }
 
-   async saveUserToDirectMessages(user: any) {
+  async saveUserToDirectMessages(user: any) {
     const dmRef = doc(this.firestore, 'directMessages', user.uid);
 
     await setDoc(dmRef, {
@@ -90,7 +92,9 @@ async signUp() {
       email: user.email,
       avatar: user.avatar || 'avatar-0.png',
       status: 'online',
-      createdAt: new Date()
+      createdAt: new Date(),
+      isYou: true
+
     });
   }
 
