@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 import { Firestore, getDoc, doc } from '@angular/fire/firestore';
 import { DirectChatService } from '../../../services/direct-chat-service';
 import { map } from 'rxjs/operators';
-
+import { PresenceService } from '../../../services/presence.service';
 
 @Component({
   selector: 'app-direct-messages',
@@ -21,7 +21,8 @@ export class DirectMessages {
   private firestore = inject(Firestore);
   private cdr = inject(ChangeDetectorRef);
   private directChatService = inject(DirectChatService);
-  
+  public presence = inject(PresenceService)
+
   userName: string = '';
   userAvatar: string = '';
     currentUserId: string = '';

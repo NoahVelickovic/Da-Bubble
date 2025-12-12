@@ -2,7 +2,8 @@
      (click)="openChatYou()"
      [class.active]="isYouSelected">
   <img [src]="'/icons/avatars/' + userAvatar" alt="Avatar">
-  <p>{{userName}} (Du)</p>
+<span class="status-dot" [ngClass]="presence.userStatusMap()[currentUserId] === 'online' ? 'online' : 'offline'">
+</span>  <p>{{userName}} (Du)</p>
 </div>
 
 <div class="main-container" 
