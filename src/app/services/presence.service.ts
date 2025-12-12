@@ -30,11 +30,19 @@ export class PresenceService {
     });
   }
 
-  private listenToAllStatuses() {
-    const statusRef = ref(this.db, 'status');
+ private listenToAllStatuses() {
+  const statusRef = ref(this.db, 'status');
 
-    onValue(statusRef, snapshot => {
-      this.userStatusMap.set(snapshot.val() || {});
-    });
-  }
+  onValue(statusRef, snapshot => {
+    const raw = snapshot.val() || {};
+
+    const mapped: Record<string, 'online' | 'offline'> = {};
+
+    for (const uid in raw) {
+      mapped[uid] = raw[uid]?.state === 'online' ? 'online' : 'offline';
+    }
+
+    this.userStatusMap.set(mapped);
+  });
+}
 }
