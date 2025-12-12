@@ -8,10 +8,12 @@ import { LandingPage } from './landing-page/landing-page';
 import { ResetPassword } from './landing-page/reset-password/reset-password';
 import { Main } from './main/main';
 import { DetailPage } from './detail-page/detail-page';
-import { ChooseAvatar } from './landing-page/choose-avatar/choose-avatar'; 
+import { ChooseAvatar } from './landing-page/choose-avatar/choose-avatar';
 import { ChannelMessages } from './main/channel-messages/channel-messages';
 import { ChatDirectMessage } from './main/menu/chat-direct-message/chat-direct-message';
 import { ChatDirectYou } from './main/menu/chat-direct-you/chat-direct-you';
+import { NewMessage } from './main/menu/new-message/new-message';
+
 
 export const routes: Routes = [
   {
@@ -32,7 +34,9 @@ export const routes: Routes = [
       { path: '', redirectTo: 'channels', pathMatch: 'full' },
       { path: 'channels', component: ChannelMessages },
       { path: 'direct-message/:id', component: ChatDirectMessage },
-      { path: 'direct-you', component: ChatDirectYou }
+      { path: 'direct-you', component: ChatDirectYou },
+      { path: 'new-message', component: NewMessage }
+
     ],
   },
   {

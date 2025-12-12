@@ -3,10 +3,11 @@ import { CommonModule } from '@angular/common';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialog } from '@angular/material/dialog';
 import { ProfileCard } from '../../../shared/profile-card/profile-card';
 import { AddMembers } from '../add-members/add-members';
-import { Firestore, doc, docData } from '@angular/fire/firestore';
+import { Firestore, doc, getDoc, docData } from '@angular/fire/firestore';
 import { ChangeDetectorRef } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ChannelStateService } from '../../menu/channels/channel.service';
+import { FirebaseService } from "../../../services/firebase";
 
 type Member = {
   uid: string;
@@ -30,15 +31,19 @@ type DialogData = {
   styleUrl: './edit-members.scss',
 })
 export class EditMembers implements OnDestroy {
-fullChannel: any = null;
+  fullChannel: any = null;
   @Input() channel = '';
   @Input() channelId = '';
   @Input() members: Member[] = [];
+  
   private cd = inject(ChangeDetectorRef);
   firestore = inject(Firestore);
-private channelState = inject(ChannelStateService);
+  private channelState = inject(ChannelStateService);
+  private firebaseService = inject(FirebaseService);
+
   channelName!: string;
   currentUserId!: string;
+  userName = '';
 
   membersSignal = signal<Member[]>([]);
   orderedMembers = computed(() => {
@@ -50,48 +55,107 @@ private channelState = inject(ChannelStateService);
     });
   });
 
-  private firestoreSubscription: Subscription | null = null;
+  private membershipSubscription: Subscription | null = null;
+  private nameSubscription: Subscription | null = null;
 
   constructor(
     private dialogRef: MatDialogRef<EditMembers>,
     @Inject(MAT_DIALOG_DATA) public data: DialogData | null,
     private dialog: MatDialog
-  ) { }
+  ) {}
 
- ngOnInit() {
-  
-
+  async ngOnInit() {
+    // 1️⃣ Initialdaten setzen
     if (this.data?.channelName) this.channelName = this.data.channelName;
     if (this.data?.currentUserId) this.currentUserId = this.data.currentUserId;
 
-    const initial = this.data?.members?.length ? this.data.members : [];
+    const initial = this.data?.members || [];
     this.membersSignal.set([...initial]);
+
+    // 2️⃣ Usernamen initial laden
+    await this.initUserId();
+
+    // 3️⃣ Live-Updates für Members aus Firestore
+    this.listenToMembershipChanges();
+
+    // 4️⃣ Live-Updates für eigenen Namen abonnieren
+    this.nameSubscription = this.firebaseService.currentName$.subscribe(name => {
+      if (!name) return;
+      this.userName = name;
+
+      // Mitglieder aktualisieren, nur der aktuelle User bekommt neuen Namen
+      this.membersSignal.update(members =>
+        members.map(m =>
+          m.uid === this.currentUserId ? { ...m, name: `${name} (Du)` } : m
+        )
+      );
+
+      this.cd.detectChanges();
+    });
   }
 
-  ngOnDestroy() {
-    if (this.firestoreSubscription) {
-      this.firestoreSubscription.unsubscribe();
+  private listenToMembershipChanges() {
+    if (!this.currentUserId || !this.data?.channelId) return;
+
+    const membershipRef = doc(
+      this.firestore, 
+      `users/${this.currentUserId}/memberships/${this.data.channelId}`
+    );
+
+    this.membershipSubscription = docData(membershipRef).subscribe((channelData: any) => {
+      if (!channelData?.members) return;
+
+      const updatedMembers = channelData.members.map((m: Member) => {
+        if (m.uid === this.currentUserId) {
+          // Immer aktuellen Namen aus FirebaseService nehmen
+          const currentName = this.firebaseService.currentNameValue || 'Du';
+          return { ...m, name: `${currentName} (Du)` };
+        }
+        return m;
+      });
+
+      this.membersSignal.set(updatedMembers);
+      this.cd.detectChanges();
+    });
+  }
+
+  async initUserId() {
+    const storedUser = localStorage.getItem('currentUser');
+    if (!storedUser) return;
+    const userData = JSON.parse(storedUser);
+    this.currentUserId = userData.uid;
+
+    // initialen Namen aus directMessages laden
+    const userRef = doc(this.firestore, 'directMessages', this.currentUserId);
+    const snap = await getDoc(userRef);
+    if (snap.exists()) {
+      const data: any = snap.data();
+      this.userName = data.name;
+      this.firebaseService.setName(this.userName); // wichtig: BehaviorSubject updaten
+      this.cd.detectChanges();
     }
   }
 
-
+  ngOnDestroy() {
+    this.membershipSubscription?.unsubscribe();
+    this.nameSubscription?.unsubscribe();
+  }
 
   close() {
     this.dialogRef.close();
   }
 
-  openProfile(member: any) {
+  openProfile(member: Member) {
     this.dialog.open(ProfileCard, {
       data: member,
       panelClass: 'profile-dialog-panel'
     });
   }
 
- openAddMembers(): void {
+  openAddMembers() {
     const id = this.data?.channelId || this.channelId;
     const name = this.channelName;
     const members = this.membersSignal();
-
     this.dialogRef.close(); 
 
     this.dialog.open(AddMembers, {
@@ -100,7 +164,7 @@ private channelState = inject(ChannelStateService);
         channelId: id,
         channelName: name,
         existingMembers: members,
-         },
+      },
     });
   }
 

@@ -1,18 +1,15 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { getDocs, query, limit, orderBy, collection, doc, Firestore } from '@angular/fire/firestore';
+import { getDocs, query, limit, orderBy, collection, doc, Firestore, getDoc } from '@angular/fire/firestore';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChannelStateService {
-  // 🔹 aktuell ausgewählter Channel
   private selectedChannelSubject = new BehaviorSubject<any>(null);
   selectedChannel$ = this.selectedChannelSubject.asObservable();
   firestore: Firestore = inject(Firestore);
-
-  // 🔹 Liste aller Channels als Signal
   private _channels = signal<any[]>([]);
   private _channelsSubject = new BehaviorSubject<any[]>([]);
   channels$ = this._channelsSubject.asObservable();
@@ -21,23 +18,47 @@ export class ChannelStateService {
     this.selectedChannelSubject.next(channel);
   }
 
+
+ updateSelectedChannel(channelData: any) {
+    const currentChannel = this.selectedChannelSubject.value;
+    
+    // Nur aktualisieren wenn es der gleiche Channel ist
+    if (currentChannel && currentChannel.id === channelData.id) {
+      this.selectedChannelSubject.next(channelData);
+    }
+  }
+
+
   getCurrentChannel() {
     return this.selectedChannelSubject.value;
   }
 
   setChannels(channels: any[]) {
     this._channels.set(channels);
-    this._channelsSubject.next(channels); // 🔹 Observable aktualisieren
+    this._channelsSubject.next(channels);
   }
 
-  
+  async loadFullChannel(channelId: string) {
+  const firestore = this.firestore;
+  const ref = doc(firestore, `channels/${channelId}`);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) return null;
+
+  const data = snap.data();
+
+  return {
+    id: channelId,
+    ...data,
+    members: Array.isArray(data['members']) ? data['members'] : [],
+  };
+}
 
   removeChannel(channelId: string) {
     const updated = this._channels().filter(c => c.id !== channelId);
     this._channels.set(updated);
-    this._channelsSubject.next(updated); // 🔹 Observable aktualisieren
+    this._channelsSubject.next(updated); 
 
-    // 🔹 Wenn der aktuell ausgewählte Channel entfernt wird
     if (this.getCurrentChannel()?.id === channelId) {
       this.selectedChannelSubject.next(null);
     }
@@ -52,7 +73,6 @@ export class ChannelStateService {
     const userRef = doc(this.firestore, 'users', uid);
     const membershipsRef = collection(userRef, 'memberships');
     
-    // Ersten Channel laden (sortiert nach Namen oder Erstelldatum)
     const q = query(membershipsRef, orderBy('name'), limit(1));
     const snapshot = await getDocs(q);
 
@@ -63,7 +83,6 @@ export class ChannelStateService {
       };
       this.selectChannel(firstChannel);
     } else {
-      // Falls keine Channels mehr vorhanden sind
       this.selectChannel(null);
     }
   } catch (error) {

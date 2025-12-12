@@ -31,7 +31,7 @@
 
             <input type="text" [placeholder]="selected().length ? '' : 'Name eingeben'" [ngModel]="query()"
                 (ngModelChange)="query.set($event)" (focus)="hasFocus.set(true)" (blur)="hasFocus.set(false)"
-                (keydown)="onKeyDown($event)" aria-autocomplete="list" aria-expanded="{{ showDropdown() }}" />
+                 aria-autocomplete="list" aria-expanded="{{ showDropdown() }}" />
 
             <div class="dropdown" *ngIf="showDropdown()">
                 <button class="option" *ngFor="let u of suggestions(); let i = index"

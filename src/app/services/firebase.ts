@@ -37,6 +37,10 @@ private nameSource = new BehaviorSubject<string>('');
     return collectionData(colRef, { idField: 'id' });
   }
 
+   get currentNameValue(): string {
+    return this.nameSource.getValue();
+  }
+
 
   // Dokument hinzufügen
   addDocument(collectionName: string, data: any) {

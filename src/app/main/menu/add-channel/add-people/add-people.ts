@@ -143,6 +143,7 @@ export class AddPeople implements OnInit {
         for (const memberUid of memberUids) {
             await this.handleUserChannelMembership(memberUid, channelId, memberUids);
         }
+        await this.updateChannelState(currentUid, channelId, memberUids);
 
         this.closeDialog();
     } catch (error) {
@@ -235,6 +236,25 @@ async setChannelMembership(userUid: string, channelId: string, channelData: any,
         createdBy: channelData['createdBy'] || 'Unbekannt',
         members: allMembers ,
     });
+}
+
+
+async updateChannelState(currentUid: string, channelId: string, memberUids: string[]) {
+    if (!this.data.channelState) return;
+
+    // Aktuelle Channel-Daten neu laden
+    const membershipRef = doc(this.firestore, `users/${currentUid}/memberships/${channelId}`);
+    const membershipSnap = await getDoc(membershipRef);
+    
+    if (membershipSnap.exists()) {
+        const updatedChannelData = {
+            id: channelId,
+            ...membershipSnap.data()
+        };
+        
+        // Channel-State Service aktualisieren
+        this.data.channelState.updateSelectedChannel(updatedChannelData);
+    }
 }
 
 

@@ -6,6 +6,8 @@ import { Channels } from '../menu/channels/channels';
 import { DirectMessages } from '../menu/direct-messages/direct-messages';
 import { CommonModule } from '@angular/common';
 import { AddChannel } from '../menu/add-channel/add-channel';
+import { Router } from '@angular/router';
+
 
 @Component({
   selector: 'app-menu',
@@ -22,7 +24,9 @@ export class Menu {
 
   constructor(
     private dialog: MatDialog, 
-    private cd: ChangeDetectorRef
+    private cd: ChangeDetectorRef,
+        public router: Router
+
   ) {}
 
   @HostListener('window:resize')
@@ -38,7 +42,9 @@ export class Menu {
   }
 
   onOpenNewMessage() {
-    console.log('Neue Nachricht');
+    console.log('Neue Nachricht')
+    this.router.navigate(['/main/new-message']);   
+
   }
 
   openDialog() {

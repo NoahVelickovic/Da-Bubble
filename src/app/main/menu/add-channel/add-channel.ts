@@ -25,7 +25,7 @@ export class AddChannel {
   firestore: Firestore = inject(Firestore);
   memberships: any[] = [];
 
-  constructor(  private channelState: ChannelStateService) { }
+  constructor(private channelState: ChannelStateService) { }
   dialogRef = inject(MatDialogRef<AddChannel>);
 
   close() {
@@ -66,21 +66,21 @@ export class AddChannel {
       createdBy: userData['name']
     });
 
-this.channelState.selectChannel({
-    id: channelId,
-    name,
-    description,
-    members: [{
-      uid: uid,
-      name: `${userData['name']} (Du)`,
-      avatar: userData['avatar'] || 'avatar-0.png',
-      email: userData['email'] || '',
-      isYou: true
-    }]
-  });
+    this.channelState.selectChannel({
+      id: channelId,
+      name,
+      description,
+      members: [{
+        uid: uid,
+        name: `${userData['name']} (Du)`,
+        avatar: userData['avatar'] || 'avatar-0.png',
+        email: userData['email'] || '',
+        isYou: true
+      }]
+    });
     this.dialog.open(AddPeople, {
       panelClass: 'add-people-dialog-panel',
-      data: { channelId }
+      data: { channelId, channelState: this.channelState }
     });
 
     this.close();
