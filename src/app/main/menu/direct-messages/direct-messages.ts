@@ -52,6 +52,11 @@ export class DirectMessages {
     });
   }
 
+  getStatus(uid: string): 'online' | 'offline' {
+  const map = this.presence.userStatusMap();
+  return map[uid] ?? 'offline';
+}
+
   async initUserId() {
     const storedUser = localStorage.getItem('currentUser');
     if (!storedUser) return;
