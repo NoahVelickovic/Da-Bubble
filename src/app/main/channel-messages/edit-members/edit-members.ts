@@ -7,7 +7,8 @@ import { Firestore, doc, getDoc, docData } from '@angular/fire/firestore';
 import { ChangeDetectorRef } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ChannelStateService } from '../../menu/channels/channel.service';
-import { FirebaseService } from "../../../services/firebase";
+import { FirebaseService } from '../../../services/firebase';
+import { PresenceService } from '../../../services/presence.service';
 
 type Member = {
   uid: string;
@@ -35,11 +36,12 @@ export class EditMembers implements OnDestroy {
   @Input() channel = '';
   @Input() channelId = '';
   @Input() members: Member[] = [];
-  
+
   private cd = inject(ChangeDetectorRef);
   firestore = inject(Firestore);
   private channelState = inject(ChannelStateService);
   private firebaseService = inject(FirebaseService);
+  public presence = inject(PresenceService)
 
   channelName!: string;
   currentUserId!: string;
@@ -75,14 +77,12 @@ export class EditMembers implements OnDestroy {
 
     this.listenToMembershipChanges();
 
-    this.nameSubscription = this.firebaseService.currentName$.subscribe(name => {
+    this.nameSubscription = this.firebaseService.currentName$.subscribe((name) => {
       if (!name) return;
       this.userName = name;
 
-      this.membersSignal.update(members =>
-        members.map(m =>
-          m.uid === this.currentUserId ? { ...m, name: `${name} (Du)` } : m
-        )
+      this.membersSignal.update((members) =>
+        members.map((m) => (m.uid === this.currentUserId ? { ...m, name: `${name} (Du)` } : m))
       );
 
       this.cd.detectChanges();
@@ -93,7 +93,7 @@ export class EditMembers implements OnDestroy {
     if (!this.currentUserId || !this.data?.channelId) return;
 
     const membershipRef = doc(
-      this.firestore, 
+      this.firestore,
       `users/${this.currentUserId}/memberships/${this.data.channelId}`
     );
 
@@ -124,7 +124,7 @@ export class EditMembers implements OnDestroy {
     if (snap.exists()) {
       const data: any = snap.data();
       this.userName = data.name;
-      this.firebaseService.setName(this.userName); 
+      this.firebaseService.setName(this.userName);
       this.cd.detectChanges();
     }
   }
@@ -141,7 +141,7 @@ export class EditMembers implements OnDestroy {
   openProfile(member: Member) {
     this.dialog.open(ProfileCard, {
       data: member,
-      panelClass: 'profile-dialog-panel'
+      panelClass: 'profile-dialog-panel',
     });
   }
 
@@ -149,7 +149,7 @@ export class EditMembers implements OnDestroy {
     const id = this.data?.channelId || this.channelId;
     const name = this.channelName;
     const members = this.membersSignal();
-    this.dialogRef.close(); 
+    this.dialogRef.close();
 
     this.dialog.open(AddMembers, {
       panelClass: 'add-members-dialog-panel',
@@ -161,7 +161,12 @@ export class EditMembers implements OnDestroy {
     });
   }
 
-  isYou(u: Member) { 
-    return u.uid === this.currentUserId || /\(Du\)\s*$/.test(u.name); 
+  getStatus(uid: string): 'online' | 'offline' {
+    const map = this.presence.userStatusMap();
+    return map[uid] ?? 'offline';
+  }
+
+  isYou(u: Member) {
+    return u.uid === this.currentUserId || /\(Du\)\s*$/.test(u.name);
   }
 }

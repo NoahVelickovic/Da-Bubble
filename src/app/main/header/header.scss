@@ -249,3 +249,16 @@ p {
     background: #bbb;
   }
 }
+
+.status-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  margin-bottom: -54px;
+  margin-left: -36px;
+}
+
+.online {
+  background: #2ecc71;
+  box-shadow: 0 0 8px #2ecc71;
+}
