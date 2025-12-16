@@ -70,6 +70,7 @@
     </div>    <div class="profile-menu" (click)="openMenu()" [matMenuTriggerFor]="!isMobile ? menu : null">
         <p>{{ userName }}</p>
         <img class="profile-img" [src]="'/icons/avatars/' + userAvatar" alt="">
+        <span class="status-dot online"></span>
         <img src="/icons/dropdown-menu.png" alt="" class="dropdown">
         <mat-menu #menu="matMenu" class="menu" xPosition="before" yPosition="below">
             <p (click)="openDialog()">Profile</p>
