@@ -15,17 +15,27 @@ import { map } from 'rxjs/operators';
 })
 export class NewMessage {
   @Output() close = new EventEmitter<void>();
-    private dialog = inject(MatDialog)
+  private dialog = inject(MatDialog)
   firestore: Firestore = inject(Firestore);
-   selectedPeople: { uid: string, name: string, avatar: string, email: string }[] = [];
+  selectedPeople: { uid: string, name: string, avatar: string, email: string, type?: 'user' | 'channel' }[] = [];
   allPeople: { uid: string, name: string, avatar: string, email: string }[] = [];
-  filteredPeople: { uid: string, name: string, avatar: string, email: string }[] = [];
+  filteredPeople: { uid: string, name: string, avatar: string, email: string, type: 'user' | 'channel' }[] = [];
+  selectedChannel: { uid: string, name: string }[] = [];
+  allChannels: { uid: string, name: string }[] = [];
+  filteredChannel: { uid: string, name: string }[] = [];
   inputName: string = "";
-search = true;
+  search = true;
 
-ngOnInit() {
+  ngOnInit() {
+    const storedUser = localStorage.getItem('currentUser');
+    if (!storedUser) return;
+
+    const uid = JSON.parse(storedUser).uid;
     const dmRef = collection(this.firestore, 'directMessages');
+    const userRef = doc(this.firestore, 'users', uid);
+    const channelsRef = collection(userRef, 'memberships');
 
+    // Lade Personen
     collectionData(dmRef, { idField: 'uid' })
       .pipe(
         map(users =>
@@ -41,22 +51,68 @@ ngOnInit() {
         this.allPeople = users;
         this.filteredPeople = [];
       });
+
+    // Lade Channels
+    collectionData(channelsRef, { idField: 'uid' })
+      .pipe(
+        map(channels =>
+          channels.map(c => ({
+            uid: c['uid'] as string,
+            name: c['name'] as string
+          }))
+        )
+      )
+      .subscribe(channels => {
+        this.allChannels = channels;
+      });
   }
 
-
-filterPeople() {
+  filterPeople() {
     const value = this.inputName.toLowerCase().trim();
+    const startsWithAt = value.startsWith('@');
+    const startsWithHash = value.startsWith('#');
 
     if (value.length < 1) {
       this.filteredPeople = [];
-       this.search = false;
+      this.search = false;
       return;
     }
 
-    this.filteredPeople = this.allPeople
-      .filter(u => u.name.toLowerCase().includes(value))
-      .filter(u => !this.selectedPeople.some(sp => sp.uid === u.uid));
-      this.search = this.filteredPeople.length > 0;
+   const searchValue = (startsWithAt || startsWithHash) 
+      ? value.substring(1).toLowerCase() 
+      : value.toLowerCase();
+
+    if (searchValue.length < 1) {
+      this.filteredPeople = [];
+      this.search = false;
+      return;
+    }
+
+    let filteredUsers: any[] = [];
+    let filteredChannels: any[] = [];
+
+    // Wenn @ eingegeben wurde, nur Personen durchsuchen
+    if (startsWithAt) {
+      filteredUsers = this.allPeople
+        .filter(u => u.name.toLowerCase().includes(searchValue))
+        .filter(u => !this.selectedPeople.some(sp => sp.uid === u.uid))
+        .map(u => ({ ...u, type: 'user' as const }));
+    }
+    // Wenn # eingegeben wurde, nur Channels durchsuchen
+    else if (startsWithHash) {
+      filteredChannels = this.allChannels
+        .filter(c => c.name.toLowerCase().includes(searchValue))
+        .filter(c => !this.selectedPeople.some(sp => sp.uid === c.uid))
+        .map(c => ({ 
+          uid: c.uid, 
+          name: c.name, 
+          avatar: '', 
+          email: '', 
+          type: 'channel' as const 
+        }));
+    }
+    this.filteredPeople = [...filteredChannels, ...filteredUsers];
+    this.search = this.filteredPeople.length > 0;
   }
 
   onInputKeydown(event: KeyboardEvent) {
@@ -66,48 +122,55 @@ filterPeople() {
     }
   }
 
+  selectPerson(person: { uid: string, name: string, avatar: string, email: string, type?: 'user' | 'channel' }) {
+    if (this.selectedPeople.some(p => p.uid === person.uid)) return;
 
-  selectPerson(person: { uid: string, name: string, avatar: string, email: string }) {
-  if (this.selectedPeople.some(p => p.uid === person.uid)) return;
+    this.selectedPeople.push(person);
 
-  this.selectedPeople.push(person);
+    // Entferne aus der entsprechenden Liste
+    if (person.type === 'channel') {
+      this.allChannels = this.allChannels.filter(c => c.uid !== person.uid);
+    } else {
+      this.allPeople = this.allPeople.filter(p => p.uid !== person.uid);
+    }
 
-  this.allPeople = this.allPeople.filter(p => p.uid !== person.uid);
+    this.inputName = '';
+    this.filteredPeople = [];
+    this.search = false;
+  }
 
-  this.inputName = '';
-  this.filteredPeople = [];
-  this.search = false; // <— DROPDOWN ZU
-}
-  
-
-
-  removePerson(person: { uid: string, name: string, avatar: string, email: string }) {
+  removePerson(person: { uid: string, name: string, avatar: string, email: string, type?: 'user' | 'channel' }) {
     this.selectedPeople = this.selectedPeople.filter(p => p.uid !== person.uid);
-    this.allPeople.push(person);
-    this.allPeople.sort((a, b) => a.name.localeCompare(b.name));
+    
+    // Füge zurück zur entsprechenden Liste
+    if (person.type === 'channel') {
+      this.allChannels.push({ uid: person.uid, name: person.name });
+      this.allChannels.sort((a, b) => a.name.localeCompare(b.name));
+    } else {
+      this.allPeople.push(person);
+      this.allPeople.sort((a, b) => a.name.localeCompare(b.name));
+    }
 
     this.filterPeople();
   }
 
   closeMessage() {
-    this.close.emit(); 
+    this.close.emit();
   }
-
 
   openAddEmojis() {
-      this.dialog.open(AddEmojis, {
-        panelClass: 'add-emojis-dialog-panel'
-      });
-    }
-  
-    openAtMembers() {
-      this.dialog.open(AtMembers, {
-        panelClass: 'at-members-dialog-panel'
-      });
-    }
+    this.dialog.open(AddEmojis, {
+      panelClass: 'add-emojis-dialog-panel'
+    });
+  }
 
-    sendMessage() {
-  
+  openAtMembers() {
+    this.dialog.open(AtMembers, {
+      panelClass: 'at-members-dialog-panel'
+    });
+  }
+
+  sendMessage() {
+
   }
 }
-

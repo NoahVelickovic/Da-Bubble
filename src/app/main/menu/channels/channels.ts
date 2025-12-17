@@ -27,7 +27,12 @@ export class Channels implements OnInit {
 
   ngOnInit() {
     this.loadData();
-    
+    this.channelState.selectedChannel$.subscribe(channel => {
+      if (channel) {
+        this.selectedChannelId = channel.id;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   loadData() {
@@ -43,6 +48,8 @@ export class Channels implements OnInit {
     collectionData(membershipsRef, { idField: 'id' }).subscribe(memberships => {
       this.memberships = memberships;
       this.cdr.detectChanges();
+            const currentChannel = this.channelState.getSelectedChannel();
+
 
       if (memberships.length > 0 && !this.selectedChannelId) {
         this.onChannelClick(memberships[0]);

@@ -29,6 +29,18 @@
       background-color: #cccccc;
         cursor: pointer;
     }
+
+     &.active {
+        background-color: #e0e0ff;
+        box-shadow: 0 0 8px rgba(68, 77, 242, 0.3),
+                    0 0 4px rgba(68, 77, 242, 0.2);
+        
+        p {
+            color: #444df2;
+            font-weight: 600;
+        }
+       
+    }
 }
 
 .status-dot {

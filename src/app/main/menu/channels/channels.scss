@@ -31,6 +31,23 @@
         0 0 4px rgba(255, 255, 255, 0.2);
         cursor: pointer;
     }
+
+    &.active {
+        background-color: #e0e0ff;
+        box-shadow: 0 0 8px rgba(68, 77, 242, 0.3),
+                    0 0 4px rgba(68, 77, 242, 0.2);
+        
+        p {
+            color: #444df2;
+            font-weight: 600;
+        }
+        
+        img {
+            filter: invert(43%) sepia(63%) saturate(7492%) hue-rotate(229deg) brightness(97%) contrast(96%);
+                        color: #444df2;
+
+        }
+    }
 }
 
 .add-container {

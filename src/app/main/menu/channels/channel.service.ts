@@ -18,6 +18,10 @@ export class ChannelStateService {
     this.selectedChannelSubject.next(channel);
   }
 
+  getSelectedChannel() {
+    return this.selectedChannelSubject.value;
+  }
+
 
  updateSelectedChannel(channelData: any) {
     const currentChannel = this.selectedChannelSubject.value;
