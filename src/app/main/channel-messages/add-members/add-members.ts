@@ -2,7 +2,7 @@ import { Component, inject, signal, computed, ChangeDetectorRef, Input } from '@
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { Firestore, doc, getDoc, collection, collectionData, setDoc } from '@angular/fire/firestore';
+import { Firestore, doc, getDoc, collection, collectionData, writeBatch, getDocs } from '@angular/fire/firestore';
 import { map } from 'rxjs';
 import { ChannelStateService } from '../../menu/channels/channel.service';
 import { FirebaseService } from "../../../services/firebase";
@@ -162,7 +162,6 @@ export class AddMembers {
   }
 
   selectUser(u: Member) {
-    // Doppelte Checks zur Sicherheit
     if (this.selected().find(x => x.uid === u.uid)) return;
     if (this.existingMembers().find(x => x.uid === u.uid)) return;
 
@@ -186,20 +185,22 @@ export class AddMembers {
     const channelId = this.channelId;
 
     try {
-      // Alle UIDs sammeln (bestehende + neue)
       const newMemberUids = this.selected().map(u => u.uid);
       const existingMemberUids = this.existingMembers().map(u => u.uid);
       
-      let allMemberUids = Array.from(new Set([
+      const allMemberUids = Array.from(new Set([
         ...existingMemberUids,
         ...newMemberUids
       ]));
 
       console.log('🔥 Updating members for all users:', allMemberUids);
 
-      for (const userUid of allMemberUids) {
-        await this.handleUserChannelMembership(userUid, channelId, allMemberUids);
-      }
+      const [channelData, allMembersData] = await Promise.all([
+        this.fetchChannelData(currentUid, channelId),
+        this.fetchAllMemberDetailsBatch(currentUid, allMemberUids)
+      ]);
+
+      await this.updateAllUserMembershipsBatch(allMemberUids, channelId, channelData, allMembersData);
 
       const membershipRef = doc(this.firestore, `users/${currentUid}/memberships/${channelId}`);
       const snap = await getDoc(membershipRef);
@@ -217,57 +218,78 @@ export class AddMembers {
     }
   }
 
-  async handleUserChannelMembership(userUid: string, channelId: string, allMemberUids: string[]) {
-    try {
-      const storedUser = localStorage.getItem('currentUser');
-      const currentUid = storedUser ? JSON.parse(storedUser).uid : '';
-
-      const channelData = await this.fetchChannelData(currentUid, channelId);
-      const allMembers = await this.fetchMemberDetails(currentUid, allMemberUids);
-      await this.setChannelMembership(userUid, channelId, channelData, allMembers);
-
-    } catch (err) {
-      console.error(`Fehler für User ${userUid}:`, err);
-    }
-  }
-
   async fetchChannelData(currentUid: string, channelId: string) {
     const ref = doc(this.firestore, `users/${currentUid}/memberships/${channelId}`);
     const snap = await getDoc(ref);
     return snap.exists() ? snap.data() : {};
   }
 
-  async fetchMemberDetails(currentUid: string, allMemberUids: string[]) {
-    const allMembers: Member[] = [];
-    for (const uid of allMemberUids) {
+  async fetchAllMemberDetailsBatch(currentUid: string, allMemberUids: string[]): Promise<Member[]> {
+    const memberPromises = allMemberUids.map(async (uid) => {
       const dmRef = doc(this.firestore, `directMessages/${uid}`);
       const dmSnap = await getDoc(dmRef);
+      
       if (dmSnap.exists()) {
         const userData = dmSnap.data();
-        allMembers.push({
+        return {
           uid,
           name: uid === currentUid ? `${userData['name']} (Du)` : userData['name'],
           avatar: userData['avatar'] || 'avatar-0.png',
           email: userData['email'] || '',
           status: 'online',
           isYou: uid === currentUid
-        });
+        } as Member;
       }
-    }
-    return allMembers;
+      return null;
+    });
+
+    const results = await Promise.all(memberPromises);
+    return results.filter(m => m !== null) as Member[];
   }
 
-  async setChannelMembership(userUid: string, channelId: string, channelData: any, allMembers: Member[]) {
-    const ref = doc(this.firestore, `users/${userUid}/memberships/${channelId}`);
-    
-    await setDoc(ref, {
-      channelId,
-      name: channelData['name'] || 'Neuer Channel',
-      description: channelData['description'] || '',
-      joinedAt: channelData['joinedAt'] || new Date(),
-      createdBy: channelData['createdBy'] || 'Unbekannt',
-      members: allMembers
-    }, { merge: false });
+  async updateAllUserMembershipsBatch(
+    allMemberUids: string[],
+    channelId: string,
+    channelData: any,
+    allMembers: Member[]
+  ) {
+    const MAX_BATCH_SIZE = 500;
+    const batches: Promise<void>[] = [];
+    let currentBatch = writeBatch(this.firestore);
+    let operationCount = 0;
+
+    for (const userUid of allMemberUids) {
+      const ref = doc(this.firestore, `users/${userUid}/memberships/${channelId}`);
+      
+      const personalizedMembers = allMembers.map(m => 
+        m.uid === userUid 
+          ? { ...m, name: m.name.includes('(Du)') ? m.name : `${m.name.replace(' (Du)', '')} (Du)`, isYou: true }
+          : { ...m, name: m.name.replace(' (Du)', ''), isYou: false }
+      );
+
+      currentBatch.set(ref, {
+        channelId,
+        name: channelData['name'] || 'Neuer Channel',
+        description: channelData['description'] || '',
+        joinedAt: channelData['joinedAt'] || new Date(),
+        createdBy: channelData['createdBy'] || 'Unbekannt',
+        members: personalizedMembers
+      }, { merge: false });
+
+      operationCount++;
+
+      if (operationCount >= MAX_BATCH_SIZE) {
+        batches.push(currentBatch.commit());
+        currentBatch = writeBatch(this.firestore);
+        operationCount = 0;
+      }
+    }
+
+    if (operationCount > 0) {
+      batches.push(currentBatch.commit());
+    }
+
+    await Promise.all(batches);
   }
 
   close() {

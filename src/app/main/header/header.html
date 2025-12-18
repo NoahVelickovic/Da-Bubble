@@ -1,7 +1,8 @@
 <section>
     <img src="/icons/logo-menu.png" alt="logo">
  <div class="search-container">
-        <input 
+    
+        <input class="search"
             type="text" 
             placeholder="Devspace durchsuchen (# für Channels, @ für Personen)"
             [(ngModel)]="searchQuery"
@@ -73,8 +74,8 @@
         <span class="status-dot online"></span>
         <img src="/icons/dropdown-menu.png" alt="" class="dropdown">
         <mat-menu #menu="matMenu" class="menu" xPosition="before" yPosition="below">
-            <p (click)="openDialog()">Profile</p>
-            <p (click)="logout()">Log out</p>
+            <p (click)="openDialog()" class="dialog-select">Profile</p>
+            <p (click)="logout()" class="dialog-select">Log out</p>
         </mat-menu>
     </div>
 

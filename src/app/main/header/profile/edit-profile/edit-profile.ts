@@ -35,16 +35,19 @@ export class EditProfile {
     const uid = this.data.uid;
     
     try {
+      const batch = writeBatch(this.firestore);
+      
       const userRef = doc(this.firestore, 'users', uid);
-      await updateDoc(userRef, { name: newName });
+      batch.update(userRef, { name: newName });
       
       const dmRef = doc(this.firestore, 'directMessages', uid);
-      await updateDoc(dmRef, { name: newName });
+      batch.update(dmRef, { name: newName });
+      
+      await batch.commit();
       
       await this.updateNameInAllChannelMemberships(uid, newName);
 
       this.firebase.setName(newName);
-      
       this.cd.detectChanges();
       this.dialogRef.close(newName);
       
@@ -53,46 +56,67 @@ export class EditProfile {
     }
   }
 
- private async updateNameInAllChannelMemberships(uid: string, newName: string) {
-  try {
-    const usersCol = collection(this.firestore, 'users');
-    const usersSnapshot = await getDocs(usersCol);
+  private async updateNameInAllChannelMemberships(uid: string, newName: string) {
+    try {
+      const usersCol = collection(this.firestore, 'users');
+      const usersSnapshot = await getDocs(usersCol);
+      
+      const updatePromises: Promise<void>[] = [];
+      let currentBatch = writeBatch(this.firestore);
+      let batchCount = 0;
+      const MAX_BATCH_SIZE = 500;
 
-    for (const userDoc of usersSnapshot.docs) {
-      const membershipsCol = collection(
-        this.firestore,
-        `users/${userDoc.id}/memberships`
-      );
-      const membershipsSnapshot = await getDocs(membershipsCol);
+      for (const userDoc of usersSnapshot.docs) {
+        const membershipsCol = collection(
+          this.firestore,
+          `users/${userDoc.id}/memberships`
+        );
+        const membershipsSnapshot = await getDocs(membershipsCol);
 
-      for (const membershipDoc of membershipsSnapshot.docs) {
-        const membershipData = membershipDoc.data();
-        const members = membershipData['members'] || [];
+        for (const membershipDoc of membershipsSnapshot.docs) {
+          const membershipData = membershipDoc.data();
+          const members = membershipData['members'] || [];
 
-        const memberIndex = members.findIndex((m: any) => m.uid === uid);
+          const memberIndex = members.findIndex((m: any) => m.uid === uid);
 
-        if (memberIndex !== -1) {
-          const updatedMembers = [...members];
-          const isCurrentUser = userDoc.id === uid;
+          if (memberIndex !== -1) {
+            const updatedMembers = [...members];
+            const isCurrentUser = userDoc.id === uid;
 
-          updatedMembers[memberIndex] = {
-            ...updatedMembers[memberIndex],
-            name: isCurrentUser ? `${newName} (Du)` : newName
-          };
+            updatedMembers[memberIndex] = {
+              ...updatedMembers[memberIndex],
+              name: isCurrentUser ? `${newName} (Du)` : newName
+            };
 
-          const membershipRef = doc(
-            this.firestore,
-            `users/${userDoc.id}/memberships/${membershipDoc.id}`
-          );
+            const membershipRef = doc(
+              this.firestore,
+              `users/${userDoc.id}/memberships/${membershipDoc.id}`
+            );
 
-          await updateDoc(membershipRef, { members: updatedMembers });
+            currentBatch.update(membershipRef, { members: updatedMembers });
+            batchCount++;
+
+            if (batchCount >= MAX_BATCH_SIZE) {
+              updatePromises.push(currentBatch.commit());
+              currentBatch = writeBatch(this.firestore);
+              batchCount = 0;
+            }
+          }
         }
       }
+
+      if (batchCount > 0) {
+        updatePromises.push(currentBatch.commit());
+      }
+
+      await Promise.all(updatePromises);
+      
+    } catch (error) {
+      console.error('❌ Fehler beim Aktualisieren der Memberships:', error);
+      throw error;
     }
-  } catch (error) {
-    console.error('❌ Fehler beim Aktualisieren der Memberships:', error);
   }
 }
 
-}
+
 

@@ -22,18 +22,13 @@
     }
 
     &:hover {
-        p {
-            color: #444df2;
-        }
-
-      background-color: #cccccc;
+      background-color: #ECEEFE;
         cursor: pointer;
     }
 
      &.active {
-        background-color: #e0e0ff;
-        box-shadow: 0 0 8px rgba(68, 77, 242, 0.3),
-                    0 0 4px rgba(68, 77, 242, 0.2);
+        background-color: #ECEEFE;
+      
         
         p {
             color: #444df2;

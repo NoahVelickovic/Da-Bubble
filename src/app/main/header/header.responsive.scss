@@ -5,7 +5,7 @@
 }
 
 
-@media (max-width: 1355px) {
+@media (max-width: 1555px) {
     section {
         >img {
             margin-right: 10px
@@ -18,10 +18,15 @@
             margin-left: 10px;
         }
     }
+
+    .search {
+        margin-left: -40px;
+        width: 100;
+    }
 }
 
 
-@media (max-width: 1150px) {
+@media (max-width: 1380px) {
     .profile-menu {
         >p {
             display: none;
