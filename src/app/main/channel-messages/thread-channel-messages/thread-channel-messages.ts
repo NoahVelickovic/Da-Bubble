@@ -9,6 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { AddEmojis } from '../add-emojis/add-emojis';
 import { AtMembers } from '../at-members/at-members';
 import { EmojiService, EmojiId } from '../../../services/emoji.service';
+import { PresenceService } from '../../../services/presence.service';
 import { MessagesStoreService, MessageDoc, ReactionUserDoc } from '../../../services/messages-store.service';
 import { Unsubscribe } from '@angular/fire/firestore';
 import { CurrentUserService, CurrentUser, AvatarUrlPipe } from '../../../services/current-user.service';
@@ -72,7 +73,7 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
   private editHideTimer: any = null;
   private host = inject(ElementRef<HTMLElement>);
   private emojiSvc = inject(EmojiService);
-
+  public presence = inject(PresenceService);
   private messageStoreSvc = inject(MessagesStoreService);
   private unsub: Unsubscribe | null = null;
   private stateSub: Subscription | null = null;
@@ -95,7 +96,7 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
     emoji: '',
     title: '',
     subtitle: '',
-    messageId: ''
+    messageId: '',
   };
 
   messagesView: Message[] = [];
@@ -301,7 +302,10 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
     if (diffDays === 1) return 'gestern';
 
     const timeSeparator = new Intl.DateTimeFormat('de-DE', {
-      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
     }).format(date);
 
     return timeSeparator.charAt(0).toUpperCase() + timeSeparator.slice(1);
@@ -377,7 +381,7 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
       text: 'Welche Version ist aktuell von Angular?',
       reactions: [],
       repliesCount: 2,
-      lastReplyTime: '2025-01-14T14:56:00+01:00'
+      lastReplyTime: '2025-01-14T14:56:00+01:00',
     },
     {
       messageId: 'm2',
@@ -397,11 +401,11 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
           reactionUsers: [
             { userId: 'u_sofia', username: 'Sofia Müller' },
             { userId: 'u_oliver', username: 'Oliver Plit' },
-          ]
+          ],
         },
       ],
       repliesCount: 1,
-      lastReplyTime: '2025-01-27T15:20:00+01:00'
+      lastReplyTime: '2025-01-27T15:20:00+01:00',
     },
     {
       messageId: 'm3',
@@ -421,10 +425,10 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
           reactionUsers: [
             { userId: 'u_noah', username: 'Noah Braun' },
             { userId: 'u_sofia', username: 'Sofia Müller' },
-          ]
+          ],
         },
       ],
-      repliesCount: 0
+      repliesCount: 0,
     },
     {
       messageId: 'm4',
@@ -432,12 +436,13 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
       avatar: 'icons/avatars/avatar5.png',
       isYou: false,
       createdAt: '2025-02-12T23:55:00+01:00',
-      text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque blandit odio ' +
+      text:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque blandit odio ' +
         'efficitur lectus vestibulum, quis accumsan ante vulputate. Quisque tristique iaculis ' +
         'erat, eu faucibus lacus iaculis ac.',
       reactions: [],
       repliesCount: 8,
-      lastReplyTime: '2025-02-12T23:58:00+01:00'
+      lastReplyTime: '2025-02-12T23:58:00+01:00',
     },
     {
       messageId: 'm5',
@@ -445,12 +450,13 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
       avatar: 'icons/avatars/avatar3.png',
       isYou: false,
       createdAt: '2025-12-07T11:38:00+01:00',
-      text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque blandit odio ' +
+      text:
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque blandit odio ' +
         'efficitur lectus vestibulum, quis accumsan ante vulputate. Quisque tristique iaculis ' +
         'erat, eu faucibus lacus iaculis ac.',
       reactions: [],
       repliesCount: 53,
-      lastReplyTime: '2025-12-07T04:17:00+01:00'
+      lastReplyTime: '2025-12-07T04:17:00+01:00',
     },
   ];
 
@@ -465,8 +471,8 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
       panelClass: 'add-emojis-dialog-panel',
       position: {
         bottom: `${dlgH + gap}px`,
-        left: `${64 + dlgW}px`
-      }
+        left: `${64 + dlgW}px`,
+      },
     });
   }
 
@@ -481,8 +487,8 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
       panelClass: 'at-members-dialog-panel',
       position: {
         bottom: `${dlgH + gap}px`,
-        left: `${100 + dlgW}px`
-      }
+        left: `${100 + dlgW}px`,
+      },
     });
   }
 
@@ -504,21 +510,26 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
     this.rebuildMessagesView();
     this.scrollToBottom();
   }
+
+  getStatus(uid: string): 'online' | 'offline' {
+    const map = this.presence.userStatusMap();
+    return map[uid] ?? 'offline';
+  }
   */
 
   /*
   toggleReaction(m: Message, emojiId: EmojiId) {
     const you: ReactionUser = { userId: this.userId, username: this.username };
-    const rx = m.reactions.find(r => r.emojiId === emojiId);
+    const rx = m.reactions.find((r) => r.emojiId === emojiId);
 
     if (rx) {
-      const youIdx = rx.reactionUsers.findIndex(u => u.userId === this.userId);
+      const youIdx = rx.reactionUsers.findIndex((u) => u.userId === this.userId);
       if (youIdx >= 0) {
         rx.reactionUsers.splice(youIdx, 1);
         rx.emojiCount = Math.max(0, rx.emojiCount - 1);
-        rx.youReacted = rx.reactionUsers.some(u => u.userId === this.userId);
+        rx.youReacted = rx.reactionUsers.some((u) => u.userId === this.userId);
         if (rx.emojiCount === 0 || rx.reactionUsers.length === 0) {
-          m.reactions = m.reactions.filter(r => r !== rx);
+          m.reactions = m.reactions.filter((r) => r !== rx);
         } else {
           m.reactions = [...m.reactions];
         }
@@ -572,12 +583,12 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
     const x = reactionRect.left - messageRect.left + 40;
     const y = reactionRect.top - messageRect.top - 110;
 
-    const youReacted = reaction.reactionUsers.some(u => u.userId === this.uid);
-    const reactedUsers = reaction.reactionUsers.map(u => u.username);
+    const youReacted = reaction.reactionUsers.some((u) => u.userId === this.uid);
+    const reactedUsers = reaction.reactionUsers.map((u) => u.username);
 
     let title = '';
     if (youReacted && reactedUsers.length > 0) {
-      const otherUsers = reactedUsers.filter(name => name !== this.name);
+      const otherUsers = reactedUsers.filter((name) => name !== this.name);
       if (otherUsers.length > 0) {
         title = `${otherUsers.slice(0, 2).join(' und ')} und Du`;
       } else {
@@ -598,7 +609,7 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
       emoji: this.emojiSvc.src(reaction.emojiId),
       title,
       subtitle,
-      messageId: m.messageId
+      messageId: m.messageId,
     };
   }
 
