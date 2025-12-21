@@ -41,11 +41,12 @@ export class EditMembers implements OnDestroy {
   firestore = inject(Firestore);
   private channelState = inject(ChannelStateService);
   private firebaseService = inject(FirebaseService);
-  public presence = inject(PresenceService)
+  public presence = inject(PresenceService);
 
   channelName!: string;
   currentUserId!: string;
   userName = '';
+  memberUid = '';
 
   membersSignal = signal<Member[]>([]);
   orderedMembers = computed(() => {
@@ -140,8 +141,12 @@ export class EditMembers implements OnDestroy {
 
   openProfile(member: Member) {
     this.dialog.open(ProfileCard, {
-      data: member,
       panelClass: 'profile-dialog-panel',
+      data: {
+        uid: member.uid,
+        name: member.name,
+        avatar: member.avatar,
+      },
     });
   }
 

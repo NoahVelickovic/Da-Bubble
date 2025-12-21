@@ -35,7 +35,6 @@ export class ChannelMessages implements OnInit, OnDestroy {
 
     this.subscription = this.channelState.selectedChannel$.subscribe(channel => {
       if (channel) {
-        console.log('Vollständiges Channel-Objekt:', channel);
         this.fullChannel = channel;
         this.channelName = channel.name || '';
         this.channelId = channel.id || '';

@@ -22,7 +22,16 @@ export class ProfileCard {
   public presence = inject(PresenceService);
   dm: any;
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: directMessageContact) {}
+  constructor(
+  @Inject(MAT_DIALOG_DATA)
+  public data: {
+    uid: string;
+    name: string;
+    avatar: string;
+    email: string;
+    createdAt: Date;
+  }
+) {}
 
   close() {
     this.dialogRef.close();
@@ -32,22 +41,31 @@ export class ProfileCard {
     this.dialog.closeAll();
   }
 
-  openChatDirectMessage(dm: directMessageContact) {
+ openChatDirectMessage() {
+  const storedUser = localStorage.getItem('currentUser');
+  const currentUserId = storedUser
+    ? JSON.parse(storedUser).uid
+    : null;
 
-    const storedUser = localStorage.getItem('currentUser');
-    if (storedUser) {
-      const currentUserId = JSON.parse(storedUser).uid;
-      if (dm.id === currentUserId) {
-        this.router.navigate(['/main/direct-you']);
-        this.closeAllDialogs();
-        return;
-      }
-    }
-
-    this.directChatService.openChat(dm);
-    this.router.navigate(['/main/direct-message', dm.name]);
+  if (this.data.uid === currentUserId) {
+    this.router.navigate(['/main/direct-you']);
     this.closeAllDialogs();
+    return;
   }
+
+  const dm: directMessageContact = {
+    id: this.data.uid,
+    name: this.data.name,
+    avatar: this.data.avatar,
+    email: this.data.email,
+    createdAt: this.data.createdAt,
+    state: false
+  };
+
+  this.directChatService.openChat(dm);
+  this.router.navigate(['/main/direct-message', dm.name]);
+  this.closeAllDialogs();
+}
 
   getStatus(uid: string): 'online' | 'offline' {
     const map = this.presence.userStatusMap();

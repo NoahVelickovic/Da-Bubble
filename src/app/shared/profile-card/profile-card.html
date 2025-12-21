@@ -15,11 +15,11 @@
   <div class="status-div">
    <span
     class="status-dot"
-    [ngClass]="presence.userStatusMap()[data.id] === 'online' ? 'online' : 'offline'"
+    [ngClass]="presence.userStatusMap()[data.uid] === 'online' ? 'online' : 'offline'"
   ></span>
     <p
       class="status"
-        [ngClass]="presence.userStatusMap()[data.id] === 'online' ? 'online-text' : 'offline-text'"
+        [ngClass]="presence.userStatusMap()[data.uid] === 'online' ? 'online-text' : 'offline-text'"
     >
       Status
     </p>
@@ -31,7 +31,7 @@
   <p class="email-name">{{ data.email }}</p>
 
   <footer class="footer">
-    <button class="button" (click)="openChatDirectMessage(data)">
+    <button class="button" (click)="openChatDirectMessage()">
       <img src="/icons/mode_comment.png" alt="" />
       <span>Nachricht</span>
     </button>
