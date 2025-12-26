@@ -16,9 +16,11 @@ import { CurrentUserService, CurrentUser, AvatarUrlPipe } from '../../../service
 import { Subscription } from 'rxjs';
 import { ChannelStateService } from '../../menu/channels/channel.service';
 import { OnChanges, SimpleChanges } from '@angular/core';
+import { ThreadStateService } from '../../../services/thread-state.service';
 
 type Message = {
   messageId: string;
+  uid: string;
   username: string;
   avatar: string;
   isYou: boolean;
@@ -82,6 +84,7 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
 
   private session = inject(CurrentUserService);
   private channelState = inject(ChannelStateService);
+  private threadStateSvc = inject(ThreadStateService);
 
   // channelName = 'Entwicklerteam';
   // uid = '';
@@ -154,6 +157,7 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
   private mapDocToMessage(d: MessageDoc & { id: string }): Message {
     return {
       messageId: d.id,
+      uid: d.author.uid,
       username: d.author.username,
       avatar: d.author.avatar,
       isYou: d.author.uid === this.uid,
@@ -342,6 +346,7 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
       if (key !== lastKey) {
         out.push({
           messageId: '',
+          uid: '',
           username: '',
           avatar: '',
           isYou: false,
@@ -648,6 +653,28 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
       clearTimeout(this.hideTimer);
       this.hideTimer = null;
     }
+  }
+
+  openThread(m: Message) {
+    if (!this.uid || !this.channelId) return;
+
+    this.threadStateSvc.open({
+      uid: this.uid,
+      channelId: this.channelId,
+      channelName: this.channelName,
+      messageId: m.messageId,
+      root: {
+        author: { uid: m.uid, username: m.username, avatar: m.avatar },
+        createdAt: m.createdAt,
+        text: m.text,
+        reactions: m.reactions?.map(r => ({
+          emojiId: r.emojiId,
+          emojiCount: r.emojiCount,
+          reactionUsers: r.reactionUsers.map(u => ({ userId: u.userId, username: u.username }))
+        })) ?? [],
+        isYou: m.isYou
+      }
+    });
   }
 
   toggleEditMessagePanel(m: Message, ev: MouseEvent) {

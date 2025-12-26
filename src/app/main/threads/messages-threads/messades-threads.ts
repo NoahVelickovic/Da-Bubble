@@ -1,30 +1,46 @@
-import { Component, ElementRef, HostListener, inject, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, AfterViewInit, ViewChild, Input, OnDestroy, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { AddEmojis } from '../add-emojis/add-emojis';
 import { AtMembers } from '../at-members/at-members';
+import { CurrentUserService, CurrentUser, AvatarUrlPipe } from '../../../services/current-user.service';
+import { MessagesStoreService, MessageDoc, ReactionUserDoc } from '../../../services/messages-store.service';
+import { EmojiService, EmojiId } from '../../../services/emoji.service';
+import { PresenceService } from '../../../services/presence.service';
+import { ThreadStateService } from '../../../services/thread-state.service';
+import { Unsubscribe } from '@angular/fire/firestore';
 
-type Reply = {
-  id: string;
-  author: string;
-  time: string;
-  avatar?: string;
+type RootMessage = {
+  messageId: string;
+  username: string;
+  avatar: string;
+  isYou: boolean;
+  createdAt: string | Date;
   text: string;
-  reactions?: Reaction[];
-  isYou?: boolean;
+  reactions: Reaction[];
 };
 
-type ReactionUser = {
-  uid: string;
-  name: string;
+type Reply = {
+  threadMessageId: string;
+  username: string;
+  avatar: string;
+  isYou: boolean;
+  createdAt: string | Date;
+  text: string;
+  reactions: Reaction[];
 };
 
 type Reaction = {
-  emoji: string;
-  count: number;
-  youReacted?: boolean;
-  users: ReactionUser[];
+  emojiId: EmojiId;
+  emojiCount: number;
+  youReacted: boolean;
+  reactionUsers: ReactionUser[];
+};
+
+type ReactionUser = {
+  userId: string;
+  username: string;
 };
 
 type ReactionPanelState = {
@@ -34,26 +50,43 @@ type ReactionPanelState = {
   emoji: string;
   title: string;
   subtitle: string;
-  messageId?: string;
+  messageId: string;
 };
+
+function isEmojiId(x: unknown): x is EmojiId {
+  return x === 'rocket' || x === 'check' || x === 'nerd' || x === 'thumbs_up';
+}
 
 @Component({
   selector: 'app-messades-threads',
-  imports: [CommonModule, FormsModule,],
+  imports: [CommonModule, FormsModule, AvatarUrlPipe],
   templateUrl: './messades-threads.html',
   styleUrls: ['./messades-threads.scss'],
 })
-export class MessadesThreads implements AfterViewInit {
+export class MessadesThreads implements AfterViewInit, OnDestroy {
   @ViewChild('scrollArea') scrollArea!: ElementRef<HTMLDivElement>
 
-  ngAfterViewInit() {
-    queueMicrotask(() => this.scrollToBottom());
-  }
+  @Input() uid!: string;
+  @Input() channelId!: string;
+  @Input() channelName = '';
 
-  private dialog = inject(MatDialog)
+  private dialog = inject(MatDialog);
   private hideTimer: any = null;
   private editHideTimer: any = null;
   private host = inject(ElementRef<HTMLElement>);
+  private emojiSvc = inject(EmojiService);
+  private messageStoreSvc = inject(MessagesStoreService);
+  private threadStateSvc = inject(ThreadStateService);
+  private session = inject(CurrentUserService);
+  private unsub: Unsubscribe | null = null;
+
+  draft = '';
+  editForId: string | null = null;
+  root!: RootMessage;
+  replies: Reply[] = [];
+
+  name = '';
+  avatar = '';
 
   reactionPanel: ReactionPanelState = {
     show: false,
@@ -65,8 +98,133 @@ export class MessadesThreads implements AfterViewInit {
     messageId: ''
   };
 
-  editForId: string | null = null;
+  async ngAfterViewInit() {
+    await this.session.hydrateFromLocalStorage();
+    const u = this.session.getCurrentUser();
+    if (u) {
+      this.uid = u.uid;
+      this.name = u.name;
+      this.avatar = u.avatar;
+    }
 
+    this.threadStateSvc.ctx$.subscribe(ctx => {
+      this.replies = [];
+      this.unsub?.();
+      this.unsub = null;
+      if (!ctx) return;
+
+      const createdAt = ctx.root?.createdAt instanceof Date
+        ? ctx.root?.createdAt
+        : new Date(ctx.root?.createdAt ?? Date.now());
+
+      const rootReactions: Reaction[] = (ctx.root?.reactions ?? []).map((r: any) => {
+        const users = (r.reactionUsers ?? []).map((u: any) => ({ userId: u.userId, username: u.username }));
+        const emojiId: EmojiId = isEmojiId(r.emojiId) ? r.emojiId : 'rocket';
+        return {
+          emojiId,
+          emojiCount: Number(r.emojiCount ?? users.length ?? 0),
+          youReacted: users.some((u: any) => u.userId === this.uid),
+          reactionUsers: users,
+        };
+      });
+
+      this.root = {
+        messageId: ctx.messageId,
+        username: ctx.root?.author?.username ?? '',
+        avatar: ctx.root?.author?.avatar ?? '',
+        isYou: (ctx.root?.author?.uid ?? '') === ctx.uid,
+        createdAt,
+        text: ctx.root?.text ?? '',
+        reactions: rootReactions,
+      };
+
+      this.unsub = this.messageStoreSvc.listenThreadMessages(
+        ctx.uid, ctx.channelId, ctx.messageId,
+        (docs) => {
+          this.replies = docs.map(d => {
+            const users = (d.reactions ?? []).flatMap(r => r.reactionUsers ?? []);
+            return {
+              threadMessageId: d.id,
+              username: d.author.username,
+              avatar: d.author.avatar,
+              isYou: d.author.uid === ctx.uid,
+              createdAt: (d.createdAt as any) ?? new Date(),
+              text: d.text,
+              reactions: (d.reactions ?? []).map(r => {
+                const ru = (r.reactionUsers ?? []).map(u => ({ userId: u.userId, username: u.username }));
+                const emojiId: EmojiId = isEmojiId(r.emojiId) ? r.emojiId : 'rocket';
+                return {
+                  emojiId,
+                  emojiCount: Number(r.emojiCount ?? ru.length ?? 0),
+                  youReacted: ru.some(u => u.userId === ctx.uid),
+                  reactionUsers: ru,
+                };
+              }),
+            } as Reply;
+          });
+          queueMicrotask(() => this.scrollToBottom());
+        }
+      );
+    });
+
+    queueMicrotask(() => this.scrollToBottom());
+  };
+
+  ngOnDestroy() { this.unsub?.(); }
+
+  getEmojiSrc(emojiId: EmojiId | string) {
+    return this.emojiSvc.src(emojiId);
+  }
+
+  private toDate(x: unknown): Date | null {
+    if (!x) return null;
+
+    // Firestore Timestamp (hat .toDate())
+    if (typeof (x as any)?.toDate === 'function') {
+      const d = (x as any).toDate();
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    if (x instanceof Date) return isNaN(x.getTime()) ? null : x;
+
+    if (typeof x === 'string') {
+      const date = new Date(x);
+      if (!isNaN(date.getTime())) return date;
+
+      // erlaubt "HH:MM"
+      const m = /^(\d{1,2}):(\d{2})$/.exec(x.trim());
+      if (m) {
+        const d = new Date();
+        d.setHours(parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);
+        return d;
+      }
+    }
+
+    return null;
+  }
+
+  timeOf(x: string | Date | undefined | null): string {
+    const date = this.toDate(x);
+
+    if (!date) return '';
+
+    return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr';
+  }
+
+
+
+
+
+
+
+  // private dialog = inject(MatDialog)
+  // private hideTimer: any = null;
+  // private editHideTimer: any = null;
+  // private host = inject(ElementRef<HTMLElement>);
+
+
+
+  /*
   channel = 'Entwicklerteam';
   currentUserId = 'u_oliver';
   currentUserName = 'Oliver Plit';
@@ -78,16 +236,16 @@ export class MessadesThreads implements AfterViewInit {
     avatar: 'icons/avatars/avatar3.png',
     text: 'Welche Version ist aktuell von Angular?',
     reactions: [
-        {
-          emoji: 'icons/emojis/emoji_rocket.png',
-          count: 2,
-          youReacted: true,
-          users: [
-            { uid: 'u_sofia', name: 'Sofia Müller' },
-            { uid: 'u_oliver', name: 'Oliver Plit' },
-          ]
-        }
-      ],
+      {
+        emoji: 'icons/emojis/emoji_rocket.png',
+        count: 2,
+        youReacted: true,
+        users: [
+          { uid: 'u_sofia', name: 'Sofia Müller' },
+          { uid: 'u_oliver', name: 'Oliver Plit' },
+        ]
+      }
+    ],
     isYou: false,
   };
 
@@ -110,7 +268,8 @@ export class MessadesThreads implements AfterViewInit {
             { uid: 'u_oliver', name: 'Oliver Plit' },
           ]
         },
-        { emoji: 'icons/emojis/emoji_nerd face.png',
+        {
+          emoji: 'icons/emojis/emoji_nerd face.png',
           count: 1,
           youReacted: false,
           users: [
@@ -137,7 +296,8 @@ export class MessadesThreads implements AfterViewInit {
             { uid: 'u_oliver', name: 'Oliver Plit' },
           ]
         },
-        { emoji: 'icons/emojis/emoji_nerd face.png',
+        {
+          emoji: 'icons/emojis/emoji_nerd face.png',
           count: 1,
           youReacted: false,
           users: [
@@ -164,7 +324,8 @@ export class MessadesThreads implements AfterViewInit {
             { uid: 'u_oliver', name: 'Oliver Plit' },
           ]
         },
-        { emoji: 'icons/emojis/emoji_nerd face.png',
+        {
+          emoji: 'icons/emojis/emoji_nerd face.png',
           count: 1,
           youReacted: false,
           users: [
@@ -178,6 +339,7 @@ export class MessadesThreads implements AfterViewInit {
   ];
 
   draft = '';
+  */
 
   openAddEmojis(trigger: HTMLElement) {
     const r = trigger.getBoundingClientRect();
@@ -212,6 +374,7 @@ export class MessadesThreads implements AfterViewInit {
   }
 
   sendMessage() {
+    /*
     if (!this.draft.trim()) return;
     this.replies.push({
       id: crypto.randomUUID(),
@@ -222,48 +385,90 @@ export class MessadesThreads implements AfterViewInit {
       reactions: [],
     });
     this.draft = '';
+    */
+
+    const ctx = this.threadStateSvc.value;
+    const text = this.draft.trim();
+    if (!ctx || !text) return;
+
+    const author = ctx.root?.author!;
+    this.messageStoreSvc.sendThreadReply(ctx.uid, ctx.channelId, ctx.messageId, { text, author });
+    this.draft = '';
   }
 
-  showReactionPanel(reply: Reply, r: Reaction, event: MouseEvent) {
+  showReactionPanelRoot(r: Reaction, event: MouseEvent) {
     const element = event.currentTarget as HTMLElement;
-
-    const host = element.closest('.reply, .thread-root') as HTMLElement;
+    const host = element.closest('.thread-root') as HTMLElement;
     if (!host) return;
 
     const reactionRect = element.getBoundingClientRect();
     const hostRect = host.getBoundingClientRect();
-
     const x = reactionRect.left - hostRect.left + 40;
     const y = reactionRect.top - hostRect.top - 110;
 
-    const youReacted = r.users.some(u => u.uid === this.currentUserId);
-    const names = r.users.map(u => u.name);
+    const names = r.reactionUsers.map(u => u.username);
+    const youReacted = r.reactionUsers.some(u => u.userId === this.uid);
 
     let title = '';
     if (youReacted && names.length > 0) {
-      const otherUsers = names.filter(name => name !== this.currentUserName);
-      if (otherUsers.length > 0) {
-        title = `${otherUsers.slice(0, 2).join(' und ')} und Du`;
-      } else {
-        title = 'Du';
-      }
-    } else if (names.length > 0) {
+      const other = names.filter(n => n !== this.name);
+      title = other.length ? `${other.slice(0, 2).join(' und ')} und Du` : 'Du';
+    } else if (names.length) {
       title = names.slice(0, 2).join(' und ');
-    } else {
-      title = '';
     }
 
-    const subtitle = r.users?.length > 1 ? 'haben reagiert' : 'hat reagiert';
+    const subtitle = r.reactionUsers.length > 1 ? 'haben reagiert' : 'hat reagiert';
 
     this.reactionPanel = {
       show: true,
       x: Math.max(10, x),
       y: Math.max(10, y),
-      emoji: r.emoji,
+      emoji: this.getEmojiSrc(r.emojiId),
       title,
       subtitle,
-      messageId: reply.id
+      messageId: this.root.messageId,
     };
+  }
+
+  showReactionPanel(reply: Reply, r: Reaction, event: MouseEvent) {
+    const element = event.currentTarget as HTMLElement;
+    const host = element.closest('.reply') as HTMLElement;
+    if (!host) return;
+
+    const reactionRect = element.getBoundingClientRect();
+    const hostRect = host.getBoundingClientRect();
+    const x = reactionRect.left - hostRect.left + 40;
+    const y = reactionRect.top - hostRect.top - 110;
+
+    const names = r.reactionUsers.map(u => u.username);
+    const youReacted = r.reactionUsers.some(u => u.userId === this.uid);
+
+    let title = '';
+    if (youReacted && names.length > 0) {
+      const other = names.filter(n => n !== this.name);
+      title = other.length ? `${other.slice(0, 2).join(' und ')} und Du` : 'Du';
+    } else if (names.length) {
+      title = names.slice(0, 2).join(' und ');
+    }
+
+    const subtitle = r.reactionUsers.length > 1 ? 'haben reagiert' : 'hat reagiert';
+
+    this.reactionPanel = {
+      show: true,
+      x: Math.max(10, x),
+      y: Math.max(10, y),
+      emoji: this.getEmojiSrc(r.emojiId),
+      title,
+      subtitle,
+      messageId: reply.threadMessageId,
+    };
+  }
+
+  async toggleReplyReaction(replyId: string, emojiId: string) {
+    const ctx = this.threadStateSvc.value;
+    if (!ctx) return;
+    const you: ReactionUserDoc = { userId: ctx.uid, username: ctx.root?.author?.username ?? '' };
+    await this.messageStoreSvc.toggleThreadReaction(ctx.uid, ctx.channelId, ctx.messageId, replyId, emojiId, you);
   }
 
   clearReactionPanelHide() {
@@ -291,15 +496,13 @@ export class MessadesThreads implements AfterViewInit {
   toggleEditMessagePanel(reply: Reply, ev: MouseEvent) {
     ev.stopPropagation();
     this.clearEditMessagePanelHide();
-    this.editForId = this.editForId === reply.id ? null : reply.id;
+    this.editForId = this.editForId === reply.threadMessageId ? null : reply.threadMessageId;
   }
 
   scheduleEditMessagePanelHide(reply: Reply) {
-    if (this.editForId !== reply.id) return;
+    if (this.editForId !== reply.threadMessageId) return;
     this.clearEditMessagePanelHide();
-    this.editHideTimer = setTimeout(() => {
-      this.editForId = null;
-    });
+    this.editHideTimer = setTimeout(() => { this.editForId = null; });
   }
 
   cancelEditMessagePanelHide(_: Reply) {
