@@ -84,7 +84,7 @@
                     </div>
 
                     <div class="reactions" [class.you]="r.isYou" *ngIf="r.reactions.length">
-                        <div class="emoji-reactions">
+                        <div class="emoji-reactions" *ngIf="r.reactions.length">
                             <div class="reaction"
                                     *ngFor="let x of r.reactions"
                                     [class.active]="x.youReacted"
@@ -94,7 +94,7 @@
                                 <span class="count-emoji">{{ x.emojiCount }}</span>
                             </div>
 
-                            <span class="icon-box">
+                            <span #emojiBtn class="icon-box" (click)="toggleEmoji(r, $event)">
                                 <img class="default" src="icons/add_reaction.png" alt="">
                                 <img class="hover" src="icons/add_reaction_purple.png" alt="">
                             </span>
@@ -119,7 +119,7 @@
                 </div>
 
                 <div class="reaction-bar" [class.you]="r.isYou">
-                    <span class="icon-box">
+                    <span #barEmojiBtn class="icon-box" (click)="toggleEmoji(r, $event)">
                         <img class="default" src="icons/add_reaction.png" alt="">
                         <img class="hover" src="icons/add_reaction_purple.png" alt="">
                     </span>
@@ -132,8 +132,8 @@
 
                 <div class="edit-message-panel"
                         [class.you]="r.isYou"
-                        *ngIf="r.isYou && editForId === r.threadMessageId"
-                        (click)="editMessage($event)"
+                        *ngIf="r.isYou && showEditPanelForId === r.threadMessageId"
+                        (click)="editMessage(r, $event)"
                         (mouseenter)="cancelEditMessagePanelHide(r)"
                         (mouseleave)="scheduleEditMessagePanelHide(r)">
                     <span>Nachricht bearbeiten</span>
@@ -145,7 +145,7 @@
 
 <footer class="composer">
     <div class="composer-input">
-        <textarea [(ngModel)]="draft" placeholder="Antworten..."></textarea>
+        <textarea #composerTextarea [(ngModel)]="draft" placeholder="Antworten..."></textarea>
 
         <div class="composer-actions">
             <div class="d-flex">

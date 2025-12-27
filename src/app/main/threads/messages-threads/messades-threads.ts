@@ -82,6 +82,7 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
 
   draft = '';
   editForId: string | null = null;
+  showEditPanelForId: string | null = null;
   root!: RootMessage;
   replies: Reply[] = [];
 
@@ -391,10 +392,59 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
     const text = this.draft.trim();
     if (!ctx || !text) return;
 
+    if (this.editForId) {
+      this.messageStoreSvc.updateThreadMessage(ctx.uid, ctx.channelId, ctx.messageId, this.editForId, text).then(() => {
+        this.editForId = null;
+        this.draft = '';
+      })
+      return;
+    }
+
     const author = ctx.root?.author!;
     this.messageStoreSvc.sendThreadReply(ctx.uid, ctx.channelId, ctx.messageId, { text, author });
     this.draft = '';
   }
+
+
+  async toggleReaction(reply: Reply, emojiId: EmojiId) {
+    const ctx = this.threadStateSvc.value;
+    if (!ctx || !this.uid) return;
+
+    const you = { userId: this.uid, username: this.name };
+    await this.messageStoreSvc.toggleThreadReaction(
+      ctx.uid,
+      ctx.channelId,
+      ctx.messageId,
+      reply.threadMessageId,
+      emojiId,
+      you
+    );
+  }
+
+  async toggleEmoji(reply: Reply, event: MouseEvent) {
+    const btn = event.currentTarget as HTMLElement | null;
+    if (!btn) return;
+
+    const rect = btn.getBoundingClientRect();
+    const dlgW = 350;
+    const gap = 8;
+
+    const dialogRef = this.dialog.open(AddEmojis, {
+      width: dlgW + 'px',
+      panelClass: 'add-emojis-dialog-panel',
+      position: {
+        top: `${Math.round(rect.bottom + gap)}px`,
+        left: `${Math.max(8, Math.round(rect.left - dlgW + btn.offsetWidth))}px`,
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((emojiId: string | null) => {
+      if (!emojiId || !this.emojiSvc.isValid(emojiId)) return;
+      this.toggleReaction(reply, emojiId as EmojiId);
+    });
+  }
+
+
 
   showReactionPanelRoot(r: Reaction, event: MouseEvent) {
     const element = event.currentTarget as HTMLElement;
@@ -496,29 +546,35 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
   toggleEditMessagePanel(reply: Reply, ev: MouseEvent) {
     ev.stopPropagation();
     this.clearEditMessagePanelHide();
-    this.editForId = this.editForId === reply.threadMessageId ? null : reply.threadMessageId;
+    this.showEditPanelForId = this.showEditPanelForId === reply.threadMessageId ? null : reply.threadMessageId;
   }
 
   scheduleEditMessagePanelHide(reply: Reply) {
-    if (this.editForId !== reply.threadMessageId) return;
+    if (this.showEditPanelForId !== reply.threadMessageId) return;
     this.clearEditMessagePanelHide();
-    this.editHideTimer = setTimeout(() => { this.editForId = null; });
+    this.editHideTimer = setTimeout(() => { this.showEditPanelForId = null; });
   }
 
-  cancelEditMessagePanelHide(_: Reply) {
-    this.clearEditMessagePanelHide();
+  cancelEditMessagePanelHide(_: Reply) { this.clearEditMessagePanelHide(); }
+  private clearEditMessagePanelHide() {
+    if (this.editHideTimer) { clearTimeout(this.editHideTimer); this.editHideTimer = null; }
   }
 
+  /*
   private clearEditMessagePanelHide() {
     if (this.editHideTimer) {
       clearTimeout(this.editHideTimer);
       this.editHideTimer = null;
     }
   }
+  */
 
-  editMessage(ev: MouseEvent) {
+  editMessage(reply: Reply, ev: MouseEvent) {
     ev.stopPropagation();
-    this.editForId = null;
+    if (!reply.isYou) return;
+    this.editForId = reply.threadMessageId;
+    this.showEditPanelForId = null;
+    this.draft = reply.text;
   }
 
   @HostListener('document:click', ['$event'])

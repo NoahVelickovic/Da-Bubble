@@ -436,14 +436,35 @@ export class MessagesStoreService {
     }
     */
 
-    async updateThreadMessage(uid: string, channelId: string, messageId: string, newText: string) {
+    async updateThreadMessage(
+        uid: string,
+        channelId: string,
+        messageId: string,
+        threadMessageId: string,
+        text: string
+    ) {
+        const memberUids = await this.getMemberUids(uid, channelId);
+
+        const MAX = 500;
+        let batch = writeBatch(this.firestore);
+        let count = 0;
+
+        for (const uid of memberUids) {
+            const threadRef = this.threadMsgDoc(uid, channelId, messageId, threadMessageId);
+            batch.update(threadRef, { text: text });
+            if (++count >= MAX) { await batch.commit(); batch = writeBatch(this.firestore); count = 0; }
+        }
+        if (count) await batch.commit();
+
+        /*
         const ref = this.channelMsgDoc(uid, channelId, messageId);
         await runTransaction(this.firestore, async tx => {
             const snap = await tx.get(ref);
             if (!snap.exists()) return;
             const data = snap.data() as MessageDoc;
-            tx.update(ref, { text: newText });
+            tx.update(ref, { text: text });
         });
+        */
     }
 
 
@@ -455,6 +476,53 @@ export class MessagesStoreService {
         emojiId: string,
         you: ReactionUserDoc
     ) {
+        const memberUids = await this.getMemberUids(uid, channelId);
+
+        let nextReactions: ReactionDoc[] = [];
+
+        await runTransaction(this.firestore, async tx => {
+            const threadRef = this.threadMsgDoc(uid, channelId, messageId, threadMessageId);
+            const snap = await tx.get(threadRef);
+            if (!snap.exists()) return;
+
+            const data = snap.data() as MessageDoc;
+            data.reactions ||= [];
+
+            const idx = data.reactions.findIndex(r => r.emojiId === emojiId);
+            if (idx >= 0) {
+                const rx = data.reactions[idx];
+                const youIdx = rx.reactionUsers.findIndex(u => u.userId === you.userId);
+                if (youIdx >= 0) {
+                    rx.reactionUsers.splice(youIdx, 1);
+                    rx.emojiCount = Math.max(0, rx.emojiCount - 1);
+                    if (rx.emojiCount === 0 || rx.reactionUsers.length === 0) {
+                        data.reactions.splice(idx, 1);
+                    }
+                } else {
+                    rx.reactionUsers.push(you);
+                    rx.emojiCount += 1;
+                }
+            } else {
+                data.reactions.push({ emojiId, emojiCount: 1, reactionUsers: [you] });
+            }
+
+            nextReactions = data.reactions;
+
+            tx.update(threadRef, { reactions: data.reactions });
+        });
+
+        const MAX = 500;
+        let batch = writeBatch(this.firestore);
+        let count = 0;
+
+        for (const uid of memberUids) {
+            const threadRef = this.threadMsgDoc(uid, channelId, messageId, threadMessageId);
+            batch.set(threadRef, { reactions: nextReactions }, { merge: true });
+            if (++count >= MAX) { await batch.commit(); batch = writeBatch(this.firestore); count = 0; }
+        }
+        if (count) await batch.commit();
+
+        /*
         const ref = this.threadMsgDoc(uid, channelId, messageId, threadMessageId);
         await runTransaction(this.firestore, async tx => {
             const snap = await tx.get(ref);
@@ -482,8 +550,10 @@ export class MessagesStoreService {
 
             tx.update(ref, { reactions: data.reactions });
         });
+        */
     }
 
+    /*
     async toggleThreadReactionForAll(
         memberUids: string[],
         channelId: string,
@@ -496,7 +566,7 @@ export class MessagesStoreService {
             this.toggleThreadReaction(uid, channelId, messageId, threadMessageId, emojiId, you)
         ));
     }
-
+    */
 
 
 
