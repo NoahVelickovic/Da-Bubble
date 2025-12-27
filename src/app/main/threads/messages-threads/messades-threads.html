@@ -1,26 +1,29 @@
 <div #scrollArea class="scroll-area">
-    <div class="thread-root">
+    <div class="thread-root" [class.you]="root.isYou" *ngIf="root as root">
         <div class="avatar" [class.you]="root.isYou"
-            [style.background-image]="root.avatar ? 'url(' + root.avatar + ')' : null">
+            [style.background-image]="'url(' + (root.avatar | avatarUrl) + ')'">
             <span *ngIf="!root.avatar"></span>
         </div>
 
         <div class="message-body" [class.you]="root.isYou">
             <div class="meta" [class.you]="root.isYou">
-                <strong>{{ root.author }}</strong>
-                <time>{{ root.time }}</time>
+                <strong>{{ root.username }}</strong>
+                <time>{{ timeOf(root.createdAt) }}</time>
             </div>
 
             <div class="text bubble" [class.you]="root.isYou">
                 {{ root.text }}
             </div>
 
-            <div class="reactions" [class.you]="root.isYou" *ngIf="root.reactions?.length">
+            <div class="reactions" [class.you]="root.isYou" *ngIf="root.reactions.length">
                 <div class="emoji-reactions">
-                    <div class="reaction" *ngFor="let x of root.reactions" [class.active]="x.youReacted"
-                        (mouseenter)="showReactionPanel(root, x, $event)" (mouseleave)="scheduleReactionPanelHide()">
-                        <img class="emoji" [src]="x.emoji" alt="">
-                        <span class="count-emoji">{{ x.count }}</span>
+                    <div class="reaction"
+                            *ngFor="let x of root.reactions"
+                            [class.active]="x.youReacted"
+                            (mouseenter)="showReactionPanelRoot(x, $event)"
+                            (mouseleave)="scheduleReactionPanelHide()">
+                        <img class="emoji" [src]="getEmojiSrc(x.emojiId)" alt="">
+                        <span class="count-emoji">{{ x.emojiCount }}</span>
                     </div>
 
                     <span class="icon-box">
@@ -31,8 +34,11 @@
             </div>
         </div>
 
-        <div class="reaction-panel" *ngIf="reactionPanel.show && reactionPanel.messageId === root.id"
-            [style.left.px]="reactionPanel.x" [style.top.px]="reactionPanel.y" (mouseenter)="cancelReactionPanelHide()"
+        <div class="reaction-panel"
+            *ngIf="reactionPanel.show && reactionPanel.messageId === root.messageId"
+            [style.left.px]="reactionPanel.x"
+            [style.top.px]="reactionPanel.y"
+            (mouseenter)="cancelReactionPanelHide()"
             (mouseleave)="scheduleReactionPanelHide()">
 
             <div class="panel-content">
@@ -53,35 +59,39 @@
     </div>
 
     <div class="replies-separator">
-        <span>2 Antworten</span>
+        <span>{{ replies.length }} Antworten</span>
     </div>
 
     <div class="replies">
         <ng-container *ngFor="let r of replies">
-            <article class="reply" [class.you]="r.isYou" (mouseenter)="cancelEditMessagePanelHide(r)"
-                (mouseleave)="scheduleEditMessagePanelHide(r)">
+            <article class="reply" [class.you]="r.isYou"
+                    (mouseenter)="cancelEditMessagePanelHide(r)"
+                    (mouseleave)="scheduleEditMessagePanelHide(r)">
+
                 <div class="avatar" [class.you]="r.isYou"
-                    [style.background-image]="r.avatar ? 'url(' + r.avatar + ')' : null">
+                    [style.background-image]="'url(' + (r.avatar | avatarUrl) + ')'">
                     <span *ngIf="!r.avatar"></span>
                 </div>
 
                 <div class="message-body" [class.you]="r.isYou">
                     <div class="meta" [class.you]="r.isYou">
-                        <strong>{{ r.author }}</strong>
-                        <time>{{ r.time }}</time>
+                        <strong>{{ r.username }}</strong>
+                        <time>{{ timeOf(r.createdAt) }}</time>
                     </div>
 
                     <div class="text bubble" [class.you]="r.isYou">
                         {{ r.text }}
                     </div>
 
-                    <div class="reactions" [class.you]="r.isYou" *ngIf="r.reactions?.length">
+                    <div class="reactions" [class.you]="r.isYou" *ngIf="r.reactions.length">
                         <div class="emoji-reactions">
-                            <div class="reaction" *ngFor="let x of r.reactions" [class.active]="x.youReacted"
-                                (mouseenter)="showReactionPanel(r, x, $event)"
-                                (mouseleave)="scheduleReactionPanelHide()">
-                                <img class="emoji" src="{{ x.emoji }}" alt="">
-                                <span class="count-emoji">{{ x.count }}</span>
+                            <div class="reaction"
+                                    *ngFor="let x of r.reactions"
+                                    [class.active]="x.youReacted"
+                                    (mouseenter)="showReactionPanel(r, x, $event)"
+                                    (mouseleave)="scheduleReactionPanelHide()">
+                                <img class="emoji" [src]="getEmojiSrc(x.emojiId)" alt="">
+                                <span class="count-emoji">{{ x.emojiCount }}</span>
                             </div>
 
                             <span class="icon-box">
@@ -92,9 +102,12 @@
                     </div>
                 </div>
 
-                <div class="reaction-panel" *ngIf="reactionPanel.show && reactionPanel.messageId === r.id"
-                    [style.left.px]="reactionPanel.x" [style.top.px]="reactionPanel.y"
-                    (mouseenter)="cancelReactionPanelHide()" (mouseleave)="scheduleReactionPanelHide()">
+                <div class="reaction-panel"
+                        *ngIf="reactionPanel.show && reactionPanel.messageId === r.threadMessageId"
+                        [style.left.px]="reactionPanel.x"
+                        [style.top.px]="reactionPanel.y"
+                        (mouseenter)="cancelReactionPanelHide()"
+                        (mouseleave)="scheduleReactionPanelHide()">
 
                     <div class="panel-content">
                         <img *ngIf="reactionPanel.emoji" class="emoji" [src]="reactionPanel.emoji" alt="">
@@ -117,9 +130,12 @@
                     </span>
                 </div>
 
-                <div class="edit-message-panel" [class.you]="r.isYou" *ngIf="r.isYou && editForId === r.id"
-                    (click)="editMessage($event)" (mouseenter)="cancelEditMessagePanelHide(r)"
-                    (mouseleave)="scheduleEditMessagePanelHide(r)">
+                <div class="edit-message-panel"
+                        [class.you]="r.isYou"
+                        *ngIf="r.isYou && editForId === r.threadMessageId"
+                        (click)="editMessage($event)"
+                        (mouseenter)="cancelEditMessagePanelHide(r)"
+                        (mouseleave)="scheduleEditMessagePanelHide(r)">
                     <span>Nachricht bearbeiten</span>
                 </div>
             </article>
