@@ -17,6 +17,7 @@ import { Subscription } from 'rxjs';
 import { ChannelStateService } from '../../menu/channels/channel.service';
 import { OnChanges, SimpleChanges } from '@angular/core';
 import { ThreadStateService } from '../../../services/thread-state.service';
+import { LayoutService } from '../../../services/layout.service';
 
 type Message = {
   messageId: string;
@@ -81,7 +82,7 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
   private messageStoreSvc = inject(MessagesStoreService);
   private unsub: Unsubscribe | null = null;
   private stateSub: Subscription | null = null;
-
+  private layout = inject(LayoutService);
   private session = inject(CurrentUserService);
   private channelState = inject(ChannelStateService);
   private threadStateSvc = inject(ThreadStateService);
@@ -657,7 +658,7 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
 
   openThread(m: Message) {
     if (!this.uid || !this.channelId) return;
-
+    this.layout.openRight();
     this.threadStateSvc.open({
       uid: this.uid,
       channelId: this.channelId,

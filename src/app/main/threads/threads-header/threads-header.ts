@@ -23,6 +23,6 @@ export class ThreadsHeader {
   }
 
   closeThread() {
-    this.state.close();
+    this.layout.closeRight();
   }
 }
