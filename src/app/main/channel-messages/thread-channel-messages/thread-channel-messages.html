@@ -11,7 +11,8 @@
             <div class="avatar" [class.you]="m.isYou" [style.background-image]="'url(' + (m.avatar | avatarUrl) + ')'">
                 <span *ngIf="!m.avatar"></span>
 
-                <span class="status-dot" [ngClass]="presence.userStatusMap()[uid] === 'online' ? 'online' : 'offline'"></span>
+                <span class="status-dot"
+                    [ngClass]="presence.userStatusMap()[uid] === 'online' ? 'online' : 'offline'"></span>
             </div>
 
             <div class="message-body" [class.you]="m.isYou">
@@ -39,7 +40,7 @@
                     </div>
 
                     <div class="response" *ngIf="m.repliesCount > 0">
-                        <span class="count-answere">{{ m.repliesCount }} Antworten</span>
+                        <span class="count-answere" (click)="openThread(m)">{{ m.repliesCount }} Antworten</span>
                         <span class="answere">Letzte Antwort {{ timeOf(m.lastReplyTime) }}</span>
                     </div>
                 </div>

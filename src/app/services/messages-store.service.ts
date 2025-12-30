@@ -51,33 +51,15 @@ export class MessagesStoreService {
         return doc(this.firestore, `users/${uid}/messages/channels/${channelId}/${messageId}/threads/${threadMessageId}`);
     }
 
-    // Collection: users/{uid}/messages/directMessages/{dmId}
+    // Collection: users/${uid}/messages/directMessages/${dmId}
     private dmMsgsCol(uid: string, dmId: string) {
         return collection(this.firestore, `users/${uid}/messages/directMessages/${dmId}`);
     }
 
-    // Doc: users/{uid}/messages/directMessages/{dmId}/{messageId}
+    // Doc: users/${uid}/messages/directMessages/${dmId}/${messageId}
     private dmMsgDoc(uid: string, dmId: string, messageId: string) {
         return doc(this.firestore, `users/${uid}/messages/directMessages/${dmId}/${messageId}`);
     }
-
-
-
-    /*
-    private async getChannelMemberUids(ownerUid: string, channelId: string): Promise<string[]> {
-        const membershipRef = doc(this.firestore, `users/${ownerUid}/memberships/${channelId}`);
-        const snap = await getDoc(membershipRef);
-        const members = (snap.exists() ? (snap.data() as any)?.members : []) || [];
-        const uids = members
-            .map((m: any) => m?.uid || m?.id)
-            .filter((x: string) => !!x);
-
-        if (!uids.includes(ownerUid)) uids.push(ownerUid);
-
-        return Array.from(new Set(uids));
-    }
-    */
-
 
     private membershipDoc(uid: string, channelId: string) {
         return doc(this.firestore, `users/${uid}/memberships/${channelId}`);
@@ -98,57 +80,20 @@ export class MessagesStoreService {
         return Array.from(new Set(memberUids));
     }
 
+    private buildDmId(aUid: string, bUid: string): string {
+        return [aUid, bUid].sort().join('__');
+    }
+
+    public getDmId(aUid: string, bUid: string): string {
+        return this.buildDmId(aUid, bUid);
+    }
+
     listenChannelMessages(
         uid: string,
         channelId: string,
         cb: (msgs: (MessageDoc & { id: string })[]) => void
     ): Unsubscribe {
         const qy = query(this.channelMsgsCol(uid, channelId), orderBy('createdAt', 'asc'));
-        return onSnapshot(qy, snap => {
-            const out = snap.docs.map(d => {
-                const data = d.data() as MessageDoc;
-                return {
-                    ...data,
-                    id: d.id,
-                    createdAt: this.toDate(data.createdAt),
-                    lastReplyTime: data.lastReplyTime ? this.toDate(data.lastReplyTime) : undefined
-                };
-            });
-            cb(out);
-        });
-    }
-
-    listenThreadMessages(
-        uid: string,
-        channelId: string,
-        messageId: string,
-        cb: (msgs: (MessageDoc & { id: string })[]) => void
-    ): Unsubscribe {
-        const qy = query(this.threadMsgsCol(uid, channelId, messageId), orderBy('createdAt', 'asc'));
-        return onSnapshot(qy, snap => {
-            this.zone.run(() => {
-                const out = snap.docs.map(d => {
-                    const data = d.data() as MessageDoc;
-                    return {
-                        ...data,
-                        id: d.id,
-                        createdAt: this.toDate(data.createdAt),
-                        lastReplyTime: data.lastReplyTime ? this.toDate(data.lastReplyTime) : undefined
-                    };
-                });
-
-                cb(out);
-            });
-
-        });
-    }
-
-    listenDirectMessages(
-        uid: string,
-        dmId: string,
-        cb: (msgs: (MessageDoc & { id: string })[]) => void
-    ): Unsubscribe {
-        const qy = query(this.dmMsgsCol(uid, dmId), orderBy('createdAt', 'asc'));
         return onSnapshot(qy, snap => {
             const out = snap.docs.map(d => {
                 const data = d.data() as MessageDoc;
@@ -193,17 +138,6 @@ export class MessagesStoreService {
         if (count) await batch.commit();
 
         return id;
-
-        /*
-        await addDoc(this.channelMsgsCol(uid, channelId), {
-            text: params.text,
-            createdAt: serverTimestamp(),
-            author: params.author,
-            reactions: [],
-            repliesCount: 0,
-            lastReplyTime: null
-        } satisfies MessageDoc);
-        */
     }
 
     async updateChannelMessage(uid: string, channelId: string, messageId: string, text: string) {
@@ -219,17 +153,6 @@ export class MessagesStoreService {
             if (++count >= MAX) { await batch.commit(); batch = writeBatch(this.firestore); count = 0; }
         }
         if (count) await batch.commit();
-
-
-        /*
-        const ref = this.channelMsgDoc(uid, channelId, messageId);
-        await updateDoc(ref, {
-            text,
-            // optional, wenn du "bearbeitet" anzeigen willst:
-            // editedAt: serverTimestamp(),
-            // edited: true,
-        });
-        */
     }
 
     async toggleChannelReaction(uid: string, channelId: string, messageId: string, emojiId: string, you: ReactionUserDoc) {
@@ -278,38 +201,31 @@ export class MessagesStoreService {
             if (++count >= MAX) { await batch.commit(); batch = writeBatch(this.firestore); count = 0; }
         }
         if (count) await batch.commit();
-
-        /*
-        // const ref = this.channelMsgDoc(uid, channelId, messageId);
-        await runTransaction(this.firestore, async tx => {
-            const snap = await tx.get(ref);
-            if (!snap.exists()) return;
-            const data = snap.data() as MessageDoc;
-            data.reactions ||= [];
-     
-            const idx = data.reactions.findIndex(r => r.emojiId === emojiId);
-            if (idx >= 0) {
-                const rx = data.reactions[idx];
-                const youIdx = rx.reactionUsers.findIndex(u => u.userId === you.userId);
-                if (youIdx >= 0) {
-                    rx.reactionUsers.splice(youIdx, 1);
-                    rx.emojiCount = Math.max(0, rx.emojiCount - 1);
-                    if (rx.emojiCount === 0 || rx.reactionUsers.length === 0) {
-                        data.reactions.splice(idx, 1);
-                    }
-                } else {
-                    rx.reactionUsers.push(you);
-                    rx.emojiCount += 1;
-                }
-            } else {
-                data.reactions.push({ emojiId, emojiCount: 1, reactionUsers: [you] });
-            }
-            tx.update(ref, { reactions: data.reactions });
-        });
-        */
     }
 
+    listenThreadMessages(
+        uid: string,
+        channelId: string,
+        messageId: string,
+        cb: (msgs: (MessageDoc & { id: string })[]) => void
+    ): Unsubscribe {
+        const qy = query(this.threadMsgsCol(uid, channelId, messageId), orderBy('createdAt', 'asc'));
+        return onSnapshot(qy, snap => {
+            this.zone.run(() => {
+                const out = snap.docs.map(d => {
+                    const data = d.data() as MessageDoc;
+                    return {
+                        ...data,
+                        id: d.id,
+                        createdAt: this.toDate(data.createdAt),
+                        lastReplyTime: data.lastReplyTime ? this.toDate(data.lastReplyTime) : undefined
+                    };
+                });
 
+                cb(out);
+            });
+        });
+    }
 
     async sendThreadReply(
         uid: string,
@@ -363,78 +279,7 @@ export class MessagesStoreService {
 
             if (count) await batch.commit();
         }
-
-
-        /*
-        await addDoc(this.threadMsgsCol(uid, channelId, messageId), {
-            text: params.text,
-            createdAt: serverTimestamp(),
-            author: params.author,
-            reactions: [],
-            repliesCount: 0,
-            lastReplyTime: null
-        } satisfies MessageDoc);
-
-        const rootRef = this.channelMsgDoc(uid, channelId, messageId);
-        await runTransaction(this.firestore, async tx => {
-            const snap = await tx.get(rootRef);
-            if (!snap.exists()) return;
-            const data = snap.data() as MessageDoc;
-            const nextCount = Math.max(0, Number(data.repliesCount ?? 0) + 1);
-            tx.update(rootRef, {
-                repliesCount: nextCount,
-                lastReplyTime: serverTimestamp()
-            });
-        });
-        */
     }
-
-    /*
-    async sendThreadReplyForAll(
-        memberUids: string[],
-        channelId: string,
-        messageId: string,
-        params: { text: string; author: { uid: string; username: string; avatar: string } }
-    ) {
-        if (!memberUids.length) return;
-
-        const threadMessageRef = doc(this.threadMsgsCol(memberUids[0], channelId, messageId));
-        const threadMessageId = threadMessageRef.id;
-
-        {
-            const batch = writeBatch(this.firestore);
-            for (const uid of memberUids) {
-                const ref = this.threadMsgDoc(uid, channelId, messageId, threadMessageId);
-                batch.set(ref, {
-                    text: params.text,
-                    createdAt: serverTimestamp(),
-                    author: params.author,
-                    reactions: [],
-                    repliesCount: 0,
-                    lastReplyTime: null
-                } satisfies MessageDoc, { merge: false });
-            }
-            await batch.commit();
-        }
-
-        {
-            const updates = memberUids.map(uid =>
-                runTransaction(this.firestore, async tx => {
-                    const rootRef = this.channelMsgDoc(uid, channelId, messageId);
-                    const snap = await tx.get(rootRef);
-                    if (!snap.exists()) return;
-                    const data = snap.data() as MessageDoc;
-                    const nextCount = Math.max(0, Number(data.repliesCount ?? 0) + 1);
-                    tx.update(rootRef, {
-                        repliesCount: nextCount,
-                        lastReplyTime: serverTimestamp()
-                    });
-                })
-            );
-            await Promise.all(updates);
-        }
-    }
-    */
 
     async updateThreadMessage(
         uid: string,
@@ -455,18 +300,7 @@ export class MessagesStoreService {
             if (++count >= MAX) { await batch.commit(); batch = writeBatch(this.firestore); count = 0; }
         }
         if (count) await batch.commit();
-
-        /*
-        const ref = this.channelMsgDoc(uid, channelId, messageId);
-        await runTransaction(this.firestore, async tx => {
-            const snap = await tx.get(ref);
-            if (!snap.exists()) return;
-            const data = snap.data() as MessageDoc;
-            tx.update(ref, { text: text });
-        });
-        */
     }
-
 
     async toggleThreadReaction(
         uid: string,
@@ -521,76 +355,77 @@ export class MessagesStoreService {
             if (++count >= MAX) { await batch.commit(); batch = writeBatch(this.firestore); count = 0; }
         }
         if (count) await batch.commit();
-
-        /*
-        const ref = this.threadMsgDoc(uid, channelId, messageId, threadMessageId);
-        await runTransaction(this.firestore, async tx => {
-            const snap = await tx.get(ref);
-            if (!snap.exists()) return;
-            const data = snap.data() as MessageDoc;
-            data.reactions ||= [];
-
-            const idx = data.reactions.findIndex(r => r.emojiId === emojiId);
-            if (idx >= 0) {
-                const rx = data.reactions[idx];
-                const youIdx = rx.reactionUsers.findIndex(u => u.userId === you.userId);
-                if (youIdx >= 0) {
-                    rx.reactionUsers.splice(youIdx, 1);
-                    rx.emojiCount = Math.max(0, rx.emojiCount - 1);
-                    if (rx.emojiCount === 0 || rx.reactionUsers.length === 0) {
-                        data.reactions.splice(idx, 1);
-                    }
-                } else {
-                    rx.reactionUsers.push(you);
-                    rx.emojiCount += 1;
-                }
-            } else {
-                data.reactions.push({ emojiId, emojiCount: 1, reactionUsers: [you] });
-            }
-
-            tx.update(ref, { reactions: data.reactions });
-        });
-        */
     }
 
-    /*
-    async toggleThreadReactionForAll(
-        memberUids: string[],
-        channelId: string,
-        messageId: string,
-        threadMessageId: string,
-        emojiId: string,
-        you: ReactionUserDoc
-    ) {
-        await Promise.all(memberUids.map(uid =>
-            this.toggleThreadReaction(uid, channelId, messageId, threadMessageId, emojiId, you)
-        ));
-    }
-    */
-
-
-
-
-
-
-    async sendDirectMessage(
+    listenDirectMessages(
         uid: string,
         dmId: string,
+        cb: (msgs: (MessageDoc & { id: string })[]) => void
+    ): Unsubscribe {
+        const qy = query(this.dmMsgsCol(uid, dmId), orderBy('createdAt', 'asc'));
+        return onSnapshot(qy, snap => {
+            const out = snap.docs.map(d => {
+                const data = d.data() as MessageDoc;
+                return {
+                    ...data,
+                    id: d.id,
+                    createdAt: this.toDate(data.createdAt),
+                    lastReplyTime: data.lastReplyTime ? this.toDate(data.lastReplyTime) : undefined
+                };
+            });
+            cb(out);
+        });
+    }
+
+    listenDirectMessagesBetween(
+        aUid: string,
+        bUid: string,
+        cb: (msgs: (MessageDoc & { id: string })[]) => void
+    ): Unsubscribe {
+        const dmId = this.buildDmId(aUid, bUid);
+        return this.listenDirectMessages(aUid, dmId, cb);
+    }
+
+    async sendDirectMessageBetween(
+        aUid: string,
+        bUid: string,
         params: { text: string; author: { uid: string; username: string; avatar: string } }
     ) {
-        await addDoc(this.dmMsgsCol(uid, dmId), {
+        const dmId = this.buildDmId(aUid, bUid);
+
+        const id = doc(this.dmMsgsCol(aUid, dmId)).id;
+
+        const payload: MessageDoc = {
             text: params.text,
             createdAt: serverTimestamp(),
             author: params.author,
             reactions: [],
             repliesCount: 0,
             lastReplyTime: null
-        } satisfies MessageDoc);
+        };
+
+        const batch = writeBatch(this.firestore);
+        batch.set(this.dmMsgDoc(aUid, dmId, id), payload, { merge: false });
+        batch.set(this.dmMsgDoc(bUid, dmId, id), payload, { merge: false });
+        await batch.commit();
+
+        return id;
     }
 
+    async updateDirectMessageBetween(
+        aUid: string,
+        bUid: string,
+        messageId: string,
+        text: string
+    ) {
+        const dmId = this.buildDmId(aUid, bUid);
+        const batch = writeBatch(this.firestore);
+        batch.update(this.dmMsgDoc(aUid, dmId, messageId), { text });
+        batch.update(this.dmMsgDoc(bUid, dmId, messageId), { text });
+        await batch.commit();
+    }
 
-
-    async toggleDirectReaction(
+    async toggleDirectMessageReaction(
         uid: string,
         dmId: string,
         messageId: string,
@@ -611,9 +446,7 @@ export class MessagesStoreService {
                 if (youIdx >= 0) {
                     rx.reactionUsers.splice(youIdx, 1);
                     rx.emojiCount = Math.max(0, rx.emojiCount - 1);
-                    if (rx.emojiCount === 0 || rx.reactionUsers.length === 0) {
-                        data.reactions.splice(idx, 1);
-                    }
+                    if (rx.emojiCount === 0 || rx.reactionUsers.length === 0) data.reactions.splice(idx, 1);
                 } else {
                     rx.reactionUsers.push(you);
                     rx.emojiCount += 1;
@@ -623,6 +456,27 @@ export class MessagesStoreService {
             }
             tx.update(ref, { reactions: data.reactions });
         });
+    }
+
+    async toggleDirectMessageReactionBetween(
+        aUid: string,
+        bUid: string,
+        messageId: string,
+        emojiId: string,
+        you: ReactionUserDoc
+    ) {
+        const dmId = this.buildDmId(aUid, bUid);
+        
+        await this.toggleDirectMessageReaction(aUid, dmId, messageId, emojiId, you);
+        
+        const aRef = this.dmMsgDoc(aUid, dmId, messageId);
+        const aSnap = await getDoc(aRef);
+
+        if (!aSnap.exists()) return;
+
+        const data = aSnap.data() as MessageDoc;
+
+        await updateDoc(this.dmMsgDoc(bUid, dmId, messageId), { reactions: data.reactions });
     }
 
     private toDate(x: any): Date {

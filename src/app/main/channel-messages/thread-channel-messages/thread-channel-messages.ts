@@ -1,7 +1,6 @@
 import {
   Component, ElementRef, HostListener, inject, AfterViewInit,
-  ViewChild, Input, OnInit, OnDestroy,
-  input
+  ViewChild, Input, OnInit, OnDestroy
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -83,7 +82,7 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
   private unsub: Unsubscribe | null = null;
   private stateSub: Subscription | null = null;
   private layout = inject(LayoutService);
-  private session = inject(CurrentUserService);
+  private currentUserService = inject(CurrentUserService);
   private channelState = inject(ChannelStateService);
   private threadStateSvc = inject(ThreadStateService);
 
@@ -110,8 +109,8 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
   messagesView: Message[] = [];
 
   async ngOnInit() {
-    await this.session.hydrateFromLocalStorage();
-    const u = this.session.getCurrentUser();
+    await this.currentUserService.hydrateFromLocalStorage();
+    const u = this.currentUserService.getCurrentUser();
     if (u) {
       this.uid = u.uid;
       this.name = u.name;
@@ -187,7 +186,7 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
     const text = this.draft.trim();
     if (!text || !this.uid || !this.channelId) return;
 
-    const u = this.session.getCurrentUser();
+    const u = this.currentUserService.getCurrentUser();
     if (!u) return;
 
     if (this.editForId) {
@@ -213,12 +212,11 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
 
 
   async toggleEmoji(m: Message, event: MouseEvent) {
-    // currentTarget kann laut Typ-Defs null sein → absichern
     const btn = event.currentTarget as HTMLElement | null;
     if (!btn) return;
 
     const rect = btn.getBoundingClientRect();
-    const dlgW = 350;   // tatsächliche Dialogbreite
+    const dlgW = 350;
     const gap = 8;
 
     const dialogRef = this.dialog.open(AddEmojis, {
