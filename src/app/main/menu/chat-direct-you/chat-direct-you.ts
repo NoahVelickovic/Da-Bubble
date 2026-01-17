@@ -599,6 +599,11 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  getStatus(uid: string): 'online' | 'offline' {
+    const map = this.presence.userStatusMap();
+    return map[uid] ?? 'offline';
+  }
+
   get composerPlaceholder(): string {
     const messageRecipient =
       this.userName?.trim() ||
