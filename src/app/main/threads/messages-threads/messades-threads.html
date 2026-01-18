@@ -8,7 +8,7 @@
         <div class="message-body" [class.you]="root.isYou">
             <div class="meta" [class.you]="root.isYou">
                 <strong>{{ root.username }}</strong>
-                <time>{{ timeOf(root.createdAt) }}</time>
+                <time>{{ root.createdAt | timeOf }}</time>
             </div>
 
             <div class="text bubble" [class.you]="root.isYou">

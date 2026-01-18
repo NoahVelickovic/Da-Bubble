@@ -17,6 +17,7 @@ import { ChannelStateService } from '../../menu/channels/channel.service';
 import { OnChanges, SimpleChanges } from '@angular/core';
 import { ThreadStateService } from '../../../services/thread-state.service';
 import { LayoutService } from '../../../services/layout.service';
+import { DateUtilsService, DaySeparated, TimeOfPipe } from '../../../services/date-utils.service';
 
 type Message = {
   messageId: string;
@@ -60,7 +61,7 @@ function isEmojiId(x: unknown): x is EmojiId {
 
 @Component({
   selector: 'app-thread-channel-messages',
-  imports: [CommonModule, FormsModule, AvatarUrlPipe],
+  imports: [CommonModule, FormsModule, AvatarUrlPipe, TimeOfPipe],
   templateUrl: './thread-channel-messages.html',
   styleUrl: './thread-channel-messages.scss',
 })
@@ -85,6 +86,7 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
   private currentUserService = inject(CurrentUserService);
   private channelState = inject(ChannelStateService);
   private threadStateSvc = inject(ThreadStateService);
+  private dateUtilsSvc = inject(DateUtilsService);
 
   // channelName = 'Entwicklerteam';
   // uid = '';
@@ -107,6 +109,8 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
 
   messages: Message[] = [];
   messagesView: Message[] = [];
+
+  timeOf = (x: any) => this.dateUtilsSvc.timeOf(x);
 
   async ngOnInit() {
     await this.currentUserService.hydrateFromLocalStorage();
@@ -239,245 +243,16 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
     return this.emojiSvc.src(emojiId);
   }
 
-
-  private toDate(x: unknown): Date | null {
-    if (!x) return null;
-
-    // Firestore Timestamp (hat .toDate())
-    if (typeof (x as any)?.toDate === 'function') {
-      const d = (x as any).toDate();
-      return isNaN(d.getTime()) ? null : d;
-    }
-
-    if (x instanceof Date) return isNaN(x.getTime()) ? null : x;
-
-    if (typeof x === 'string') {
-      const date = new Date(x);
-      if (!isNaN(date.getTime())) return date;
-
-      // erlaubt "HH:MM"
-      const m = /^(\d{1,2}):(\d{2})$/.exec(x.trim());
-      if (m) {
-        const d = new Date();
-        d.setHours(parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);
-        return d;
-      }
-    }
-
-    return null;
-  }
-
-
-  /*
-  private toDate(x: unknown): Date | null {
-    if (x instanceof Date) return isNaN(x.getTime()) ? null : x;
-
-    if (typeof x === 'string') {
-      const date = new Date(x);
-      if (!isNaN(date.getTime())) return date;
-
-      const m = /^(\d{1,2}):(\d{2})$/.exec(x.trim());
-      if (m) {
-        const date = new Date();
-        date.setHours(parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);
-        return date;
-      }
-    }
-
-    return null;
-  }
-  */
-
-  private getTimeSafe(date: string | Date | null | undefined): number {
-    const d = this.toDate(date);
-    return d ? d.getTime() : Number.POSITIVE_INFINITY;
-  }
-
-  private dayKey(date: Date | null): string | null {
-    if (!date) return null;
-
-    const y = date.getFullYear();
-    const m = (date.getMonth() + 1).toString().padStart(2, '0');
-    const d = date.getDate().toString().padStart(2, '0');
-
-    return `${y}-${m}-${d}`;
-  }
-
-  private startOfDay(date: Date): Date {
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  }
-
-  private formatDayLabel(date: Date): string {
-    const now = this.startOfDay(new Date());
-    const today = this.startOfDay(date);
-    const diffDays = Math.round((now.getTime() - today.getTime()) / 86400000);
-
-    if (diffDays === 0) return 'heute';
-    if (diffDays === 1) return 'gestern';
-
-    const timeSeparator = new Intl.DateTimeFormat('de-DE', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }).format(date);
-
-    return timeSeparator.charAt(0).toUpperCase() + timeSeparator.slice(1);
-  }
-
-  private compareByCreatedAtAsc = (a: Message, b: Message) =>
-    this.getTimeSafe(a.createdAt) - this.getTimeSafe(b.createdAt);
-
   private rebuildMessagesView() {
-    const sorted = [...this.messages].sort(this.compareByCreatedAtAsc);
-    const out: Message[] = [];
-    let lastKey: string | null = null;
-
-    for (const m of sorted) {
-      const d = this.toDate(m.createdAt);
-      const key = this.dayKey(d);
-
-      if (!d || !key) {
-        out.push(m);
-        continue;
-      }
-
-      if (key !== lastKey) {
-        out.push({
-          messageId: '',
-          uid: '',
-          username: '',
-          avatar: '',
-          isYou: false,
-          createdAt: d,
-          text: '',
-          reactions: [],
-          repliesCount: 0,
-          timeSeparator: this.formatDayLabel(d),
-        });
-        lastKey = key;
-      }
-
-      out.push({ ...m, timeSeparator: undefined });
-    }
-
-    this.messagesView = out;
+    this.messagesView = this.dateUtilsSvc.withDaySeparators(this.messages, {
+      getCreatedAt: m => m.createdAt,
+      makeSeparator: (date, label) => ({
+        messageId: '', uid: '', username: '', avatar: '',
+        isYou: false, createdAt: date, text: '',
+        reactions: [], repliesCount: 0, timeSeparator: label,
+      })
+    });
   }
-
-  timeOf(x: string | Date | undefined | null): string {
-    const date = this.toDate(x);
-
-    if (!date) return '';
-
-    return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr';
-  }
-
-  /*
-  getEmojiSrc(emojiId: EmojiId | string) {
-    return this.emojiSvc.src(emojiId);
-  }
-  */
-
-  /*
-  membersPreview = [
-    { name: 'Noah Braun' },
-    { name: 'Sofia Müller' },
-    { name: 'Frederik Beck' },
-    { name: 'Elise Roth' },
-    { name: 'Elias Neumann' },
-  ];
-  */
-
-  /*
-  messages: Message[] = [
-    {
-      messageId: 'm1',
-      username: 'Noah Braun',
-      avatar: 'icons/avatars/avatar3.png',
-      isYou: false,
-      createdAt: '2025-01-14T14:25:00+01:00',
-      text: 'Welche Version ist aktuell von Angular?',
-      reactions: [],
-      repliesCount: 2,
-      lastReplyTime: '2025-01-14T14:56:00+01:00',
-    },
-    {
-      messageId: 'm2',
-      username: 'Oliver Plit',
-      avatar: 'icons/avatars/avatar6.png',
-      isYou: true,
-      createdAt: '2025-01-27T15:06:00+01:00',
-      text:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque blandit odio ' +
-        'efficitur lectus vestibulum, quis accumsan ante vulputate. Quisque tristique iaculis ' +
-        'erat, eu faucibus lacus iaculis ac.',
-      reactions: [
-        {
-          emojiId: 'rocket' as EmojiId,
-          emojiCount: 2,
-          youReacted: true,
-          reactionUsers: [
-            { userId: 'u_sofia', username: 'Sofia Müller' },
-            { userId: 'u_oliver', username: 'Oliver Plit' },
-          ],
-        },
-      ],
-      repliesCount: 1,
-      lastReplyTime: '2025-01-27T15:20:00+01:00',
-    },
-    {
-      messageId: 'm3',
-      username: 'Max Mustermann',
-      avatar: 'icons/avatars/avatar3.png',
-      isYou: false,
-      createdAt: '2025-02-11T11:36:00+01:00',
-      text:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque blandit odio ' +
-        'efficitur lectus vestibulum, quis accumsan ante vulputate. Quisque tristique iaculis ' +
-        'erat, eu faucibus lacus iaculis ac.',
-      reactions: [
-        {
-          emojiId: 'nerd' as EmojiId,
-          emojiCount: 2,
-          youReacted: false,
-          reactionUsers: [
-            { userId: 'u_noah', username: 'Noah Braun' },
-            { userId: 'u_sofia', username: 'Sofia Müller' },
-          ],
-        },
-      ],
-      repliesCount: 0,
-    },
-    {
-      messageId: 'm4',
-      username: 'Emily Mustermann',
-      avatar: 'icons/avatars/avatar5.png',
-      isYou: false,
-      createdAt: '2025-02-12T23:55:00+01:00',
-      text:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque blandit odio ' +
-        'efficitur lectus vestibulum, quis accumsan ante vulputate. Quisque tristique iaculis ' +
-        'erat, eu faucibus lacus iaculis ac.',
-      reactions: [],
-      repliesCount: 8,
-      lastReplyTime: '2025-02-12T23:58:00+01:00',
-    },
-    {
-      messageId: 'm5',
-      username: 'Noah Braun',
-      avatar: 'icons/avatars/avatar3.png',
-      isYou: false,
-      createdAt: '2025-12-07T11:38:00+01:00',
-      text:
-        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque blandit odio ' +
-        'efficitur lectus vestibulum, quis accumsan ante vulputate. Quisque tristique iaculis ' +
-        'erat, eu faucibus lacus iaculis ac.',
-      reactions: [],
-      repliesCount: 53,
-      lastReplyTime: '2025-12-07T04:17:00+01:00',
-    },
-  ];
-  */
 
   openAddEmojis(trigger: HTMLElement) {
     // const r = trigger.getBoundingClientRect();
@@ -510,86 +285,6 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
       },
     });
   }
-
-  /*
-  sendMessage() {
-    if (!this.draft.trim()) return;
-
-    this.messages.push({
-      messageId: crypto.randomUUID(),
-      username: 'Oliver Plit',
-      avatar: 'icons/avatars/avatar6.png',
-      isYou: true,
-      createdAt: new Date(),
-      text: this.draft.trim(),
-      reactions: [],
-      repliesCount: 0,
-    });
-    this.draft = '';
-    this.rebuildMessagesView();
-    this.scrollToBottom();
-  }
-
-  getStatus(uid: string): 'online' | 'offline' {
-    const map = this.presence.userStatusMap();
-    return map[uid] ?? 'offline';
-  }
-  */
-
-  /*
-  toggleReaction(m: Message, emojiId: EmojiId) {
-    const you: ReactionUser = { userId: this.userId, username: this.username };
-    const rx = m.reactions.find((r) => r.emojiId === emojiId);
-
-    if (rx) {
-      const youIdx = rx.reactionUsers.findIndex((u) => u.userId === this.userId);
-      if (youIdx >= 0) {
-        rx.reactionUsers.splice(youIdx, 1);
-        rx.emojiCount = Math.max(0, rx.emojiCount - 1);
-        rx.youReacted = rx.reactionUsers.some((u) => u.userId === this.userId);
-        if (rx.emojiCount === 0 || rx.reactionUsers.length === 0) {
-          m.reactions = m.reactions.filter((r) => r !== rx);
-        } else {
-          m.reactions = [...m.reactions];
-        }
-      } else {
-        rx.reactionUsers.push(you);
-        rx.emojiCount += 1;
-        rx.youReacted = true;
-        m.reactions = [...m.reactions];
-      }
-    } else {
-      m.reactions = [
-        ...m.reactions,
-        { emojiId, emojiCount: 1, youReacted: true, reactionUsers: [you] },
-      ];
-    }
-  }
-  */
-
-  /*
-  toggleEmoji(m: Message, event: MouseEvent) {
-    const btn = event.currentTarget as HTMLElement;
-    const r = btn.getBoundingClientRect();
-
-    const dlgW = 20;
-    const gap = -10;
-
-    const ref = this.dialog.open(AddEmojis, {
-      width: dlgW + 'px',
-      panelClass: 'add-emojis-dialog-panel',
-      position: {
-        top: `${Math.round(r.bottom + gap)}px`,
-        left: `${Math.max(8, Math.round(r.left - dlgW + btn.offsetWidth))}px`,
-      },
-    });
-
-    ref.afterClosed().subscribe((emojiId: string | null) => {
-      if (!emojiId || !this.emojiSvc.isValid(emojiId)) return;
-      this.toggleReaction(m, emojiId);
-    });
-  }
-  */
 
   showReactionPanel(m: Message, reaction: Reaction, event: MouseEvent) {
     const element = event.currentTarget as HTMLElement;
@@ -683,15 +378,6 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
   }
 
   scheduleEditMessagePanelHide(m: Message) {
-    /*
-    if (this.editForId !== m.messageId) return;
-    this.clearEditMessagePanelHide();
-    this.editHideTimer = setTimeout(() => {
-      this.editForId = null;
-    });
-    */
-
-
     if (this.showEditPanelForId !== m.messageId) return;
     this.clearEditMessagePanelHide();
     this.editHideTimer = setTimeout(() => {
@@ -703,15 +389,6 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
   private clearEditMessagePanelHide() {
     if (this.editHideTimer) { clearTimeout(this.editHideTimer); this.editHideTimer = null; }
   }
-
-  /*
-  private clearEditMessagePanelHide() {
-    if (this.editHideTimer) {
-      clearTimeout(this.editHideTimer);
-      this.editHideTimer = null;
-    }
-  }
-  */
 
   editMessage(m: Message, ev: MouseEvent) {
     ev.stopPropagation();
@@ -734,22 +411,6 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
       // editForId NICHT zurücksetzen, sonst verliert man den Edit-Modus
     }
   }
-
-  /*
-  @HostListener('document:click', ['$event'])
-  closeOnOutsideClick(ev: MouseEvent) {
-    if (!this.host.nativeElement.contains(ev.target as Node)) {
-      this.editForId = null;
-    }
-  }
-  */
-
-  /*
-  @HostListener('document:keydown.escape')
-  closeOnEsc() {
-    this.editForId = null;
-  }
-  */
 
   private scrollToBottom() {
     const el = this.messagesEl?.nativeElement;

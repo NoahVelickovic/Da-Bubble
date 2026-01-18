@@ -9,6 +9,7 @@ import { MessagesStoreService, MessageDoc, ReactionUserDoc } from '../../../serv
 import { EmojiService, EmojiId } from '../../../services/emoji.service';
 import { PresenceService } from '../../../services/presence.service';
 import { ThreadStateService } from '../../../services/thread-state.service';
+import { DateUtilsService, DaySeparated, TimeOfPipe } from '../../../services/date-utils.service';
 import { Unsubscribe } from '@angular/fire/firestore';
 
 type RootMessage = {
@@ -59,7 +60,7 @@ function isEmojiId(x: unknown): x is EmojiId {
 
 @Component({
   selector: 'app-messades-threads',
-  imports: [CommonModule, FormsModule, AvatarUrlPipe],
+  imports: [CommonModule, FormsModule, AvatarUrlPipe, TimeOfPipe],
   templateUrl: './messades-threads.html',
   styleUrls: ['./messades-threads.scss'],
 })
@@ -78,6 +79,7 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
   private messageStoreSvc = inject(MessagesStoreService);
   private threadStateSvc = inject(ThreadStateService);
   private session = inject(CurrentUserService);
+  private dateUtilsSvc = inject(DateUtilsService);
   private unsub: Unsubscribe | null = null;
 
   draft = '';
@@ -98,6 +100,8 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
     subtitle: '',
     messageId: ''
   };
+
+  timeOf = (x: any) => this.dateUtilsSvc.timeOf(x);
 
   async ngAfterViewInit() {
     await this.session.hydrateFromLocalStorage();
@@ -177,171 +181,6 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
     return this.emojiSvc.src(emojiId);
   }
 
-  private toDate(x: unknown): Date | null {
-    if (!x) return null;
-
-    // Firestore Timestamp (hat .toDate())
-    if (typeof (x as any)?.toDate === 'function') {
-      const d = (x as any).toDate();
-      return isNaN(d.getTime()) ? null : d;
-    }
-
-    if (x instanceof Date) return isNaN(x.getTime()) ? null : x;
-
-    if (typeof x === 'string') {
-      const date = new Date(x);
-      if (!isNaN(date.getTime())) return date;
-
-      // erlaubt "HH:MM"
-      const m = /^(\d{1,2}):(\d{2})$/.exec(x.trim());
-      if (m) {
-        const d = new Date();
-        d.setHours(parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);
-        return d;
-      }
-    }
-
-    return null;
-  }
-
-  timeOf(x: string | Date | undefined | null): string {
-    const date = this.toDate(x);
-
-    if (!date) return '';
-
-    return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr';
-  }
-
-
-
-
-
-
-
-  // private dialog = inject(MatDialog)
-  // private hideTimer: any = null;
-  // private editHideTimer: any = null;
-  // private host = inject(ElementRef<HTMLElement>);
-
-
-
-  /*
-  channel = 'Entwicklerteam';
-  currentUserId = 'u_oliver';
-  currentUserName = 'Oliver Plit';
-
-  root: Reply = {
-    id: 'root',
-    author: 'Noah Braun',
-    time: '14:25 Uhr',
-    avatar: 'icons/avatars/avatar3.png',
-    text: 'Welche Version ist aktuell von Angular?',
-    reactions: [
-      {
-        emoji: 'icons/emojis/emoji_rocket.png',
-        count: 2,
-        youReacted: true,
-        users: [
-          { uid: 'u_sofia', name: 'Sofia Müller' },
-          { uid: 'u_oliver', name: 'Oliver Plit' },
-        ]
-      }
-    ],
-    isYou: false,
-  };
-
-  replies: Reply[] = [
-    {
-      id: 'r1',
-      author: 'Sofia Müller',
-      time: '14:30 Uhr',
-      avatar: 'icons/avatars/avatar5.png',
-      text:
-        'Ich habe die gleiche Frage. Ich habe gegoogelt und es scheint, dass die aktuelle Version Angular 13 ist. ' +
-        'Vielleicht weiß Frederik, ob es wahr ist.',
-      reactions: [
-        {
-          emoji: 'icons/emojis/emoji_rocket.png',
-          count: 1,
-          youReacted: true,
-          users: [
-            { uid: 'u_sofia', name: 'Sofia Müller' },
-            { uid: 'u_oliver', name: 'Oliver Plit' },
-          ]
-        },
-        {
-          emoji: 'icons/emojis/emoji_nerd face.png',
-          count: 1,
-          youReacted: false,
-          users: [
-            { uid: 'u_sofia', name: 'Sofia Müller' },
-            { uid: 'u_oliver', name: 'Oliver Plit' },
-          ]
-        }
-      ],
-      isYou: true,
-    },
-    {
-      id: 'r2',
-      author: 'Frederik Beck',
-      time: '15:06 Uhr',
-      avatar: 'icons/avatars/avatar6.png',
-      text: 'Ja das ist es.',
-      reactions: [
-        {
-          emoji: 'icons/emojis/emoji_rocket.png',
-          count: 1,
-          youReacted: true,
-          users: [
-            { uid: 'u_sofia', name: 'Sofia Müller' },
-            { uid: 'u_oliver', name: 'Oliver Plit' },
-          ]
-        },
-        {
-          emoji: 'icons/emojis/emoji_nerd face.png',
-          count: 1,
-          youReacted: false,
-          users: [
-            { uid: 'u_sofia', name: 'Sofia Müller' },
-            { uid: 'u_oliver', name: 'Oliver Plit' },
-          ]
-        }
-      ],
-      isYou: false,
-    },
-    {
-      id: 'r3',
-      author: 'Emily Mustermann',
-      time: '15:06 Uhr',
-      avatar: 'icons/avatars/avatar6.png',
-      text: 'Ja das ist es.',
-      reactions: [
-        {
-          emoji: 'icons/emojis/emoji_rocket.png',
-          count: 1,
-          youReacted: true,
-          users: [
-            { uid: 'u_sofia', name: 'Sofia Müller' },
-            { uid: 'u_oliver', name: 'Oliver Plit' },
-          ]
-        },
-        {
-          emoji: 'icons/emojis/emoji_nerd face.png',
-          count: 1,
-          youReacted: false,
-          users: [
-            { uid: 'u_sofia', name: 'Sofia Müller' },
-            { uid: 'u_oliver', name: 'Oliver Plit' },
-          ]
-        }
-      ],
-      isYou: false
-    },
-  ];
-
-  draft = '';
-  */
-
   openAddEmojis(trigger: HTMLElement) {
     const r = trigger.getBoundingClientRect();
     const gap = 24;
@@ -375,19 +214,6 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
   }
 
   sendMessage() {
-    /*
-    if (!this.draft.trim()) return;
-    this.replies.push({
-      id: crypto.randomUUID(),
-      author: 'Oliver Plit',
-      time: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr',
-      text: this.draft.trim(),
-      isYou: true,
-      reactions: [],
-    });
-    this.draft = '';
-    */
-
     const ctx = this.threadStateSvc.value;
     const text = this.draft.trim();
     if (!ctx || !text) return;
@@ -404,7 +230,6 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
     this.messageStoreSvc.sendThreadReply(ctx.uid, ctx.channelId, ctx.messageId, { text, author });
     this.draft = '';
   }
-
 
   async toggleReaction(reply: Reply, emojiId: EmojiId) {
     const ctx = this.threadStateSvc.value;
@@ -443,8 +268,6 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
       this.toggleReaction(reply, emojiId as EmojiId);
     });
   }
-
-
 
   showReactionPanelRoot(r: Reaction, event: MouseEvent) {
     const element = event.currentTarget as HTMLElement;
@@ -559,15 +382,6 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
   private clearEditMessagePanelHide() {
     if (this.editHideTimer) { clearTimeout(this.editHideTimer); this.editHideTimer = null; }
   }
-
-  /*
-  private clearEditMessagePanelHide() {
-    if (this.editHideTimer) {
-      clearTimeout(this.editHideTimer);
-      this.editHideTimer = null;
-    }
-  }
-  */
 
   editMessage(reply: Reply, ev: MouseEvent) {
     ev.stopPropagation();

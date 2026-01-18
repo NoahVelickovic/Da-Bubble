@@ -22,6 +22,7 @@ import { Firestore, getDoc, doc } from '@angular/fire/firestore';
 import { FirebaseService } from '../../../services/firebase';
 import { Observable } from 'rxjs';
 import { LayoutService } from '../../../services/layout.service';
+import { DateUtilsService, DaySeparated, TimeOfPipe } from '../../../services/date-utils.service';
 
 type Message = {
   messageId: string;
@@ -66,7 +67,7 @@ function isEmojiId(x: unknown): x is EmojiId {
 
 @Component({
   selector: 'app-chat-direct-you',
-  imports: [CommonModule, FormsModule, AvatarUrlPipe],
+  imports: [CommonModule, FormsModule, AvatarUrlPipe, TimeOfPipe],
   templateUrl: './chat-direct-you.html',
   styleUrl: './chat-direct-you.scss',
 })
@@ -93,6 +94,7 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy {
   private stateSub: Subscription | null = null;
   private layout = inject(LayoutService);
   private currentUserService = inject(CurrentUserService);
+  private dateUtilsSvc = inject(DateUtilsService);
 
   userName: string = '';
   userAvatar: string = '';
@@ -119,7 +121,7 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy {
   messages: Message[] = [];
   messagesView: Message[] = [];
 
-
+  timeOf = (x: any) => this.dateUtilsSvc.timeOf(x);
 
   async ngOnInit() {
     this.directMessage$ = this.firebaseService.getCollection$('directMessages');
@@ -207,8 +209,6 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy {
 
   }
 
-
-
   private mapDocToMessage(d: MessageDoc & { id: string }): Message {
     return {
       messageId: d.id,
@@ -291,115 +291,15 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy {
     return this.emojiSvc.src(emojiId);
   }
 
-  private toDate(x: unknown): Date | null {
-    if (!x) return null;
-
-    // Firestore Timestamp (hat .toDate())
-    if (typeof (x as any)?.toDate === 'function') {
-      const d = (x as any).toDate();
-      return isNaN(d.getTime()) ? null : d;
-    }
-
-    if (x instanceof Date) return isNaN(x.getTime()) ? null : x;
-
-    if (typeof x === 'string') {
-      const date = new Date(x);
-      if (!isNaN(date.getTime())) return date;
-
-      // erlaubt "HH:MM"
-      const m = /^(\d{1,2}):(\d{2})$/.exec(x.trim());
-      if (m) {
-        const d = new Date();
-        d.setHours(parseInt(m[1], 10), parseInt(m[2], 10), 0, 0);
-        return d;
-      }
-    }
-
-    return null;
-  }
-
-  private getTimeSafe(date: string | Date | null | undefined): number {
-    const d = this.toDate(date);
-    return d ? d.getTime() : Number.POSITIVE_INFINITY;
-  }
-
-  private dayKey(date: Date | null): string | null {
-    if (!date) return null;
-
-    const y = date.getFullYear();
-    const m = (date.getMonth() + 1).toString().padStart(2, '0');
-    const d = date.getDate().toString().padStart(2, '0');
-
-    return `${y}-${m}-${d}`;
-  }
-
-  private startOfDay(date: Date): Date {
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  }
-
-  private formatDayLabel(date: Date): string {
-    const now = this.startOfDay(new Date());
-    const today = this.startOfDay(date);
-    const diffDays = Math.round((now.getTime() - today.getTime()) / 86400000);
-
-    if (diffDays === 0) return 'heute';
-    if (diffDays === 1) return 'gestern';
-
-    const timeSeparator = new Intl.DateTimeFormat('de-DE', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    }).format(date);
-
-    return timeSeparator.charAt(0).toUpperCase() + timeSeparator.slice(1);
-  }
-
-  private compareByCreatedAtAsc = (a: Message, b: Message) =>
-    this.getTimeSafe(a.createdAt) - this.getTimeSafe(b.createdAt);
-
   private rebuildMessagesView() {
-    const sorted = [...this.messages].sort(this.compareByCreatedAtAsc);
-    const out: Message[] = [];
-    let lastKey: string | null = null;
-
-    for (const m of sorted) {
-      const d = this.toDate(m.createdAt);
-      const key = this.dayKey(d);
-
-      if (!d || !key) {
-        out.push(m);
-        continue;
-      }
-
-      if (key !== lastKey) {
-        out.push({
-          messageId: '',
-          uid: '',
-          username: '',
-          avatar: '',
-          isYou: false,
-          createdAt: d,
-          text: '',
-          reactions: [],
-          repliesCount: 0,
-          timeSeparator: this.formatDayLabel(d),
-        });
-        lastKey = key;
-      }
-
-      out.push({ ...m, timeSeparator: undefined });
-    }
-
-    this.messagesView = out;
-  }
-
-  timeOf(x: string | Date | undefined | null): string {
-    const date = this.toDate(x);
-
-    if (!date) return '';
-
-    return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr';
+    this.messagesView = this.dateUtilsSvc.withDaySeparators(this.messages, {
+      getCreatedAt: m => m.createdAt,
+      makeSeparator: (date, label) => ({
+        messageId: '', uid: '', username: '', avatar: '',
+        isYou: false, createdAt: date, text: '',
+        reactions: [], repliesCount: 0, timeSeparator: label,
+      })
+    });
   }
 
   openAddEmojis(trigger: HTMLElement) {
@@ -504,15 +404,6 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy {
   }
 
   scheduleEditMessagePanelHide(m: Message) {
-    /*
-    if (this.editForId !== m.messageId) return;
-    this.clearEditMessagePanelHide();
-    this.editHideTimer = setTimeout(() => {
-      this.editForId = null;
-    });
-    */
-
-
     if (this.showEditPanelForId !== m.messageId) return;
     this.clearEditMessagePanelHide();
     this.editHideTimer = setTimeout(() => {
