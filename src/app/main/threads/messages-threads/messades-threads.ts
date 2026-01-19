@@ -2,7 +2,7 @@ import { Component, ElementRef, HostListener, inject, AfterViewInit, ViewChild, 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { AddEmojis } from '../add-emojis/add-emojis';
+import { AddEmojis } from '../../../shared/add-emojis/add-emojis';
 import { AtMembers } from '../at-members/at-members';
 import { CurrentUserService, CurrentUser, AvatarUrlPipe } from '../../../services/current-user.service';
 import { MessagesStoreService, MessageDoc, ReactionUserDoc } from '../../../services/messages-store.service';

@@ -1,7 +1,7 @@
-import { Component, inject, EventEmitter, Output } from '@angular/core';
+import { Component, inject, EventEmitter, Output, ViewChild, ElementRef } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
-import { AddEmojis } from '../../channel-messages/add-emojis/add-emojis';
+import { AddEmojis } from '../../../shared/add-emojis/add-emojis';
 import { AtMembers } from '../../channel-messages/at-members/at-members';
 import { setDoc, Firestore, doc, updateDoc, arrayUnion, collection, collectionData, getDoc } from '@angular/fire/firestore';
 import { CommonModule } from '@angular/common';
@@ -24,6 +24,7 @@ export class NewMessage {
   allChannels: { uid: string, name: string }[] = [];
   filteredChannel: { uid: string, name: string }[] = [];
   inputName: string = "";
+  draft = '';
   search = true;
 
   ngOnInit() {
@@ -158,9 +159,19 @@ export class NewMessage {
     this.close.emit();
   }
 
-  openAddEmojis() {
+  openAddEmojis(trigger: HTMLElement) {
+    // const r = trigger.getBoundingClientRect();
+    const gap = 24;
+    const dlgW = 350;
+    const dlgH = 467;
+
     this.dialog.open(AddEmojis, {
-      panelClass: 'add-emojis-dialog-panel'
+      width: dlgW + 'px',
+      panelClass: 'add-emojis-dialog-panel',
+      position: {
+        bottom: `${dlgH + gap}px`,
+        left: `${64 + dlgW}px`,
+      },
     });
   }
 

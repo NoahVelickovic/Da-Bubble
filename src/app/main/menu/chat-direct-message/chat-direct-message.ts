@@ -5,7 +5,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
-import { AddEmojis } from '../../channel-messages/add-emojis/add-emojis';
+import { AddEmojis } from '../../../shared/add-emojis/add-emojis';
 import { AtMembers } from '../../channel-messages/at-members/at-members';
 import { EmojiService, EmojiId } from '../../../services/emoji.service';
 import { PresenceService } from '../../../services/presence.service';

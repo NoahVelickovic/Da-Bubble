@@ -16,17 +16,14 @@
       </ng-container>
 
       <!-- Input nur anzeigen, wenn noch keine Person ausgewählt -->
-      <input *ngIf="selectedPeople.length === 0"
-             type="text"
-             placeholder="An: #channel, oder @jemand"
-             [(ngModel)]="inputName"
-             (input)="filterPeople()"
-             (keydown)="onInputKeydown($event)">
+      <input *ngIf="selectedPeople.length === 0" type="text" placeholder="An: #channel, oder @jemand"
+        [(ngModel)]="inputName" (input)="filterPeople()" (keydown)="onInputKeydown($event)">
     </div>
 
     <!-- Dropdown -->
     <div class="dropdown" *ngIf="search && filteredPeople.length > 0">
-      <button class="option" *ngFor="let p of filteredPeople" (mousedown)="$event.preventDefault()" (click)="selectPerson(p)">
+      <button class="option" *ngFor="let p of filteredPeople" (mousedown)="$event.preventDefault()"
+        (click)="selectPerson(p)">
         <img class="avatar" [src]="'/icons/avatars/' + p.avatar" [alt]="p.name">
         <div class="meta">
           <div class="row">
@@ -41,9 +38,10 @@
   <footer class="composer">
     <div class="composer-input">
       <textarea></textarea>
+      
       <div class="composer-actions">
         <div class="d-flex">
-          <span class="icon-box" (click)="openAddEmojis()">
+          <span #addEmojiBtn class="icon-box" (click)="openAddEmojis(addEmojiBtn)">
             <img class="default" src="icons/emoji_grey.png" alt="">
             <img class="hover1" src="icons/emoji_black.png" alt="">
             <img class="hover2" src="icons/emoji_purple.png" alt="">
@@ -54,6 +52,7 @@
             <img class="hover2" src="icons/at_purple.png" alt="">
           </span>
         </div>
+        
         <div>
           <span class="icon-box" (click)="sendMessage()">
             <img class="default" src="icons/Send icon.png" alt="">

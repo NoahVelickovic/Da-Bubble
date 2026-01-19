@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialogRef } from '@angular/material/dialog';
-import { EmojiService, Emoji } from '../../../services/emoji.service';
+import { EmojiService, Emoji } from '../../services/emoji.service';
 
 @Component({
   selector: 'app-add-emojis',
