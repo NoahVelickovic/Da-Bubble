@@ -37,7 +37,7 @@
 
   <footer class="composer">
     <div class="composer-input">
-      <textarea></textarea>
+      <textarea #composerTextarea [(ngModel)]="draft" [placeholder]="composerPlaceholder"></textarea>
       
       <div class="composer-actions">
         <div class="d-flex">

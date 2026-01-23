@@ -252,6 +252,9 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
         bottom: `${dlgH + gap}px`,
         left: `${64 + dlgW}px`
       }
+    }).afterClosed().subscribe((emojiId: string | null) => {
+      if (!emojiId || !this.emojiSvc.isValid(emojiId)) return;
+      this.draft = this.emojiSvc.appendById(this.draft, emojiId as EmojiId);
     });
   }
 
@@ -285,14 +288,17 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
 
   sendMessage() {
     const ctx = this.threadStateSvc.value;
-    const text = this.draft.trim();
+    const raw = (this.draft ?? '').trim();
+    const text = this.emojiSvc.normalizeShortcodes(raw);
     if (!ctx || !text) return;
 
     if (this.editForId) {
-      this.messageStoreSvc.updateThreadMessage(ctx.uid, ctx.channelId, ctx.messageId, this.editForId, text).then(() => {
-        this.editForId = null;
-        this.draft = '';
-      })
+      this.messageStoreSvc
+        .updateThreadMessage(ctx.uid, ctx.channelId, ctx.messageId, this.editForId, text)
+        .then(() => {
+          this.editForId = null;
+          this.draft = '';
+        });
       return;
     }
 

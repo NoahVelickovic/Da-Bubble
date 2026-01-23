@@ -254,7 +254,8 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy {
   }
 
   async sendMessage() {
-    const text = this.draft.trim();
+    const raw = (this.draft ?? '').trim();
+    const text = this.emojiSvc.normalizeShortcodes(raw);
     if (!text || !this.uid) return;
 
     const u = this.currentUserService.getCurrentUser();
@@ -332,6 +333,9 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy {
         bottom: `${dlgH + gap}px`,
         left: `${64 + dlgW}px`,
       },
+    }).afterClosed().subscribe((emojiId: string | null) => {
+      if (!emojiId || !this.emojiSvc.isValid(emojiId)) return;
+      this.draft = this.emojiSvc.appendById(this.draft, emojiId as EmojiId);
     });
   }
 

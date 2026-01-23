@@ -243,14 +243,17 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
   }
 
   async sendMessage() {
-    const text = this.draft.trim();
+    const raw = (this.draft ?? '').trim();
+    const text = this.emojiSvc.normalizeShortcodes(raw);
     if (!text || !this.uid || !this.channelId) return;
 
     const u = this.currentUserService.getCurrentUser();
     if (!u) return;
 
     if (this.editForId) {
-      await this.messageStoreSvc.updateChannelMessage(this.uid, this.channelId, this.editForId, text);
+      await this.messageStoreSvc.updateChannelMessage(
+        this.uid, this.channelId, this.editForId, text
+      );
       this.editForId = null;
       this.draft = '';
       return;
@@ -321,6 +324,9 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
         bottom: `${dlgH + gap}px`,
         left: `${64 + dlgW}px`,
       },
+    }).afterClosed().subscribe((emojiId: string | null) => {
+      if (!emojiId || !this.emojiSvc.isValid(emojiId)) return;
+      this.draft = this.emojiSvc.appendById(this.draft, emojiId as EmojiId);
     });
   }
 

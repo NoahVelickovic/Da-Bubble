@@ -4,6 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { AddEmojis } from '../../../shared/add-emojis/add-emojis';
 import { AtMembers } from '../../../shared/at-members/at-members';
 import type { User as AtMemberUser } from '../../../shared/at-members/at-members';
+import { EmojiService, EmojiId } from '../../../services/emoji.service';
+import { MessagesStoreService } from '../../../services/messages-store.service';
+import { CurrentUserService } from '../../../services/current-user.service';
 import { setDoc, Firestore, doc, updateDoc, arrayUnion, collection, collectionData, getDoc } from '@angular/fire/firestore';
 import { CommonModule } from '@angular/common';
 import { map } from 'rxjs/operators';
@@ -19,6 +22,8 @@ export class NewMessage {
   @Output() close = new EventEmitter<void>();
   private dialog = inject(MatDialog)
   firestore: Firestore = inject(Firestore);
+  private emojiSvc = inject(EmojiService);
+  private messageStoreSvc = inject(MessagesStoreService);
   selectedPeople: { uid: string, name: string, avatar: string, email: string, type?: 'user' | 'channel' }[] = [];
   allPeople: { uid: string, name: string, avatar: string, email: string }[] = [];
   filteredPeople: { uid: string, name: string, avatar: string, email: string, type: 'user' | 'channel' }[] = [];
@@ -174,6 +179,9 @@ export class NewMessage {
         bottom: `${dlgH + gap}px`,
         left: `${64 + dlgW}px`,
       },
+    }).afterClosed().subscribe((emojiId: string | null) => {
+      if (!emojiId || !this.emojiSvc.isValid(emojiId)) return;
+      this.draft = this.emojiSvc.appendById(this.draft, emojiId as EmojiId);
     });
   }
 
@@ -210,7 +218,58 @@ export class NewMessage {
     });
   }
 
-  sendMessage() {
+  async sendMessage() {
+    const text = this.emojiSvc.normalizeShortcodes((this.draft ?? '').trim());
+    if (!text) return;
 
+    const stored = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const author = {
+      uid: stored?.uid || '',
+      username: stored?.name || '',
+      avatar: stored?.avatar || ''
+    };
+    if (!author.uid) return;
+
+    const channel = this.selectedPeople.find(p => p.type === 'channel');
+    const users = this.selectedPeople.filter(p => (p.type ?? 'user') === 'user');
+
+    try {
+      if (channel) {
+        await this.messageStoreSvc.sendChannelMessage(author.uid, channel.uid, {
+          text,
+          author: { uid: author.uid, username: author.username, avatar: author.avatar }
+        });
+      } else if (users.length > 0) {
+        await Promise.all(
+          users.map(u =>
+            this.messageStoreSvc.sendDirectMessageBetween(author.uid, u.uid, {
+              text,
+              author: { uid: author.uid, username: author.username, avatar: author.avatar }
+            })
+          )
+        );
+      } else {
+        return;
+      }
+
+      this.draft = '';
+      this.close.emit();
+    } catch (err) {
+      console.error('sendMessage failed', err);
+    }
+  }
+
+  get composerPlaceholder(): string {
+    if (!this.selectedPeople?.length) return 'Starte eine neue Nachricht';
+
+    const channel = this.selectedPeople.find(p => p.type === 'channel');
+    if (channel) return `Nachricht an #${channel.name}`;
+
+    const users = this.selectedPeople.filter(p => (p.type ?? 'user') === 'user');
+    if (users.length === 1) return `Nachricht an @${users[0].name}`;
+    if (users.length === 2) return `Nachricht an @${users[0].name} und @${users[1].name}`;
+    if (users.length > 2) return `Nachricht an @${users[0].name}, @${users[1].name} (+${users.length - 2})`;
+
+    return 'Starte eine neue Nachricht';
   }
 }
