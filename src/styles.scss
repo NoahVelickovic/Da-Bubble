@@ -248,11 +248,62 @@ input::placeholder {
 
 
 @media (max-width: 750px) {
-.add-channel-dialog-panel .mat-mdc-dialog-surface {
-  margin: 0 !important;
-  border-radius: 0px !important;
-  overflow: hidden;
-}
+  // Globale Overflow-Kontrolle
+  html, body {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
 
+  * {
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
+
+  .add-channel-dialog-panel .mat-mdc-dialog-surface {
+    margin: 0 !important;
+    border-radius: 0px !important;
+    overflow: hidden;
+  }
+
+  // Input auf Mobile anpassen
+  input {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  // Buttons auf Mobile anpassen
+  button {
+    max-width: 100%;
+  }
+
+  // Mat-Drawer auf Mobile als Vollbild
+  .mat-drawer-container {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .mat-drawer {
+    width: 100% !important;
+    max-width: 100% !important;
+    position: relative !important;
+    transform: none !important;
+    visibility: visible !important;
+    background-color: white !important;
+  }
+
+  .mat-drawer.mat-drawer-side {
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .mat-drawer-inner-container {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  .mat-drawer-content {
+    margin-left: 0 !important;
+  }
 }
 

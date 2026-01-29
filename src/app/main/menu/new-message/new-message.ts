@@ -11,6 +11,7 @@ import { setDoc, Firestore, doc, updateDoc, arrayUnion, collection, collectionDa
 import { CommonModule } from '@angular/common';
 import { map } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
+import { LayoutService } from '../../../services/layout.service';
 
 @Component({
   selector: 'app-new-message',
@@ -26,6 +27,7 @@ export class NewMessage {
   private emojiSvc = inject(EmojiService);
   private messageStoreSvc = inject(MessagesStoreService);
   private currentUserService = inject(CurrentUserService);
+  public layout = inject(LayoutService);
   selectedPeople: { uid: string, name: string, avatar: string, email: string, type?: 'user' | 'channel' }[] = [];
   allPeople: { uid: string, name: string, avatar: string, email: string }[] = [];
   filteredPeople: { uid: string, name: string, avatar: string, email: string, type: 'user' | 'channel' }[] = [];
@@ -176,6 +178,11 @@ export class NewMessage {
   }
 
   closeMessage() {
+    this.close.emit();
+  }
+
+  goBack() {
+    this.layout.showMenu();
     this.close.emit();
   }
 

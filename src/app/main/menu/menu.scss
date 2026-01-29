@@ -1,3 +1,8 @@
+.mat-drawer-container {
+  background-color: white !important;
+  overflow: visible;
+}
+
 .mat-drawer-container.menu-open {
   background-color: white !important;
   overflow: hidden;
@@ -9,6 +14,33 @@
   display: flex;
   border-radius: 30px;
   font-family: 'Nunito';
+}
+
+// Sidenav/Drawer Styles
+.sidenav {
+  width: 100%;
+  background-color: white;
+  border-radius: 30px;
+  box-shadow: none;
+  border: none;
+}
+
+// Mat-Drawer spezifische Overrides
+::ng-deep .mat-drawer {
+  background-color: white !important;
+  border-radius: 30px;
+  
+  &.mat-drawer-side {
+    border: none;
+    box-shadow: none;
+  }
+}
+
+::ng-deep .mat-drawer-inner-container {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  overflow-y: auto;
 }
 
 .header-menu {

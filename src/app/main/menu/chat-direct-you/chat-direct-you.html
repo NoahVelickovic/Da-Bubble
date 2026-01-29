@@ -1,6 +1,11 @@
 <div class="main-container">
 
   <div class="header">
+    <!-- Mobile Zurück-Button -->
+    <button class="back-button" *ngIf="layout.isMobile()" (click)="goBack()">
+      <img src="icons/back-mobile.png" alt="Zurück">
+    </button>
+    
     <img [src]="'/icons/avatars/' + userAvatar" alt="" class="avatar" />
     <span class="status-dot online"></span>
     <h2>{{ userName }} (Du)</h2>

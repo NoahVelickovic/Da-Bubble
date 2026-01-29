@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { AddChannel } from '../add-channel/add-channel';
 import { ChannelStateService } from './channel.service';
+import { LayoutService } from '../../../services/layout.service';
 
 @Component({
   selector: 'app-channels',
@@ -16,6 +17,7 @@ import { ChannelStateService } from './channel.service';
 export class Channels implements OnInit {
   firestore: Firestore = inject(Firestore);
   router = inject(Router);
+  layout = inject(LayoutService);
   memberships: any[] = [];
   selectedChannelId: string = '';
 
@@ -61,12 +63,20 @@ export class Channels implements OnInit {
       const currentChannel = this.channelState.getSelectedChannel();
 
       if (memberships.length > 0 && !currentChannel) {
-        // Ersten Channel auswählen ohne auf vollständige Daten zu warten
-        this.onChannelClick(memberships[0]);
+        // Ersten Channel auswählen OHNE Menu zu schließen (automatische Auswahl)
+        this.selectChannelWithoutClosingMenu(memberships[0]);
       }
       
       this.cdr.detectChanges();
     });
+  }
+
+  // Channel auswählen ohne das Menu zu schließen (für automatische Auswahl)
+  private selectChannelWithoutClosingMenu(channel: any) {
+    this.selectedChannelId = channel.id;
+    this.channelState.selectChannel(channel);
+    // KEIN layout.showContent() - Menu bleibt offen
+    this.loadChannelDataInBackground(channel.id);
   }
 
   // Vollständige Channel-Daten im Hintergrund laden
@@ -93,6 +103,9 @@ export class Channels implements OnInit {
     // Sofort mit den verfügbaren Daten navigieren
     this.channelState.selectChannel(channel);
     this.router.navigate(['/main/channels']);
+    
+    // Auf Mobile: Zeige Content und verstecke Menu
+    this.layout.showContent();
     
     // Vollständige Daten im Hintergrund nachladen falls noch nicht vorhanden
     this.loadChannelDataInBackground(channel.id);

@@ -8,6 +8,7 @@ import { Firestore, getDoc, doc } from '@angular/fire/firestore';
 import { DirectChatService } from '../../../services/direct-chat-service';
 import { map, shareReplay, startWith } from 'rxjs/operators';
 import { PresenceService } from '../../../services/presence.service';
+import { LayoutService } from '../../../services/layout.service';
 
 @Component({
   selector: 'app-direct-messages',
@@ -22,6 +23,7 @@ export class DirectMessages {
   private cdr = inject(ChangeDetectorRef);
   private directChatService = inject(DirectChatService);
   public presence = inject(PresenceService);
+  private layout = inject(LayoutService);
 
   userName: string = '';
   userAvatar: string = '';
@@ -101,6 +103,9 @@ export class DirectMessages {
     // Sofort navigieren
     this.router.navigate(['/main/direct-message', dm.name]);
     
+    // Auf Mobile: Zeige Content und verstecke Menu
+    this.layout.showContent();
+    
     // Chat im Hintergrund öffnen
     requestAnimationFrame(() => {
       this.directChatService.openChat(dm);
@@ -111,5 +116,8 @@ export class DirectMessages {
     this.selectedDmId = '';
     this.isYouSelected = true;
     this.router.navigate(['/main/direct-you']);
+    
+    // Auf Mobile: Zeige Content und verstecke Menu
+    this.layout.showContent();
   }
 }

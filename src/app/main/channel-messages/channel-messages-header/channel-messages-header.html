@@ -1,4 +1,9 @@
 <header>
+    <!-- Mobile Zurück-Button -->
+    <button class="back-button" *ngIf="layout.isMobile()" (click)="goBack()">
+        <img src="icons/back-mobile.png" alt="Zurück">
+    </button>
+
     <div #btn1 class="channel-title" (click)="openEditChannel(btn1)">
         <h2>
             <span class="icon-box">

@@ -36,32 +36,30 @@ interface SearchResult {
 })
 export class Menu {
   showChannels = true;
-  showMessages = false;
-  isMenuOpen = false;
+  showMessages = true;
+  isMenuOpen = true;  // Immer initial geöffnet
   isMobile = false;
   searchQuery = '';
   searchResults: SearchResult[] = [];
   showSearchResults = false;
   isSearching = false;
 
-private channelState = inject(ChannelStateService);
+  private channelState = inject(ChannelStateService);
   private directChatService = inject(DirectChatService); 
-    private firestore = inject(Firestore);
-
-
+  private firestore = inject(Firestore);
 
   constructor(
     private dialog: MatDialog, 
     private cd: ChangeDetectorRef,
-        public router: Router
-
+    public router: Router
   ) {}
 
   @HostListener('window:resize')
   checkWidth() {
     this.isMobile = window.innerWidth <= 750;
-    if (!this.isMobile) {
-    this.isMenuOpen = true;
+    // Auf Mobile immer geöffnet lassen (wird über main.scss gesteuert)
+    if (this.isMobile) {
+      this.isMenuOpen = true;
     }
   }
 

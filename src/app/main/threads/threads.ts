@@ -1,8 +1,9 @@
-import { Component, HostListener, inject } from '@angular/core';
+import { Component, HostBinding, HostListener, inject } from '@angular/core';
 import { ThreadsHeader } from "./threads-header/threads-header";
 import { MessadesThreads } from "./messages-threads/messades-threads";
 import { CommonModule } from '@angular/common';
 import { ThreadStateService } from '../../services/thread-state.service';
+import { LayoutService } from '../../services/layout.service';
 
 @Component({
   selector: 'app-threads',
@@ -12,22 +13,40 @@ import { ThreadStateService } from '../../services/thread-state.service';
 })
 export class Threads {
   private state = inject(ThreadStateService);
+  public layout = inject(LayoutService);
 
   isMobile = false;
   isVisible = true;
+
+  @HostBinding('class.mobile') get isMobileClass() {
+    return this.isMobile;
+  }
+
+  @HostBinding('class.thread-open') get isThreadOpen() {
+    return this.isVisible;
+  }
 
   constructor() {
     this.checkWidth();
 
     this.state.ctx$.subscribe(ctx => {
-      this.isVisible = !this.isMobile && !!ctx;
+      this.updateVisibility(!!ctx);
     });
   }
 
+  private updateVisibility(hasContext: boolean) {
+    if (this.isMobile) {
+      // On mobile, show threads as fullscreen overlay when there's context
+      this.isVisible = hasContext && this.layout.showRight();
+    } else {
+      // On desktop, show in sidebar when there's context
+      this.isVisible = hasContext;
+    }
+  }
 
   @HostListener('window:resize')
   checkWidth() {
-    this.isMobile = window.innerWidth <= 650;
-    this.isVisible = !this.isMobile && !!this.state.value;
+    this.isMobile = window.innerWidth <= 750;
+    this.updateVisibility(!!this.state.value);
   }
 }

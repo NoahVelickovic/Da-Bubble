@@ -1,38 +1,96 @@
 .mobile-message {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 100;
+  width: 60px;
+  height: 60px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
+// Mobile Menu Container
+.mobile-menu-container {
+  display: none;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background-color: white;
+  padding: 16px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
 
 @media (max-width: 750px) {
-    .button-menu {
-        display: none;
-    }
+  .mobile-menu-container {
+    display: flex;
+  }
+}
 
-    .header-menu {
-        display: none;
-    }
+@media (max-width: 750px) {
+  .button-menu {
+    display: none;
+  }
 
-.container-height.mobile {
-    height: 100vh;
-    width:100vw;
+  .container-height {
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+    background-color: white;
+  }
+
+  .container-height.mobile {
+    height: 100%;
+    width: 100%;
     margin: 0;
     border-radius: 0;
   }
 
+  // Mat-Drawer spezifische Mobile Styles
+  ::ng-deep .mat-drawer-container.mobile {
+    .mat-drawer {
+      width: 100% !important;
+      max-width: 100% !important;
+      position: relative !important;
+      transform: none !important;
+      visibility: visible !important;
+      background-color: white;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .mat-drawer-content {
+      margin-left: 0 !important;
+    }
+
+    .mat-drawer-inner-container {
+      padding: 16px;
+      box-sizing: border-box;
+    }
+  }
+
   .container-height.mobile .sidenav {
-    width: 100%;
+    width: 100% !important;
     height: 100%;
     position: relative;
     top: 0;
     left: 0;
     border-radius: 0;
     box-shadow: none;
-    padding: 20px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
+    visibility: visible !important;
+    transform: none !important;
   }
 
   .container-height.mobile .channel-list {
@@ -40,18 +98,100 @@
     overflow-y: auto;
   }
 
+  // Suchfeld "Gehe zu..."
   .search {
-    width: 398px;
-height: 32px;
-border-radius: 42px;
-border-width: 1px;
-justify-content: space-between;
-padding-top: 8px;
-padding-right: 24px;
-padding-bottom: 8px;
-padding-left: 24px;
-opacity: 1;
+    width: 100%;
+    max-width: 100%;
+    height: 48px;
+    border-radius: 42px;
+    border: 1px solid #adb0d9;
+    padding: 12px 24px;
+    margin-bottom: 16px;
+    font-size: 16px;
+    font-family: 'Nunito', sans-serif;
+    background-color: white;
+    background-image: url('/icons/search.png');
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    background-size: 20px 20px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 
+    &::placeholder {
+      color: #686868;
+      font-size: 16px;
+    }
+
+    &:focus {
+      border-color: #535af1;
+      box-shadow: 0 0 0 2px rgba(83, 90, 241, 0.1);
+    }
   }
 
+  // Header-Menu mit Logo und Devspace
+  .header-menu {
+    font-family: 'Nunito';
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0 16px 0;
+    margin-bottom: 8px;
+
+    > div {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      img {
+        width: 54px;
+        height: 54px;
+      }
+
+      h2 {
+        font-size: 24px;
+        font-weight: 700;
+        margin: 0;
+        color: #000;
+      }
+    }
+
+    .write-message {
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      transition: filter 0.2s ease;
+
+      &:hover {
+        filter: invert(43%) sepia(63%) saturate(7492%) hue-rotate(229deg) brightness(97%) contrast(96%);
+      }
+    }
+  }
+
+  // Channels und Direktnachrichten Header
+  .header-menu-channels {
+    padding: 12px 0;
+    font-family: 'Nunito';
+    > div {
+      gap: 12px;
+
+    
+
+      h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+      }
+    }
+
+    .write-message {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .channel-list {
+    padding-left: 24px;
+    margin-top: 0;
+  }
 }

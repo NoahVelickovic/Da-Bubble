@@ -1,6 +1,11 @@
 <div class="main-container">
   <div class="header">
-    <p>Neue Nachricht</p>
+    <div class="header-title">
+      <button *ngIf="layout.isMobile()" class="back-button" (click)="goBack()">
+        <img src="icons/arrow_back.png" alt="Back">
+      </button>
+      <p>Neue Nachricht</p>
+    </div>
 
     <div class="input-chips">
       <!-- Chip direkt im Input -->

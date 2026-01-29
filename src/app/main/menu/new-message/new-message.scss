@@ -5,17 +5,24 @@ $hoverBg: #ECEEFE;
 $line: #ADB0D9;
 $text: #000000;
 
+:host {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
 
 .main-container {
-  width: 1494px;
-  height: 940px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
   border-radius: 30px;
   background-color: white;
   z-index: 100;
-  border-radius: 30px;
-  position: absolute;
-  top: 157px;
-  left: 406px;
 }
 
 .header {
@@ -27,7 +34,13 @@ $text: #000000;
   padding-left: 40px;
   padding-top: 20px;
 
-  >p {
+  .header-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  >p, .header-title > p {
     margin-bottom: 30px;
   }
 
@@ -50,6 +63,30 @@ $text: #000000;
       line-height: 100%;
       letter-spacing: 0%;
     }
+  }
+}
+
+// Mobile Zurück-Button
+.back-button {
+  display: none;
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+
+  img {
+    width: 24px;
+    height: 24px;
+  }
+
+  &:hover {
+    background-color: $hoverBg;
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 }
 
@@ -286,7 +323,7 @@ footer {
   }
 }
 
-@media (max-width: 650px) {
+@media (max-width: 750px) {
   .main-container {
     width: 100%;
     padding: 0px 16px 0px 16px;
@@ -300,20 +337,36 @@ footer {
 
   .header {
     padding-left: 0;
+    padding-top: 12px;
+
+    .header-title {
+      gap: 8px;
+    }
+  }
+
+  .back-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 30px;
   }
 
   .composer {
     margin: 0;
     min-height: 50px;
+    border-radius: 16px;
+    
     >.composer-input {
-gap: 0;
->textarea {
-  min-height: auto;
-}
+      gap: 16px;
+      padding: 12px;
+      
+      >textarea {
+        min-height: auto;
+      }
     }
   }
 
-  .header p {
+  .header p, .header .header-title > p {
     font-size: 18px;
     margin-bottom: 12px;
   }
@@ -326,14 +379,13 @@ gap: 0;
 
   .input-chips input {
     width: 100%;
-    max-width: 578px;
+    max-width: 100%;
     font-size: 16px;
     padding-right: 0px;
-    margin-right: 16px;
+    margin-right: 0;
     
     &::placeholder {
-
-      font-size: 18px;
+      font-size: 16px;
       line-height: 100%;
       letter-spacing: 0%;
     }
@@ -351,10 +403,12 @@ gap: 0;
   .dropdown {
     max-height: 240px;
     overflow-y: auto;
+    width: calc(100% - 32px);
   }
 
   footer.composer {
     margin-top: auto;
+    margin-bottom: 12px;
   }
 
   .composer-input textarea {

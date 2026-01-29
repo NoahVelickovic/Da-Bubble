@@ -71,3 +71,39 @@ header {
         }
     }
 }
+
+// ========================================
+// RESPONSIVE STYLES
+// ========================================
+@media (max-width: 750px) {
+    header {
+        height: 60px;
+        border-radius: 0;
+        padding: 0 8px;
+        box-shadow: 0 1px 4px 0 rgba(#000000, 0.08);
+    }
+
+    .thread-title {
+        padding: 12px 16px;
+        gap: 8px;
+
+        h2 {
+            font-size: 18px;
+        }
+
+        h3 {
+            font-size: 12px;
+        }
+    }
+
+    .icon-box {
+        margin-right: 16px;
+        width: 36px;
+        height: 36px;
+
+        img {
+            width: 20px;
+            height: 20px;
+        }
+    }
+}

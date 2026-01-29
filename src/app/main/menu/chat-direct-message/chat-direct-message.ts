@@ -20,6 +20,7 @@ import { ProfileCard } from '../../../shared/profile-card/profile-card';
 import { ChangeDetectorRef } from '@angular/core';
 import { DirectChatService } from '../../../services/direct-chat-service';
 import { DateUtilsService, DaySeparated, TimeOfPipe } from '../../../services/date-utils.service';
+import { LayoutService } from '../../../services/layout.service';
 import { firstValueFrom } from 'rxjs';
 
 type Message = {
@@ -91,6 +92,11 @@ export class ChatDirectMessage implements OnInit, AfterViewInit, OnDestroy {
   private currentUserService = inject(CurrentUserService);
   private currentDmId: string | null = null;
   private dateUtilsSvc = inject(DateUtilsService);
+  layout = inject(LayoutService);
+
+  goBack() {
+    this.layout.showMenu();
+  }
 
   private toAtMember = (m: any): AtMemberUser => {
     const uid = (m?.uid ?? m?.id ?? '').toString();

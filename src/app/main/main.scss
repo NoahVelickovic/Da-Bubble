@@ -7,9 +7,9 @@ body {
   display: grid;
   grid-template-columns:
     48px
-    19%
+    minmax(280px, 366px)
     1fr
-    30%;
+    minmax(0, 485px);
 
   gap: 8px;
   width: calc(100% - 16px);
@@ -117,4 +117,162 @@ body {
     0
     1fr
     0;
+}
+
+// ========================================
+// RESPONSIVE STYLES
+// ========================================
+
+// Tablet-Ansicht
+@media (max-width: 1200px) {
+  .main-content {
+    grid-template-columns:
+      48px
+      minmax(250px, 300px)
+      1fr
+      minmax(0, 400px);
+  }
+
+  .main-content.menu-closed {
+    grid-template-columns:
+      48px
+      0
+      1fr
+      minmax(0, 400px);
+  }
+
+  .main-content.threads-closed {
+    grid-template-columns:
+      48px
+      minmax(250px, 300px)
+      1fr
+      0;
+  }
+
+  .main-content.menu-closed.threads-closed {
+    grid-template-columns:
+      48px
+      0
+      1fr
+      0;
+  }
+}
+
+// Kleinere Tablets
+@media (max-width: 950px) {
+  .main-content {
+    grid-template-columns:
+      40px
+      minmax(220px, 280px)
+      1fr
+      0;
+  }
+
+  .main-content.menu-closed {
+    grid-template-columns:
+      40px
+      0
+      1fr
+      0;
+  }
+
+  .main-content.threads-closed,
+  .main-content.menu-closed.threads-closed {
+    grid-template-columns:
+      40px
+      0
+      1fr
+      0;
+  }
+
+  .button-menu {
+    width: 48px;
+    height: 280px;
+    padding: 8px 12px;
+
+    .button-label {
+      font-size: 14px;
+    }
+  }
+
+  .side.right {
+    display: none;
+  }
+}
+
+// Mobile-Ansicht: Nur Menu als Vollbild
+@media (max-width: 750px) {
+  body {
+    overflow: hidden;
+  }
+
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 100vw;
+    height: calc(100vh - 80px);
+    margin: 0;
+    padding: 0;
+    gap: 0;
+    overflow: hidden;
+  }
+
+  .button-column {
+    display: none;
+  }
+
+  .button-menu {
+    display: none;
+  }
+
+  .side.left {
+    width: 100% !important;
+    max-width: 100vw !important;
+    height: 100% !important;
+    flex: 1;
+    display: block !important;
+    overflow: hidden;
+
+    // Mat-Drawer Container füllt den gesamten Bereich
+    .mat-drawer-container {
+      width: 100% !important;
+      height: 100% !important;
+    }
+
+    // Mat-Drawer selbst
+    ::ng-deep .mat-drawer {
+      width: 100% !important;
+      position: relative !important;
+      transform: none !important;
+      visibility: visible !important;
+    }
+  }
+
+  .center {
+    display: none;
+    width: 100%;
+    max-width: 100vw;
+    overflow: hidden;
+  }
+
+  .side.right {
+    display: none;
+  }
+
+  // Wenn Menu geschlossen ist, zeige Center
+  .main-content.menu-closed {
+    .side.left {
+      display: none !important;
+    }
+
+    .center {
+      display: flex;
+      width: 100%;
+      max-width: 100vw;
+      height: 100%;
+      background-color: white;
+      overflow: hidden;
+    }
+  }
 }

@@ -1,6 +1,11 @@
 <div class="main-container" *ngIf="chatUser as user">
 
   <div class="header">
+    <!-- Mobile Zurück-Button -->
+    <button class="back-button" *ngIf="layout.isMobile()" (click)="goBack()">
+      <img src="icons/back-mobile.png" alt="Zurück">
+    </button>
+    
     <img [src]="'/icons/avatars/' + chatUser.avatar" alt="" class="avatar" />
     <span class="status-dot"
       [ngClass]="presence.userStatusMap()[chatUser.id] === 'online' ? 'online' : 'offline'"></span>

@@ -7,6 +7,7 @@ import { EditMembers } from '../edit-members/edit-members';
 import { AddMembers } from '../add-members/add-members';
 import { Firestore, doc, docData } from '@angular/fire/firestore';
 import { ChannelStateService } from '../../menu/channels/channel.service';
+import { LayoutService } from '../../../services/layout.service';
 import { Subscription } from 'rxjs';
 
 type Member = { 
@@ -36,10 +37,15 @@ export class ChannelMessagesHeader implements OnInit, OnDestroy {
   private firestore = inject(Firestore);
   private dialog = inject(MatDialog);
   private channelState = inject(ChannelStateService);
+  layout = inject(LayoutService);
 
   private channelSubscription: Subscription | null = null;
   private stateSubscription: Subscription | null = null;
   private currentUserId: string = '';
+
+  goBack() {
+    this.layout.showMenu();
+  }
 
   ngOnInit() {
     // User ID laden

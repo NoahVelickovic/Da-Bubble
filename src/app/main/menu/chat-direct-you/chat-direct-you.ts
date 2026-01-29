@@ -94,9 +94,13 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy {
   private messageStoreSvc = inject(MessagesStoreService);
   private unsub: Unsubscribe | null = null;
   private stateSub: Subscription | null = null;
-  private layout = inject(LayoutService);
+  layout = inject(LayoutService);
   private currentUserService = inject(CurrentUserService);
   private dateUtilsSvc = inject(DateUtilsService);
+
+  goBack() {
+    this.layout.showMenu();
+  }
 
   private toAtMember = (m: any): AtMemberUser => {
     const uid = (m?.uid ?? m?.id ?? '').toString();

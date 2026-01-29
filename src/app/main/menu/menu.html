@@ -1,14 +1,6 @@
-<mat-drawer-container class="container-height" hasBackdrop="false" [class.menu-open]="isMenuOpen" [class.mobile]="isMobile">
- 
-  <mat-drawer #drawer class="sidenav" [mode]="isMobile ? 'side' : 'over'" [(opened)]="isMenuOpen">
-     <input       *ngIf="isMobile"
- class="search"
-            type="text" 
-            placeholder="Gehe zu..."
-            [(ngModel)]="searchQuery"
-            (input)="onSearchInput()"
-            (focus)="showSearchResults = searchQuery.length > 0"
-            > 
+<!-- Desktop: Mat-Drawer -->
+<mat-drawer-container *ngIf="!isMobile" class="container-height" hasBackdrop="false" [class.menu-open]="isMenuOpen">
+  <mat-drawer #drawer class="sidenav" mode="side" [(opened)]="isMenuOpen">
     <div class="header-menu">
       <div>
         <img src="/icons/logo-menu-devspace.png" alt="">
@@ -43,5 +35,50 @@
     </div>
   </mat-drawer>
 </mat-drawer-container>
+
+<!-- Mobile: Einfacher Container ohne Mat-Drawer -->
+<div *ngIf="isMobile" class="mobile-menu-container">
+  <input 
+    class="search"
+    type="text" 
+    placeholder="Gehe zu..."
+    [(ngModel)]="searchQuery"
+    (input)="onSearchInput()"
+    (focus)="showSearchResults = searchQuery.length > 0"
+  > 
+  
+  <div class="header-menu">
+    <div>
+      <img src="/icons/logo-menu-devspace.png" alt="">
+      <h2>Devspace</h2>
+    </div>
+    <img src="/icons/edit-square.png" alt="" class="write-message" (click)="onOpenNewMessage()">
+  </div>
+
+  <div class="header-menu-channels">
+    <div (click)="toggleChannels()">
+      <img src="/icons/arrow-drop-menu.png" alt="">
+      <img src="/icons/channel.png" alt="">
+      <h3>Channels</h3>
+    </div>
+    <img src="/icons/add-channel.png" alt="" class="write-message" matButton (click)="openDialog()">
+  </div>
+  
+  <div class="channel-list" *ngIf="showChannels">
+    <app-channels></app-channels>
+  </div>
+
+  <div class="header-menu-channels" (click)="toggleMessages()">
+    <div>
+      <img src="/icons/arrow-drop-menu.png" alt="">
+      <img src="/icons/direct-person.png" alt="">
+      <h3>Direktnachrichten</h3>
+    </div>
+  </div>
+  
+  <div class="channel-list" *ngIf="showMessages">
+    <app-direct-messages></app-direct-messages>
+  </div>
+</div>
 
 <img src="/icons/mobile-new-message.png" alt="" *ngIf="isMobile" class="mobile-message" (click)="onOpenNewMessage()">

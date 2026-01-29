@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, Input, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, HostListener, inject } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { ChannelMessagesHeader } from './channel-messages-header/channel-messages-header';
 import { ThreadChannelMessages } from './thread-channel-messages/thread-channel-messages';
@@ -6,6 +6,7 @@ import { NewMessage } from '../menu/new-message/new-message';
 import { CommonModule } from '@angular/common';
 import { ChannelStateService } from '../../main/menu/channels/channel.service';
 import { CurrentUserService } from '../../services/current-user.service';
+import { LayoutService } from '../../services/layout.service';
 
 @Component({
   selector: 'app-channel-messages',
@@ -22,16 +23,18 @@ export class ChannelMessages implements OnInit, OnDestroy {
   members: any[] = [];
   fullChannel: any = null;
   isMobile = false;
-  isVisible = true;
+  isVisible = true;  // Immer sichtbar - wird über main.scss gesteuert
 
+  layout = inject(LayoutService);
 
   @Input() showNewMessages = false;
   private subscription?: Subscription;
   constructor(
     private channelState: ChannelStateService,
     private session: CurrentUserService
-  ) {this.checkWidth();
- }
+  ) {
+    this.checkWidth();
+  }
   async ngOnInit() {
     await this.session.hydrateFromLocalStorage();
     const u = this.session.getCurrentUser();
@@ -60,9 +63,8 @@ export class ChannelMessages implements OnInit, OnDestroy {
 
   @HostListener('window:resize')
   checkWidth() {
-    this.isMobile = window.innerWidth <= 650;
-    this.isVisible = !this.isMobile;
-
+    this.isMobile = window.innerWidth <= 750;
+    // isVisible bleibt immer true - die Sichtbarkeit wird über main.scss gesteuert
   }
 
 
