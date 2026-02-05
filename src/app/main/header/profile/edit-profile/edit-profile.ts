@@ -20,9 +20,14 @@ export class EditProfile {
   private firestore = inject(Firestore);
   data = inject(MAT_DIALOG_DATA);
   nameInput: string = this.data.name;
+  userAvatar: string = this.data.avatar;
   dialogRef = inject(MatDialogRef<EditProfile>);
   constructor(private cd: ChangeDetectorRef, private firebase: FirebaseService) { }
 
+  selectAvatar(avatar: string) {
+    this.userAvatar = avatar;
+    this.cd.detectChanges();
+  }
 
   close() {
     this.dialogRef.close();
@@ -38,10 +43,10 @@ export class EditProfile {
       const batch = writeBatch(this.firestore);
       
       const userRef = doc(this.firestore, 'users', uid);
-      batch.update(userRef, { name: newName });
+      batch.update(userRef, { name: newName, avatar: this.userAvatar });
       
       const dmRef = doc(this.firestore, 'directMessages', uid);
-      batch.update(dmRef, { name: newName });
+      batch.update(dmRef, { name: newName, avatar: this.userAvatar });
       
       await batch.commit();
       
@@ -49,10 +54,10 @@ export class EditProfile {
 
       this.firebase.setName(newName);
       this.cd.detectChanges();
-      this.dialogRef.close(newName);
+      this.dialogRef.close({ name: newName, avatar: this.userAvatar });
       
     } catch (error) {
-      console.error('❌ Fehler beim Speichern des Namens:', error);
+      console.error('❌ Fehler beim Speichern des Profils:', error);
     }
   }
 
