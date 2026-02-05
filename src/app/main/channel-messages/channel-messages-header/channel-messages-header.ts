@@ -47,22 +47,43 @@ export class ChannelMessagesHeader implements OnInit, OnDestroy {
     this.layout.showMenu();
   }
 
-  ngOnInit() {
-    // User ID laden
-    const storedUser = localStorage.getItem('currentUser');
-    this.currentUserId = storedUser ? JSON.parse(storedUser).uid : '';
+ngOnInit() {
+  const storedUser = localStorage.getItem('currentUser');
+  this.currentUserId = storedUser ? JSON.parse(storedUser).uid : '';
 
-    // 🔥 LIVE-UPDATES: Channel-Daten direkt von Firestore abonnieren
+  console.log('🔍 Initial members:', this.members); // DEBUG
+  console.log('🔍 channelId:', this.channelId); // DEBUG
+
+  // ⚠️ NUR subscriben, wenn channelId vorhanden ist
+  if (this.channelId && this.currentUserId) {
     this.listenToChannelUpdates();
-
-    // Channel-State auch abonnieren (für andere Updates)
-    this.stateSubscription = this.channelState.selectedChannel$.subscribe(channel => {
-      if (channel && channel.id === this.channelId) {
-        this.updateChannelData(channel);
-      }
-    });
+  } else {
+    console.warn('⚠️ Kein channelId - verwende nur Input members');
   }
 
+  this.stateSubscription = this.channelState.selectedChannel$.subscribe(channel => {
+    if (channel && channel.id === this.channelId) {
+      this.updateChannelData(channel);
+    }
+  });
+}
+
+renderMembers(): Member[] {
+  console.log('🎨 renderMembers aufgerufen, members:', this.members); // DEBUG
+  
+  if (!this.members || this.members.length === 0) {
+    console.warn('⚠️ Keine members vorhanden!');
+    return [];
+  }
+
+  return [...this.members]
+    .map(m => ({
+      ...m,
+      avatar: m.avatar || '',
+      name: m.name || 'Unbekannt'
+    }))
+    .sort((a, b) => (a.isYou === b.isYou ? 0 : a.isYou ? -1 : 1));
+}
   private listenToChannelUpdates() {
     if (!this.currentUserId || !this.channelId) return;
 
@@ -99,17 +120,7 @@ export class ChannelMessagesHeader implements OnInit, OnDestroy {
     this.stateSubscription?.unsubscribe();
   }
 
-  renderMembers(): Member[] {
-    if (!this.members || this.members.length === 0) return [];
-
-    return [...this.members]
-      .map(m => ({
-        ...m,
-        avatar: m.avatar || '',
-        name: m.name || 'Unbekannt'
-      }))
-      .sort((a, b) => (a.isYou === b.isYou ? 0 : a.isYou ? -1 : 1));
-  }
+ 
 
   get memberCount() {
     return this.members.length;
