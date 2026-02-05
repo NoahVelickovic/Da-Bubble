@@ -30,8 +30,13 @@
               },
               {
                 "glob": "**/*",
-                "input": "src/assets/fonts",
-                "output": "/fonts"
+                "input": "src/assets",
+                "output": ""
+              },
+              {
+                "glob": ".htaccess",
+                "input": "src",
+                "output": ""
               }
             ],
             "styles": [
@@ -43,13 +48,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "2MB",
-                  "maximumError": "5MB"
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "20kB",
-                  "maximumError": "30kB"
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
                 }
               ],
               "outputHashing": "all"
