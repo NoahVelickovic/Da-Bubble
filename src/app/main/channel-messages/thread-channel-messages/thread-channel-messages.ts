@@ -21,6 +21,8 @@ import { LayoutService } from '../../../services/layout.service';
 import { DateUtilsService, DaySeparated, TimeOfPipe } from '../../../services/date-utils.service';
 import { firstValueFrom } from 'rxjs';
 import { AnchorOverlayService } from '../../../services/anchor-overlay.service';
+import { FirebaseService } from '../../../services/firebase';
+
 
 type Message = {
   messageId: string;
@@ -93,7 +95,12 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
   private dateUtilsSvc = inject(DateUtilsService);
   private cdr = inject(ChangeDetectorRef);
   private anchorOverlaySvc = inject(AnchorOverlayService);
+ userName: string = '';
+  userEmail: string = '';
+  userAvatar = '';
+  userUid = '';
 
+  
   private toAtMember = (m: any): AtMemberUser => {
     const uid = (m?.uid ?? m?.id ?? '').toString();
     return {
@@ -172,22 +179,40 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
   messagesView: Message[] = [];
 
   timeOf = (x: any) => this.dateUtilsSvc.timeOf(x);
+ constructor(private firebaseService: FirebaseService) { }
 
-  async ngOnInit() {
-
-    await this.currentUserService.hydrateFromLocalStorage();
-    const u = this.currentUserService.getCurrentUser();
-    if (u) {
-      this.uid = u.uid;
-      this.name = u.name;
-      this.avatar = u.avatar;
+ async ngOnInit() {
+  this.firebaseService.currentName$.subscribe((name) => {
+    if (name) {
+      this.userName = name; 
+      this.name = name;     
+      this.cdr.detectChanges();
     }
+  });
 
-    this.initializeSubscriptions();
+  this.firebaseService.currentAvatar$.subscribe((avatar) => {
+    if (avatar) {
+      this.userAvatar = avatar;
+      this.avatar = avatar;    
+      this.cdr.detectChanges();
+    }
+  });
+  
+  await this.currentUserService.hydrateFromLocalStorage();
+  const u = this.currentUserService.getCurrentUser();
+  if (u) {
+    this.uid = u.uid;
+    this.name = u.name;
+    this.avatar = u.avatar;
+    this.userName = u.name;     
+    this.userAvatar = u.avatar; 
   }
 
+  this.initializeSubscriptions();
+}
+
   ngOnChanges(changes: SimpleChanges) {
-    // Reagiere auf channelId-Änderungen (Channel-Wechsel)
+    
     if (changes['channelId'] && !changes['channelId'].firstChange) {
       console.log('Channel gewechselt:', changes['channelId'].currentValue);
       this.restartSubscriptions();
@@ -196,14 +221,8 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
 
   private initializeSubscriptions() {
     if (!this.uid || !this.channelId) return;
-
-    // Alte Subscriptions aufräumen falls vorhanden
     this.cleanupSubscriptions();
-
-    // Channel-Updates abonnieren
     this.listenToChannelUpdates();
-
-    // Messages laden
     this.startListening();
   }
 

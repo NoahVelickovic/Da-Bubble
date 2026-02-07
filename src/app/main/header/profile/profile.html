@@ -3,7 +3,7 @@
     <h2>Profil</h2>
     <img src="/img/close-channel.png" alt="" (click)="close()" />
   </div>
-  <div class="profile-img-div">
+  <div class="profile-img-div" (click)="editAvatar()">
     <img [src]="'/img/avatars/' + userAvatar" alt="" />
   </div>
   <div class="profile-name" ng>

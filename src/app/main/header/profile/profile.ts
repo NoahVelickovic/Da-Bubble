@@ -2,6 +2,7 @@ import { Component, inject, HostListener } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { EditProfile } from './edit-profile/edit-profile';
+import { EditAvatar } from './edit-avatar/edit-avatar';
 import { FirebaseService } from '../../../services/firebase';
 import { CommonModule } from '@angular/common';
 import { Firestore, doc, getDoc } from '@angular/fire/firestore';
@@ -27,7 +28,7 @@ export class Profile {
   userAvatar = '';
   userUid = '';
 
-  constructor(private firebaseService: FirebaseService) {}
+  constructor(private firebaseService: FirebaseService) { }
 
   ngOnInit() {
     this.checkWidth();
@@ -35,6 +36,13 @@ export class Profile {
     this.firebaseService.currentName$.subscribe((name) => {
       if (name) {
         this.userName = name;
+        this.cd.detectChanges();
+      }
+    });
+
+     this.firebaseService.currentAvatar$.subscribe((avatar) => {
+      if (avatar) {
+        this.userAvatar = avatar;
         this.cd.detectChanges();
       }
     });
@@ -62,6 +70,7 @@ export class Profile {
       this.userAvatar = data.avatar;
       this.userEmail = data.email;
       this.firebaseService.setName(this.userName);
+      this.firebaseService.setAvatar(this.userAvatar);
 
       this.cd.detectChanges();
     }
@@ -73,9 +82,25 @@ export class Profile {
       position: { top: '120px', right: '20px' },
       data: {
         name: this.userName,
+        avatar: this.userAvatar,
         uid: JSON.parse(localStorage.getItem('currentUser') || '{}').uid,
       },
     });
+  }
+
+  editAvatar() {
+    const ref = this.dialog.open(EditAvatar, {
+      panelClass: 'edit-profil-dialog-panel',
+      position: { top: '120px', right: '20px' },
+      data: {
+
+        avatar: this.userAvatar,
+        uid: JSON.parse(localStorage.getItem('currentUser') || '{}').uid,
+      },
+    });
+
+
+
   }
   @HostListener('window:resize')
   checkWidth() {

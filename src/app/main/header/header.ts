@@ -89,6 +89,20 @@ export class Header {
       this.currentView = view;
       this.cd.detectChanges();
     });
+
+    this.firebase.currentName$.subscribe((name) => {
+      if (name) {
+        this.userName = name;
+        this.cd.detectChanges();
+      }
+    });
+
+     this.firebase.currentAvatar$.subscribe((avatar) => {
+      if (avatar) {
+        this.userAvatar = avatar;
+        this.cd.detectChanges();
+      }
+    });
   }
 
   openDialog() {

@@ -1,70 +1,70 @@
-import { Component, inject, } from '@angular/core';
-import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { FormsModule, NgForm } from '@angular/forms';
-import { Firestore, doc, updateDoc, getDocs, collection, writeBatch } from '@angular/fire/firestore';
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
+import { Firestore, doc, writeBatch, getDocs, collection } from '@angular/fire/firestore';
 import { ChangeDetectorRef } from '@angular/core';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { FirebaseService } from '../../../../services/firebase';
 
-
-
-
-
-
 @Component({
-  selector: 'app-edit-profile',
-  imports: [FormsModule],
-  templateUrl: './edit-profile.html',
-  styleUrls: ['./edit-profile.scss', 'edit-profile.responsive.scss'],
+  selector: 'app-edit-avatar',
+  imports: [],
+  templateUrl: './edit-avatar.html',
+  styleUrl: './edit-avatar.scss',
 })
-export class EditProfile {
+export class EditAvatar {
   private firestore = inject(Firestore);
   data = inject(MAT_DIALOG_DATA);
+  dialogRef = inject(MatDialogRef<EditAvatar>);
 
-userName = this.data.name;
-userAvatar = this.data.avatar;
-  nameInput: string = this.data.name;
-  dialogRef = inject(MatDialogRef<EditProfile>);
+  selectedAvatar: string = this.data?.avatar || 'avatar1.png';
+  currentUserName: string = this.data?.name || localStorage.getItem("currentUserName") || "User";
 
+  constructor(
+    private router: Router, 
+    private cd: ChangeDetectorRef,
+    private firebase: FirebaseService
+  ) {}
 
+  selectAvatar(avatar: string) {
+    this.selectedAvatar = avatar;
+    this.cd.detectChanges(); 
+  }
 
-  constructor(private cd: ChangeDetectorRef, private firebase: FirebaseService) { }
-
-
-
-  
   close() {
     this.dialogRef.close();
   }
 
-  async save(channelForm: NgForm) {
-    const newName = this.nameInput.trim();
-    if (!newName) return;
+  async saveAvatar() {
+    const uid = this.data?.uid || localStorage.getItem('currentUser');
+    if (!uid) return;
 
-    const uid = this.data.uid;
-    
     try {
       const batch = writeBatch(this.firestore);
       
       const userRef = doc(this.firestore, 'users', uid);
-      batch.update(userRef, { name: newName });
+      batch.update(userRef, { avatar: this.selectedAvatar });
       
       const dmRef = doc(this.firestore, 'directMessages', uid);
-      batch.update(dmRef, { name: newName });
+      batch.update(dmRef, { avatar: this.selectedAvatar });
       
       await batch.commit();
       
-      await this.updateNameInAllChannelMemberships(uid, newName);
+      await this.updateAvatarInAllChannelMemberships(uid, this.selectedAvatar);
 
-      this.firebase.setName(newName);
+      this.firebase.setAvatar?.(this.selectedAvatar);
+      
       this.cd.detectChanges();
-      this.dialogRef.close(newName);
+      this.dialogRef.close(this.selectedAvatar);
       
     } catch (error) {
-      console.error('❌ Fehler beim Speichern des Namens:', error);
+      console.error('❌ Fehler beim Speichern des Avatars:', error);
     }
   }
 
-  private async updateNameInAllChannelMemberships(uid: string, newName: string) {
+  private async updateAvatarInAllChannelMemberships(uid: string, newAvatar: string) {
     try {
       const usersCol = collection(this.firestore, 'users');
       const usersSnapshot = await getDocs(usersCol);
@@ -89,11 +89,9 @@ userAvatar = this.data.avatar;
 
           if (memberIndex !== -1) {
             const updatedMembers = [...members];
-            const isCurrentUser = userDoc.id === uid;
-
             updatedMembers[memberIndex] = {
               ...updatedMembers[memberIndex],
-              name: isCurrentUser ? `${newName} (Du)` : newName
+              avatar: newAvatar
             };
 
             const membershipRef = doc(
@@ -124,7 +122,9 @@ userAvatar = this.data.avatar;
       throw error;
     }
   }
+
+  goBack() {
+    localStorage.setItem('skipIntro', 'true');
+    this.router.navigate(['/signup']);
+  }
 }
-
-
-

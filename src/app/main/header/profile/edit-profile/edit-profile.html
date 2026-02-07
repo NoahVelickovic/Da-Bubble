@@ -4,7 +4,7 @@
         <img src="/img/close-channel.png" alt="" (click)="close()">
     </div>
     <div class="profile-img-div">
-        <img src="/img/profile-img-dialog.png" alt="">
+        <img [src]="'/img/avatars/' + userAvatar" alt="">
     </div>
     <div class="edit-name">
         <img src="/img/direct-person.png" alt="">
@@ -12,8 +12,8 @@
     </div>
     <form #channelForm="ngForm" (ngSubmit)="save(channelForm)">
 
-        <div>
-            <input type="text" placeholder="Oliver Plit" name="nameInputEdit" [(ngModel)]="nameInput">
+        <div ng>
+            <input type="text" [placeholder]="userName" name="nameInputEdit" [(ngModel)]="nameInput">
         </div>
         <div class="edit-buttons">
             <button class="button-cancel" (click)="close()">Abbrechen</button>

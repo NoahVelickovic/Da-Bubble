@@ -20,6 +20,9 @@ export type HeaderView = 'default' | 'new-message' | 'add-channel';
 export class FirebaseService {
     private firestore = inject(Firestore);
 private nameSource = new BehaviorSubject<string>('');
+private avatarSource = new BehaviorSubject<string>('');
+  currentAvatar$ = this.avatarSource.asObservable();
+
   currentName$ = this.nameSource.asObservable();
   membersSignal = signal<Member[]>([]);
     private currentViewSubject = new BehaviorSubject<HeaderView>('default');
@@ -54,7 +57,12 @@ private nameSource = new BehaviorSubject<string>('');
  setName(name: string) {
     this.nameSource.next(name);
   }
-  
+
+
+  setAvatar(avatar: string){
+    this.avatarSource.next(avatar);
+
+ }  
 
    loadMembers(channelId: string) {
     const col = collection(this.firestore, `channels/${channelId}/members`);
