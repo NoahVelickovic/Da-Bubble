@@ -87,15 +87,21 @@ body {
   overflow: hidden;
 }
 
+/* Edit profile dialog: overlay pane position (CDK overlay pane with class edit-profil-dialog-panel). */
+.edit-profil-dialog-panel.cdk-overlay-pane {
+  position: relative !important;
+}
+
+/* Edit profile dialog: surface stacked above backdrop (DOM order change from preview applied via z-index; Angular Material builds overlay DOM internally). */
 .edit-profil-dialog-panel .mat-mdc-dialog-surface {
   border-radius: 30px !important;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 .profile-dialog-panel .mat-mdc-dialog-surface {
-  border-top-left-radius: 30px !important;
-  border-bottom-right-radius: 30px !important;
-  border-bottom-left-radius: 30px !important;
+  border-radius: 30px !important;
   overflow: hidden;
 }
 

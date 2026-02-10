@@ -66,13 +66,15 @@
                 required 
                 minlength="3"
             >
-            <div class="error" *ngIf="nameInputField.invalid && nameInputField.touched">
-                <p *ngIf="nameInputField.errors?.['required']">
-                    Name ist erforderlich.
-                </p>
-                <p *ngIf="nameInputField.errors?.['minlength']">
-                    Name muss mindestens {{ nameInputField.errors?.['minlength'].requiredLength }} Zeichen haben.
-                </p>
+            <div class="error-container">
+                <div class="error" *ngIf="nameInputField.invalid && nameInputField.touched">
+                    <p *ngIf="nameInputField.errors?.['required']">
+                        Name ist erforderlich.
+                    </p>
+                    <p *ngIf="nameInputField.errors?.['minlength']">
+                        Name muss mindestens {{ nameInputField.errors?.['minlength'].requiredLength }} Zeichen haben.
+                    </p>
+                </div>
             </div>
         </div>
         <div class="edit-buttons">

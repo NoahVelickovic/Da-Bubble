@@ -2,7 +2,6 @@ import { Component, inject, HostListener } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { MatDialog } from '@angular/material/dialog';
 import { EditProfile } from './edit-profile/edit-profile';
-import { EditAvatar } from './edit-avatar/edit-avatar';
 import { FirebaseService } from '../../../services/firebase';
 import { CommonModule } from '@angular/common';
 import { Firestore, doc, getDoc } from '@angular/fire/firestore';
@@ -79,7 +78,7 @@ export class Profile {
   openDialog() {
     const ref = this.dialog.open(EditProfile, {
       panelClass: 'edit-profil-dialog-panel',
-      position: { top: '120px', right: '20px' },
+      ...(this.mobileEdit ? {} : { position: { top: '120px', right: '20px' } }),
       data: {
         name: this.userName,
         avatar: this.userAvatar,
@@ -100,20 +99,6 @@ export class Profile {
     });
   }
 
-  editAvatar() {
-    const ref = this.dialog.open(EditAvatar, {
-      panelClass: 'edit-profil-dialog-panel',
-      position: { top: '120px', right: '20px' },
-      data: {
-
-        avatar: this.userAvatar,
-        uid: JSON.parse(localStorage.getItem('currentUser') || '{}').uid,
-      },
-    });
-
-
-
-  }
   @HostListener('window:resize')
   checkWidth() {
     this.mobileEdit = window.innerWidth <= 550;

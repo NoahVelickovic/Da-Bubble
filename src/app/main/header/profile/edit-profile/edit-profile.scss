@@ -1,11 +1,20 @@
 .edit-profile {
-    height: auto;
-    width: 500px !important;
+    height: 700px;
+    width: 500px;
     max-width: 500px;
+    gap: 38px;
+    padding-top: 45px;
+    padding-right: 40px;
+    padding-bottom: 45px;
+    padding-left: 40px;
+    border-top-left-radius: 30px;
+    border-bottom-right-radius: 30px;
+    border-bottom-left-radius: 30px;
+
+    display: block;
+    margin: 0 auto;
     box-sizing: border-box;
     font-family: 'Nunito';
-    padding: 40px;
-
 }
 
 .profile-header {
@@ -109,10 +118,14 @@ input {
     box-sizing: border-box; 
 }
 
+.error-container {
+    min-height: 16px;
+    margin-top: 4px;
+}
+
 .error {
     color: #d32f2f;
     font-size: 12px;
-    margin-top: 4px;
 
     p {
         margin: 0;
