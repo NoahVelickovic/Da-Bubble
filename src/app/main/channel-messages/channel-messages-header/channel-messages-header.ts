@@ -1,4 +1,4 @@
-import { Component, Input, inject, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, inject, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -9,11 +9,12 @@ import { Firestore, doc, docData } from '@angular/fire/firestore';
 import { ChannelStateService } from '../../menu/channels/channel.service';
 import { LayoutService } from '../../../services/layout.service';
 import { Subscription } from 'rxjs';
+import { FirebaseService } from '../../../services/firebase';
 
-type Member = { 
-  id: string; 
-  name: string; 
-  avatar?: string; 
+type Member = {
+  id: string;
+  name: string;
+  avatar?: string;
   isYou?: boolean;
   uid?: string;
 };
@@ -41,43 +42,69 @@ export class ChannelMessagesHeader implements OnInit, OnDestroy {
 
   private channelSubscription: Subscription | null = null;
   private stateSubscription: Subscription | null = null;
+  private profileSubscription: Subscription | null = null;
   private currentUserId: string = '';
+  private firebaseService = inject(FirebaseService);
+  private cdr = inject(ChangeDetectorRef);
 
   goBack() {
     this.layout.showMenu();
   }
 
-ngOnInit() {
-  const storedUser = localStorage.getItem('currentUser');
-  this.currentUserId = storedUser ? JSON.parse(storedUser).uid : '';
+  ngOnInit() {
+    const storedUser = localStorage.getItem('currentUser');
+    this.currentUserId = storedUser ? JSON.parse(storedUser).uid : '';
 
-  console.log('🔍 Initial members:', this.members); // DEBUG
-  console.log('🔍 channelId:', this.channelId); // DEBUG
+    if (this.channelId && this.currentUserId) {
+      this.listenToChannelUpdates();
+    }
 
-  // ⚠️ NUR subscriben, wenn channelId vorhanden ist
-  if (this.channelId && this.currentUserId) {
-    this.listenToChannelUpdates();
+    this.stateSubscription = this.channelState.selectedChannel$.subscribe(channel => {
+      if (channel && channel.id === this.channelId) {
+        this.updateChannelData(channel);
+      }
+    });
+
+    this.profileSubscription = new Subscription();
+
+    this.profileSubscription.add(
+      this.firebaseService.currentName$.subscribe((name) => {
+        if (!name) return;
+        this.patchSelfMember({ name });
+        this.cdr.detectChanges();
+      })
+    );
+
+    this.profileSubscription.add(
+      this.firebaseService.currentAvatar$.subscribe((avatar) => {
+        if (!avatar) return;
+        this.patchSelfMember({ avatar });
+        this.cdr.detectChanges();
+      })
+    );
   }
 
-  this.stateSubscription = this.channelState.selectedChannel$.subscribe(channel => {
-    if (channel && channel.id === this.channelId) {
-      this.updateChannelData(channel);
-    }
-  });
-}
+  private patchSelfMember(patch: Partial<Pick<Member, 'name' | 'avatar'>>) {
+    if (!this.currentUserId) return;
 
-renderMembers(): Member[] {
-  
+    const idx = this.members.findIndex(m => (m.uid || m.id) === this.currentUserId);
+    if (idx === -1) return;
 
+    const next = [...this.members];
+    next[idx] = { ...next[idx], ...patch, isYou: true };
+    this.members = next;
+  }
 
-  return [...this.members]
-    .map(m => ({
-      ...m,
-      avatar: m.avatar || '',
-      name: m.name || 'Unbekannt'
-    }))
-    .sort((a, b) => (a.isYou === b.isYou ? 0 : a.isYou ? -1 : 1));
-}
+  renderMembers(): Member[] {
+    return [...this.members]
+      .map(m => ({
+        ...m,
+        avatar: m.avatar || '',
+        name: m.name || 'Unbekannt'
+      }))
+      .sort((a, b) => (a.isYou === b.isYou ? 0 : a.isYou ? -1 : 1))
+      .slice(0, 3);
+  }
   private listenToChannelUpdates() {
     if (!this.currentUserId || !this.channelId) return;
 
@@ -99,22 +126,31 @@ renderMembers(): Member[] {
     this.description = channel.description || this.description;
     this.createdBy = channel.createdBy || this.createdBy;
 
+    const currentName = this.firebaseService.currentNameValue;
+    const currentAvatar = this.firebaseService.currentAvatarValue;
+
     // Members mit korrekten IDs und isYou-Flag aktualisieren
-    this.members = (channel.members || []).map((m: any) => ({
-      id: m.uid || m.id,
-      uid: m.uid || m.id,
-      name: m.name,
-      avatar: m.avatar,
-      isYou: (m.uid || m.id) === this.currentUserId
-    }));
+    this.members = (channel.members || []).map((m: any) => {
+      const uid = m.uid || m.id;
+      const isYou = uid === this.currentUserId;
+
+      return {
+        id: uid,
+        uid,
+        name: isYou && currentName ? currentName : m.name,
+        avatar: isYou && currentAvatar ? currentAvatar : m.avatar,
+        isYou
+      } as Member;
+    });
   }
 
   ngOnDestroy() {
     this.channelSubscription?.unsubscribe();
     this.stateSubscription?.unsubscribe();
+    this.profileSubscription?.unsubscribe();
   }
 
- 
+
 
   get memberCount() {
     return this.members.length;
