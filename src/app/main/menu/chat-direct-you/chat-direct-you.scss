@@ -75,7 +75,7 @@ h2 {
   }
 }
 
-@media (max-width: 750px) {
+@media (max-width: 950px) {
   .main-container {
     border-radius: 0;
   }
@@ -741,7 +741,7 @@ h2 {
 // ========================================
 // RESPONSIVE STYLES
 // ========================================
-@media (max-width: 750px) {
+@media (max-width: 950px) {
   :host {
     max-width: 100vw;
     overflow: hidden;

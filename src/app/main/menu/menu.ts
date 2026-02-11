@@ -56,7 +56,7 @@ export class Menu {
 
   @HostListener('window:resize')
   checkWidth() {
-    this.isMobile = window.innerWidth <= 750;
+    this.isMobile = window.innerWidth <= 950;
     // Auf Mobile immer geöffnet lassen (wird über main.scss gesteuert)
     if (this.isMobile) {
       this.isMenuOpen = true;

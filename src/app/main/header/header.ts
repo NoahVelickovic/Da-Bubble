@@ -172,7 +172,7 @@ export class Header {
       this.mobileMenuOpen = false;
     }
 
-    this.isMobile = window.innerWidth <= 750;
+    this.isMobile = window.innerWidth <= 950;
     if (!this.isMobile) {
       this.isVisible = !this.isMobile;
     }

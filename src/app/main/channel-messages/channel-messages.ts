@@ -63,7 +63,7 @@ export class ChannelMessages implements OnInit, OnDestroy {
 
   @HostListener('window:resize')
   checkWidth() {
-    this.isMobile = window.innerWidth <= 750;
+    this.isMobile = window.innerWidth <= 950;
     // isVisible bleibt immer true - die Sichtbarkeit wird über main.scss gesteuert
   }
 

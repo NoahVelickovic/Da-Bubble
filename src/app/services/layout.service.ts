@@ -15,15 +15,26 @@ export class LayoutService {
 
   private checkWidth() {
     if (typeof window !== 'undefined') {
+      const w = window.innerWidth;
       const wasMobile = this.isMobile();
-      this.isMobile.set(window.innerWidth <= 750);
-      
+      this.isMobile.set(w <= 950);
+
       // Auf Mobile standardmäßig Menu anzeigen
       if (this.isMobile() && !wasMobile) {
         this.showLeft.set(true);
         this.showRight.set(false);
       }
+
+      // Unter 1400px: max. 2 Bereiche offen – wenn Menu + Threads offen, Menu schließen
+      if (w < 1400 && this.showLeft() && this.showRight()) {
+        this.showLeft.set(false);
+      }
     }
+  }
+
+  /** Unter 1400px nur max. 2 Bereiche (Menu oder Threads), ab 1400px alle 3 möglich */
+  private isTwoPanelMax(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth < 1400;
   }
 
   closeRight() {
@@ -31,10 +42,16 @@ export class LayoutService {
   }
 
   openRight() {
+    if (this.isTwoPanelMax() && this.showLeft()) {
+      this.showLeft.set(false);
+    }
     this.showRight.set(true);
   }
 
   toggleLeft() {
+    if (this.isTwoPanelMax() && !this.showLeft()) {
+      this.showRight.set(false);
+    }
     this.showLeft.set(!this.showLeft());
   }
 

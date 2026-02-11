@@ -29,13 +29,13 @@
   overflow-y: auto;
 }
 
-@media (max-width: 750px) {
+@media (max-width: 950px) {
   .mobile-menu-container {
     display: flex;
   }
 }
 
-@media (max-width: 750px) {
+@media (max-width: 950px) {
   .button-menu {
     display: none;
   }

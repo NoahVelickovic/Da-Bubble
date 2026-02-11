@@ -54,7 +54,7 @@ export class Threads {
 
   @HostListener('window:resize')
   checkWidth() {
-    this.isMobile = window.innerWidth <= 750;
+    this.isMobile = window.innerWidth <= 950;
     this.updateVisibility(!!this.state.value);
   }
 }

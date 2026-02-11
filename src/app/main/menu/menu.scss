@@ -1,3 +1,10 @@
+// Ab 1200px: App-Menü bekommt min-width 300px, wenn es geöffnet ist
+@media (min-width: 1920px) {
+  :host.menu-panel-open {
+    min-width: 300px;
+  }
+}
+
 .mat-drawer-container {
   background-color: white !important;
   overflow: visible;
