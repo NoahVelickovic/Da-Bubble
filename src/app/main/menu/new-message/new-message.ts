@@ -5,7 +5,9 @@ import { AddEmojis } from '../../../shared/add-emojis/add-emojis';
 import { AtMembers } from '../../../shared/at-members/at-members';
 import type { User as AtMemberUser } from '../../../shared/at-members/at-members';
 import { EmojiService, EmojiId } from '../../../services/emoji.service';
-import { MessagesStoreService } from '../../../services/messages-store.service';
+// import { MessagesStoreService } from '../../../services/messages-store.service';
+import { ChannelMessagesStore } from '../../../services/messages/channel-messages.store';
+import { DmMessagesStore } from '../../../services/messages/dm-messages.store';
 import { CurrentUserService } from '../../../services/current-user.service';
 import { setDoc, Firestore, doc, updateDoc, arrayUnion, collection, collectionData, getDoc } from '@angular/fire/firestore';
 import { CommonModule } from '@angular/common';
@@ -26,7 +28,9 @@ export class NewMessage {
   private dialog = inject(MatDialog)
   firestore: Firestore = inject(Firestore);
   private emojiSvc = inject(EmojiService);
-  private messageStoreSvc = inject(MessagesStoreService);
+  // private messageStoreSvc = inject(MessagesStoreService);
+  private channelMsgsStoreSvc = inject(ChannelMessagesStore);
+  private dmMsgsStoreSvc = inject(DmMessagesStore);
   private currentUserService = inject(CurrentUserService);
   public layout = inject(LayoutService);
   private anchorOverlaySvc = inject(AnchorOverlayService);
@@ -261,12 +265,12 @@ export class NewMessage {
 
       try {
         if (channel) {
-          await this.messageStoreSvc
+          await this.channelMsgsStoreSvc
             .sendChannelMessage(this.uid, channel.uid, payload);
         } else if (users.length > 0) {
           await Promise.all(
             users.map(u =>
-              this.messageStoreSvc
+              this.dmMsgsStoreSvc
                 .sendDirectMessageBetween(this.uid, u.uid, payload)
             )
           );

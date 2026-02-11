@@ -11,7 +11,10 @@ import type { User as AtMemberUser } from '../../../shared/at-members/at-members
 import { Profile } from '../../header/profile/profile';
 import { EmojiService, EmojiId } from '../../../services/emoji.service';
 import { PresenceService } from '../../../services/presence.service';
-import { MessagesStoreService, MessageDoc, ReactionUserDoc } from '../../../services/messages-store.service';
+// import { MessagesStoreService, MessageDoc, ReactionUserDoc } from '../../../services/messages-store.service';
+import { MessageDoc, ReactionUserDoc } from '../../../services/messages/messages.types';
+import { DmMessagesStore } from '../../../services/messages/dm-messages.store';
+import { DmThreadsStore } from '../../../services/messages/dm-threads.store';
 import { Unsubscribe } from '@angular/fire/firestore';
 import { CurrentUserService, CurrentUser, AvatarUrlPipe } from '../../../services/current-user.service';
 import { Subscription } from 'rxjs';
@@ -90,7 +93,9 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy, OnChange
   private host = inject(ElementRef<HTMLElement>);
   private emojiSvc = inject(EmojiService);
   public presence = inject(PresenceService);
-  private messageStoreSvc = inject(MessagesStoreService);
+  // private messageStoreSvc = inject(MessagesStoreService);
+  private dmMsgsStoreSvc = inject(DmMessagesStore);
+  private dmThreadsStoreSvc = inject(DmThreadsStore);
   private unsub: Unsubscribe | null = null;
   private stateSub: Subscription | null = null;
   layout = inject(LayoutService);
@@ -241,7 +246,7 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy, OnChange
       return;
     }
 
-    this.unsub = this.messageStoreSvc.listenSelfDirectMessages(
+    this.unsub = this.dmMsgsStoreSvc.listenSelfDirectMessages(
       this.uid,
       (docs) => {
         this.messages = docs.map(d => this.mapDocToMessage(d));
@@ -318,14 +323,14 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy, OnChange
       if (!u) return;
 
       if (this.editForId) {
-        await this.messageStoreSvc.updateSelfDirectMessage(this.uid, this.editForId, text);
+        await this.dmMsgsStoreSvc.updateSelfDirectMessage(this.uid, this.editForId, text);
         this.editForId = null;
         this.draft = '';
         this.cdr.detectChanges();
         return;
       }
 
-      await this.messageStoreSvc.sendSelfDirectMessage(this.uid, {
+      await this.dmMsgsStoreSvc.sendSelfDirectMessage(this.uid, {
         text,
         author: { uid: this.uid, username: this.userName, avatar: this.userAvatar }
       });
@@ -341,7 +346,7 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy, OnChange
   async toggleReaction(m: any, emojiId: EmojiId) {
     if (!this.uid) return;
     const you = { userId: this.uid, username: this.userName };
-    await this.messageStoreSvc.toggleSelfDirectMessageReaction(this.uid, m.messageId, emojiId, you);
+    await this.dmMsgsStoreSvc.toggleSelfDirectMessageReaction(this.uid, m.messageId, emojiId, you);
   }
 
   async toggleEmojiFromReactions(m: Message, event: MouseEvent) {

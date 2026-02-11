@@ -51,7 +51,7 @@
 
           <div class="message-body" [class.you]="m.isYou">
             <div class="meta" [class.you]="m.isYou">
-              <strong>{{ m.username }}</strong>
+              <strong>{{ m.isYou ? userName : m.username }}</strong>
               <time>{{ m.createdAt | timeOf }}</time>
             </div>
 

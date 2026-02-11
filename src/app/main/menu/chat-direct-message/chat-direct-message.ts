@@ -10,7 +10,10 @@ import { AtMembers } from '../../../shared/at-members/at-members';
 import type { User as AtMemberUser } from '../../../shared/at-members/at-members';
 import { EmojiService, EmojiId } from '../../../services/emoji.service';
 import { PresenceService } from '../../../services/presence.service';
-import { MessagesStoreService, MessageDoc, ReactionUserDoc } from '../../../services/messages-store.service';
+// import { MessagesStoreService, MessageDoc, ReactionUserDoc } from '../../../services/messages-store.service';
+import { MessageDoc, ReactionUserDoc } from '../../../services/messages/messages.types';
+import { DmMessagesStore } from '../../../services/messages/dm-messages.store';
+import { DmThreadsStore } from '../../../services/messages/dm-threads.store';
 import { Unsubscribe } from '@angular/fire/firestore';
 import { CurrentUserService, CurrentUser, AvatarUrlPipe } from '../../../services/current-user.service';
 import { Observable, Subscription, filter, distinctUntilChanged } from 'rxjs';
@@ -86,7 +89,9 @@ export class ChatDirectMessage implements OnInit, AfterViewInit, OnDestroy, OnCh
   private host = inject(ElementRef<HTMLElement>);
   private emojiSvc = inject(EmojiService);
   public presence = inject(PresenceService);
-  private messageStoreSvc = inject(MessagesStoreService);
+  // private messageStoreSvc = inject(MessagesStoreService);
+  private dmMsgsStoreSvc = inject(DmMessagesStore);
+  private dmThreadsStoreSvc = inject(DmThreadsStore);
   private unsub: Unsubscribe | null = null;
   private stateSub: Subscription | null = null;
   private currentUserService = inject(CurrentUserService);
@@ -246,7 +251,7 @@ export class ChatDirectMessage implements OnInit, AfterViewInit, OnDestroy, OnCh
 
     this.currentDmId = nextDmId;
     this.unsub?.();
-    this.unsub = this.messageStoreSvc.listenDirectMessagesBetween(
+    this.unsub = this.dmMsgsStoreSvc.listenDirectMessagesBetween(
       this.uid,
       this.chatUser.id,
       (docs) => {
@@ -308,14 +313,14 @@ export class ChatDirectMessage implements OnInit, AfterViewInit, OnDestroy, OnCh
       if (!u) return;
 
       if (this.editForId) {
-        await this.messageStoreSvc.updateDirectMessageBetween(this.uid, this.chatUser.id, this.editForId, text);
+        await this.dmMsgsStoreSvc.updateDirectMessageBetween(this.uid, this.chatUser.id, this.editForId, text);
         this.editForId = null;
         this.draft = '';
         this.cdr.detectChanges();
         return;
       }
 
-      await this.messageStoreSvc.sendDirectMessageBetween(this.uid, this.chatUser.id, {
+      await this.dmMsgsStoreSvc.sendDirectMessageBetween(this.uid, this.chatUser.id, {
         text,
         author: { uid: this.uid, username: this.userName, avatar: this.userAvatar }
       });
@@ -331,7 +336,7 @@ export class ChatDirectMessage implements OnInit, AfterViewInit, OnDestroy, OnCh
   async toggleReaction(m: any, emojiId: EmojiId) {
     if (!this.uid || !this.chatUser?.id) return;
     const you = { userId: this.uid, username: this.userName };
-    await this.messageStoreSvc.toggleDirectMessageReactionBetween(this.uid, this.chatUser.id, m.messageId, emojiId, you);
+    await this.dmMsgsStoreSvc.toggleDirectMessageReactionBetween(this.uid, this.chatUser.id, m.messageId, emojiId, you);
   }
 
   async toggleEmojiFromReactions(m: Message, event: MouseEvent) {

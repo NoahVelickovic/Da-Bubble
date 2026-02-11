@@ -6,7 +6,9 @@ import { AddEmojis } from '../../../shared/add-emojis/add-emojis';
 import { AtMembers } from '../../../shared/at-members/at-members';
 import type { User as AtMemberUser } from '../../../shared/at-members/at-members';
 import { CurrentUserService, CurrentUser, AvatarUrlPipe } from '../../../services/current-user.service';
-import { MessagesStoreService, MessageDoc, ReactionUserDoc } from '../../../services/messages-store.service';
+// import { MessagesStoreService, MessageDoc, ReactionUserDoc } from '../../../services/messages-store.service';
+import { MessageDoc, ReactionUserDoc } from '../../../services/messages/messages.types';
+import { ChannelThreadsStore } from '../../../services/messages/channel-threads.store';
 import { EmojiService, EmojiId } from '../../../services/emoji.service';
 import { PresenceService } from '../../../services/presence.service';
 import { ThreadStateService } from '../../../services/thread-state.service';
@@ -84,7 +86,8 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
   private host = inject(ElementRef<HTMLElement>);
   private emojiSvc = inject(EmojiService);
   public presence = inject(PresenceService);
-  private messageStoreSvc = inject(MessagesStoreService);
+  // private messageStoreSvc = inject(MessagesStoreService);
+  private channelThreadsStoreSvc = inject(ChannelThreadsStore);
   private threadStateSvc = inject(ThreadStateService);
   private session = inject(CurrentUserService);
   private dateUtilsSvc = inject(DateUtilsService);
@@ -224,7 +227,7 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
         reactions: rootReactions,
       };
 
-      this.unsub = this.messageStoreSvc.listenThreadMessages(
+      this.unsub = this.channelThreadsStoreSvc.listenThreadMessages(
         ctx.uid, ctx.channelId, ctx.messageId,
         (docs) => {
           this.replies = docs.map(d => {
@@ -259,17 +262,23 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
   ngOnDestroy() { this.unsub?.(); }
 
   private updateOwnMessagesProfile() {
-    // Update root message if it's ours
-    if (this.root && this.root.isYou) {
-      this.root = { ...this.root, username: this.name, avatar: this.avatar };
+    if (this.root) {
+      const rootIsMine = this.root.isYou;
+      this.root = {
+        ...this.root,
+        username: rootIsMine ? this.name : this.root.username,
+        avatar: rootIsMine ? this.avatar : this.root.avatar,
+        reactions: this.normalizeThreadReactions(this.root.reactions),
+      };
     }
-    // Update all own replies
-    this.replies = this.replies.map(r => {
-      if (r.isYou) {
-        return { ...r, username: this.name, avatar: this.avatar };
-      }
-      return r;
-    });
+
+    this.replies = this.replies.map(r => ({
+      ...r,
+      username: r.isYou ? this.name : r.username,
+      avatar: r.isYou ? this.avatar : r.avatar,
+      reactions: this.normalizeThreadReactions(r.reactions),
+    }));
+
     this.cdr.detectChanges();
   }
 
@@ -329,7 +338,7 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
 
     try {
       if (this.editForId) {
-        await this.messageStoreSvc
+        await this.channelThreadsStoreSvc
           .updateThreadMessage(ctx.uid, ctx.channelId, ctx.messageId, this.editForId, text)
           .then(() => {
             this.editForId = null;
@@ -338,8 +347,8 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
         return;
       }
 
-      const author = ctx.root?.author!;
-      await this.messageStoreSvc.sendThreadReply(ctx.uid, ctx.channelId, ctx.messageId, { text, author });
+      const author = { uid: this.uid, username: this.name, avatar: this.avatar };
+      await this.channelThreadsStoreSvc.sendThreadReply(ctx.uid, ctx.channelId, ctx.messageId, { text, author });
       this.draft = '';
     } finally {
       this.isSending = false;
@@ -350,8 +359,8 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
     const ctx = this.threadStateSvc.value;
     if (!ctx || !this.uid) return;
 
-    const you = { userId: this.uid, username: this.name };
-    await this.messageStoreSvc.toggleThreadReaction(
+    const you: ReactionUserDoc = { userId: this.uid, username: this.name };
+    await this.channelThreadsStoreSvc.toggleThreadReaction(
       ctx.uid,
       ctx.channelId,
       ctx.messageId,
@@ -413,11 +422,13 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
 
     const names = r.reactionUsers.map(u => u.username);
     const youReacted = r.reactionUsers.some(u => u.userId === this.uid);
+    const otherUsers = r.reactionUsers
+      .filter(u => u.userId !== this.uid)
+      .map(u => u.username);
 
     let title = '';
     if (youReacted && names.length > 0) {
-      const other = names.filter(n => n !== this.name);
-      title = other.length ? `${other.slice(0, 2).join(' und ')} und Du` : 'Du';
+      title = otherUsers.length ? `${otherUsers.slice(0, 2).join(' und ')} und Du` : 'Du';
     } else if (names.length) {
       title = names.slice(0, 2).join(' und ');
     }
@@ -469,12 +480,14 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
     };
   }
 
+  /*
   async toggleReplyReaction(replyId: string, emojiId: string) {
     const ctx = this.threadStateSvc.value;
     if (!ctx) return;
     const you: ReactionUserDoc = { userId: ctx.uid, username: ctx.root?.author?.username ?? '' };
-    await this.messageStoreSvc.toggleThreadReaction(ctx.uid, ctx.channelId, ctx.messageId, replyId, emojiId, you);
+    await this.channelThreadsStoreSvc.toggleThreadReaction(ctx.uid, ctx.channelId, ctx.messageId, replyId, emojiId, you);
   }
+  */
 
   clearReactionPanelHide() {
     if (this.hideTimer) {
@@ -538,6 +551,26 @@ export class MessadesThreads implements AfterViewInit, OnDestroy {
   private scrollToBottom() {
     const el = this.scrollArea?.nativeElement;
     if (el) el.scrollTop = el.scrollHeight;
+  }
+
+  private normalizeReactionUsers(users: ReactionUser[]): ReactionUser[] {
+    if (!this.uid) return users;
+    return users.map(u =>
+      u.userId === this.uid
+        ? { ...u, username: this.name }
+        : u
+    );
+  }
+
+  private normalizeThreadReactions(rx: Reaction[]): Reaction[] {
+    return (rx ?? []).map(r => {
+      const ru = this.normalizeReactionUsers(r.reactionUsers ?? []);
+      return {
+        ...r,
+        reactionUsers: ru,
+        youReacted: ru.some(u => u.userId === this.uid),
+      };
+    });
   }
 
 }

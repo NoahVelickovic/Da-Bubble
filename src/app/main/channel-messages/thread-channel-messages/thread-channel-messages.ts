@@ -11,7 +11,9 @@ import type { User as AtMemberUser } from '../../../shared/at-members/at-members
 import { Firestore, doc, docData, getDoc } from '@angular/fire/firestore';
 import { EmojiService, EmojiId } from '../../../services/emoji.service';
 import { PresenceService } from '../../../services/presence.service';
-import { MessagesStoreService, MessageDoc, ReactionUserDoc } from '../../../services/messages-store.service';
+// import { MessagesStoreService, MessageDoc, ReactionUserDoc } from '../../../services/messages-store.service';
+import { MessageDoc, ReactionUserDoc } from '../../../services/messages/messages.types';
+import { ChannelMessagesStore } from '../../../services/messages/channel-messages.store';
 import { Unsubscribe } from '@angular/fire/firestore';
 import { CurrentUserService, CurrentUser, AvatarUrlPipe } from '../../../services/current-user.service';
 import { Subscription } from 'rxjs';
@@ -84,7 +86,8 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
   private host = inject(ElementRef<HTMLElement>);
   private emojiSvc = inject(EmojiService);
   public presence = inject(PresenceService);
-  private messageStoreSvc = inject(MessagesStoreService);
+  // private messageStoreSvc = inject(MessagesStoreService);
+  private channelMsgsStoreSvc = inject(ChannelMessagesStore);
   private unsub: Unsubscribe | null = null;
   private channelSubscription: Subscription | null = null;
   private layout = inject(LayoutService);
@@ -217,13 +220,13 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
   }
 
   private updateOwnMessagesProfile() {
-    // Update all own messages with new name/avatar
     this.messages = this.messages.map(m => {
       if (m.uid === this.uid) {
-        return { ...m, username: this.userName, avatar: this.userAvatar };
+        m = { ...m, username: this.userName, avatar: this.userAvatar };
       }
-      return m;
+      return this.normalizeMessageReactions(m);
     });
+
     this.rebuildMessagesView();
     this.cdr.detectChanges();
   }
@@ -273,11 +276,13 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
 
   private startListening() {
     if (!this.uid || !this.channelId) return;
-    this.unsub = this.messageStoreSvc.listenChannelMessages(
+    this.unsub = this.channelMsgsStoreSvc.listenChannelMessages(
       this.uid,
       this.channelId,
       (docs) => {
-        this.messages = docs.map(d => this.mapDocToMessage(d));
+        this.messages = docs
+          .map(d => this.mapDocToMessage(d))
+          .map(m => this.normalizeMessageReactions(m));
         this.rebuildMessagesView();
         this.cdr.detectChanges();
         queueMicrotask(() => this.scrollToBottom());
@@ -342,7 +347,7 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
       const currentAvatar = this.userAvatar || this.avatar;
 
       if (this.editForId) {
-        await this.messageStoreSvc.updateChannelMessage(
+        await this.channelMsgsStoreSvc.updateChannelMessage(
           this.uid, this.channelId, this.editForId, text
         );
         this.editForId = null;
@@ -351,7 +356,7 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
         return;
       }
 
-      await this.messageStoreSvc.sendChannelMessage(this.uid, this.channelId, {
+      await this.channelMsgsStoreSvc.sendChannelMessage(this.uid, this.channelId, {
         text,
         author: {
           uid: this.uid,
@@ -372,7 +377,7 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
     if (!this.uid) return;
     // Verwende userName statt name
     const you = { userId: this.uid, username: this.userName || this.name };
-    await this.messageStoreSvc.toggleChannelReaction(this.uid, this.channelId, m.messageId, emojiId, you);
+    await this.channelMsgsStoreSvc.toggleChannelReaction(this.uid, this.channelId, m.messageId, emojiId, you);
   }
 
   async toggleEmojiFromReactions(m: Message, event: MouseEvent) {
@@ -495,11 +500,14 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
 
     return {
       ...m,
-      reactions: m.reactions.map(r => ({
-        ...r,
-        reactionUsers: this.normalizeReactionUsers(r.reactionUsers ?? []),
-        youReacted: (r.reactionUsers ?? []).some(u => u.userId === this.uid),
-      })),
+      reactions: m.reactions.map(r => {
+        const users = this.normalizeReactionUsers(r.reactionUsers ?? []);
+        return {
+          ...r,
+          reactionUsers: users,
+          youReacted: users.some(u => u.userId === this.uid),
+        };
+      }),
     };
   }
 
@@ -521,13 +529,14 @@ export class ThreadChannelMessages implements OnInit, AfterViewInit, OnDestroy, 
     const y = reactionRect.top - messageRect.top - 110;
 
     const youReacted = reaction.reactionUsers.some((u) => u.userId === this.uid);
+    const otherUsers = reaction.reactionUsers
+      .filter(u => u.userId !== this.uid)
+      .map(u => u.username);
     const reactedUsers = reaction.reactionUsers.map((u) => u.username);
 
     let title = '';
     if (youReacted && reactedUsers.length > 0) {
-      // Verwende userName statt name
       const currentName = this.userName || this.name;
-      const otherUsers = reactedUsers.filter((name) => name !== currentName);
       if (otherUsers.length > 0) {
         title = `${otherUsers.slice(0, 2).join(' und ')} und Du`;
       } else {

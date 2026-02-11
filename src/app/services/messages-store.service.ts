@@ -1,3 +1,4 @@
+/*
 import { Injectable, inject, NgZone } from '@angular/core';
 import {
     Firestore, collection, doc, addDoc, serverTimestamp,
@@ -576,3 +577,4 @@ export class MessagesStoreService {
         return new Date(x);
     }
 }
+*/
