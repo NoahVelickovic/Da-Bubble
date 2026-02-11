@@ -85,3 +85,12 @@
   margin-top: 4px;
   background-color: white;
 }
+
+.write-message {
+   &:hover {
+      color: #797ef3;
+      filter: invert(43%) sepia(63%) saturate(7492%) hue-rotate(229deg) brightness(97%)
+        contrast(96%);
+      cursor: pointer;
+    }
+}

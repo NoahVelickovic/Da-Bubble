@@ -27,12 +27,11 @@
       </div>
       <label for="name" class="description">Beschreibung <p> (optional)</p></label>
       <input type="text" id="description" name="description" placeholder="Dein Text hier" ngModel #description="ngModel"
-        required minlength="5">
+         minlength="5">
     </div>
 
     <div>
       <div class="error" *ngIf="description.invalid && description.touched">
-        <p *ngIf="description.errors?.['required']">Beschreibung ist erforderlich</p>
         <p *ngIf="description.errors?.['minlength']">Beschreibung muss mehr als 5 Zeichen haben</p>
       </div>
     </div>

@@ -80,19 +80,25 @@ export class AddPeople implements OnInit {
   }
 
 
-  filterPeople() {
-    const value = this.inputName.toLowerCase().trim();
+filterPeople() {
+  const value = this.inputName.toLowerCase().trim();
 
-    if (value.length < 1) {
-      this.filteredPeople = [];
-      return;
-    }
-
+  // 🔹 Wenn kein Text eingegeben → komplette Liste anzeigen
+  if (value.length === 0) {
     this.filteredPeople = this.allPeople
-      .filter(u => u.name.toLowerCase().includes(value))
-      .filter(u => !this.selectedPeople.some(sp => sp.uid === u.uid))
-      .filter(u => u.uid !== this.currentUserId); 
+
+      .filter(u => !this.selectedPeople.some(sp => sp.uid === u.uid)) 
+      .filter(u => u.uid !== this.currentUserId);
+      
+    return;
   }
+
+  // 🔹 Wenn Text eingegeben → normal filtern
+  this.filteredPeople = this.allPeople
+    .filter(u => u.name.toLowerCase().includes(value))
+    .filter(u => !this.selectedPeople.some(sp => sp.uid === u.uid))
+    .filter(u => u.uid !== this.currentUserId);
+}
 
   onInputKeydown(event: KeyboardEvent) {
     if (event.key === 'Enter' && this.filteredPeople.length > 0) {
@@ -100,6 +106,19 @@ export class AddPeople implements OnInit {
       this.selectPerson(this.filteredPeople[0]);
     }
   }
+
+onInputFocus() {
+  this.hasFocus = true;
+  this.filterPeople(); 
+}
+
+onInputBlur() {
+  this.hasFocus = false;
+
+  setTimeout(() => {
+    this.filteredPeople = [];
+  }, 200);
+}
 
 
   selectPerson(person: { uid: string, name: string, avatar: string, email: string }) {
@@ -151,20 +170,16 @@ async addMember() {
   try {
     const memberUids: string[] = await this.getMemberUids(currentUid);
     const channelData = await this.fetchChannelData(currentUid, channelId);
-    
-    // ✅ Alle User-Daten EINMAL abrufen (ohne "(Du)")
-    const baseMembers = await this.fetchBaseMemberDetails(memberUids);
+        const baseMembers = await this.fetchBaseMemberDetails(memberUids);
     
     const batch = writeBatch(this.firestore);
 
-    // ✅ Für jeden User eine individuelle Member-Liste erstellen
     memberUids.forEach(memberUid => {
       const membershipRef = doc(
         this.firestore, 
         `users/${memberUid}/memberships/${channelId}`
       );
       
-      // Individuelle Members für diesen User
       const individualMembers = baseMembers.map(m => ({
         ...m,
         name: m.uid === memberUid ? `${m.name} (Du)` : m.name,

@@ -41,11 +41,13 @@
                 <!-- Input im Chip-Feld -->
                 <input class="input-name" type="text" placeholder="{{ selectedPeople.length ? '' : 'Name eingeben...'}}"
                     [(ngModel)]="inputName" [ngModelOptions]="{standalone: true}" (input)="filterPeople()"
-                    (keydown)="onInputKeydown($event)">
+                   (focus)="onInputFocus()"
+  (blur)="onInputBlur()"
+>
 
                 <!-- Dropdown -->
                 <div class="dropdown"
-                    *ngIf="inputName.length >= 1 && filteredPeople.length > 0 && selectedOption === 'option2'">
+     *ngIf="filteredPeople.length > 0 && selectedOption === 'option2' && hasFocus">
 
                     <button class="option" *ngFor="let p of filteredPeople" (mousedown)="$event.preventDefault()"
                         (click)="selectPerson(p)">

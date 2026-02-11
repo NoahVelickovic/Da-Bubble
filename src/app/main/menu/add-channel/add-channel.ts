@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectorRef } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -23,11 +23,34 @@ import { ChannelStateService } from '../../menu/channels/channel.service';
 export class AddChannel {
   private dialog = inject(MatDialog);
   firestore: Firestore = inject(Firestore);
+    private cdr = inject(ChangeDetectorRef);
+
   memberships: any[] = [];
 channelNameExists = false;
+ userName: string = '';
+  userAvatar: string = '';
 
-  constructor(private channelState: ChannelStateService) { }
+  constructor(private channelState: ChannelStateService, private firebaseService: FirebaseService) { }
   dialogRef = inject(MatDialogRef<AddChannel>);
+
+ async ngOnInit() {
+  
+    
+    this.firebaseService.currentName$.subscribe((name) => {
+      if (name) {
+        this.userName = name;
+        this.cdr.detectChanges();
+      }
+    });
+
+    this.firebaseService.currentAvatar$.subscribe((avatar) => {
+      if (avatar) {
+        this.userAvatar = avatar;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
 
   close() {
     this.dialogRef.close();
