@@ -396,8 +396,10 @@ export class ThreadsMessages implements AfterViewInit {
           ctx.uid, ctx.channelId, ctx.messageId, { text, author }
         );
       } else {
+        const peer = ctx.peerUid && ctx.peerUid !== ctx.uid ? ctx.peerUid : undefined;
+
         await this.dmThreadsStore.sendThreadReplyBetween(
-          ctx.uid, ctx.peerUid, ctx.dmId, ctx.messageId, { text, author }
+          ctx.uid, peer, ctx.dmId, ctx.messageId, { text, author }
         );
       }
 

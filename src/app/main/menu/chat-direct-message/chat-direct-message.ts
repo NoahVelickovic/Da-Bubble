@@ -25,7 +25,7 @@ import { LayoutService } from '../../../services/layout.service';
 import { firstValueFrom } from 'rxjs';
 import { AnchorOverlayService } from '../../../services/anchor-overlay.service';
 import { FirebaseService } from '../../../services/firebase';
-
+import { ThreadStateService } from '../../../services/thread-state.service';
 type Message = {
   messageId: string;
   uid: string;
@@ -90,6 +90,7 @@ export class ChatDirectMessage implements OnInit, AfterViewInit, OnDestroy, OnCh
   private emojiSvc = inject(EmojiService);
   public presence = inject(PresenceService);
   // private messageStoreSvc = inject(MessagesStoreService);
+  private threadStateSvc = inject(ThreadStateService);
   private dmMsgsStoreSvc = inject(DmMessagesStore);
   private dmThreadsStoreSvc = inject(DmThreadsStore);
   private unsub: Unsubscribe | null = null;
@@ -172,13 +173,13 @@ export class ChatDirectMessage implements OnInit, AfterViewInit, OnDestroy, OnCh
   }
 
   private updateOwnMessagesProfile() {
-    // Update all own messages with new name/avatar
     this.messages = this.messages.map(m => {
       if (m.uid === this.uid) {
-        return { ...m, username: this.userName, avatar: this.userAvatar };
+        m = { ...m, username: this.userName, avatar: this.userAvatar };
       }
-      return m;
+      return this.normalizeMessageReactions(m);
     });
+
     this.rebuildMessagesView();
     this.cdr.detectChanges();
   }
@@ -256,7 +257,9 @@ export class ChatDirectMessage implements OnInit, AfterViewInit, OnDestroy, OnCh
       this.chatUser.id,
       (docs) => {
         if (this.currentDmId !== nextDmId) return;
-        this.messages = docs.map(d => this.mapDocToMessage(d));
+        this.messages = docs
+          .map(d => this.mapDocToMessage(d))
+          .map(m => this.normalizeMessageReactions(m));
         this.rebuildMessagesView();
         // Manuelle Change Detection triggern
         this.cdr.detectChanges();
@@ -600,5 +603,63 @@ export class ChatDirectMessage implements OnInit, AfterViewInit, OnDestroy, OnCh
     if (!messageRecipient) return 'Nachricht an @…';
 
     return `Nachricht an @${messageRecipient}`;
+  }
+
+
+  openThread(m: Message) {
+    if (!this.uid || !this.chatUser?.id) return;
+
+    const dmId = this.dmMsgsStoreSvc.getDmId(this.uid, this.chatUser.id);
+
+    this.layout.openRight();
+    this.dmThreadsStoreSvc.refreshRootCounters(
+      this.uid, dmId, m.messageId, this.chatUser.id
+    );
+    this.threadStateSvc.open({
+      kind: 'directMessage',
+      uid: this.uid,
+      dmId,
+      peerUid: this.chatUser.id,
+      dmName: this.chatUser.name,
+      messageId: m.messageId,
+      root: {
+        author: { uid: m.uid, username: m.username, avatar: m.avatar },
+        createdAt: m.createdAt,
+        text: m.text,
+        reactions: m.reactions?.map(r => ({
+          emojiId: r.emojiId,
+          emojiCount: r.emojiCount,
+          youReacted: r.youReacted,
+          reactionUsers: r.reactionUsers.map(u => ({ userId: u.userId, username: u.username })),
+        })) ?? [],
+        isYou: m.isYou,
+      },
+    });
+  }
+
+  private get currentDisplayName(): string {
+    return (this.userName || '').trim();
+  }
+
+  private normalizeReactionUsers(users: ReactionUser[]): ReactionUser[] {
+    const me = this.currentDisplayName;
+    if (!me || !this.uid) return users;
+    return users.map(u => (u.userId === this.uid ? { ...u, username: me } : u));
+  }
+
+  private normalizeMessageReactions(m: Message): Message {
+    if (!m?.reactions?.length) return m;
+
+    return {
+      ...m,
+      reactions: m.reactions.map(r => {
+        const normalizedUsers = this.normalizeReactionUsers(r.reactionUsers ?? []);
+        return {
+          ...r,
+          reactionUsers: normalizedUsers,
+          youReacted: normalizedUsers.some(u => u.userId === this.uid),
+        };
+      }),
+    };
   }
 }

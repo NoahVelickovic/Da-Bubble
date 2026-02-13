@@ -187,13 +187,13 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy, OnChange
   }
 
   private updateOwnMessagesProfile() {
-    // Update all own messages with new name/avatar
     this.messages = this.messages.map(m => {
       if (m.uid === this.uid) {
-        return { ...m, username: this.userName, avatar: this.userAvatar };
+        m = { ...m, username: this.userName, avatar: this.userAvatar };
       }
-      return m;
+      return this.normalizeMessageReactions(m);
     });
+
     this.rebuildMessagesView();
     this.cdr.detectChanges();
   }
@@ -253,7 +253,9 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy, OnChange
     this.unsub = this.dmMsgsStoreSvc.listenSelfDirectMessages(
       this.uid,
       (docs) => {
-        this.messages = docs.map(d => this.mapDocToMessage(d));
+        this.messages = docs
+          .map(d => this.mapDocToMessage(d))
+          .map(m => this.normalizeMessageReactions(m));
         this.rebuildMessagesView();
         this.cdr.detectChanges();
         queueMicrotask(() => this.scrollToBottom());
@@ -640,7 +642,7 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy, OnChange
       kind: 'directMessage',
       uid: this.uid,
       dmId: 'self',
-      peerUid: this.uid,
+      peerUid: undefined as any,
       dmName: `${this.userName} (Du)`,
       messageId: m.messageId,
       root: {
@@ -658,8 +660,32 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy, OnChange
     });
   }
 
+  private get currentDisplayName(): string {
+    return (this.userName || '').trim();
+  }
 
+  private normalizeReactionUsers(users: ReactionUser[]): ReactionUser[] {
+    const me = this.currentDisplayName;
+    if (!me || !this.uid) return users;
 
+    return users.map(u =>
+      u.userId === this.uid ? { ...u, username: me } : u
+    );
+  }
 
+  private normalizeMessageReactions(m: Message): Message {
+    if (!m?.reactions?.length) return m;
 
+    return {
+      ...m,
+      reactions: m.reactions.map(r => {
+        const normalizedUsers = this.normalizeReactionUsers(r.reactionUsers ?? []);
+        return {
+          ...r,
+          reactionUsers: normalizedUsers,
+          youReacted: normalizedUsers.some(u => u.userId === this.uid),
+        };
+      }),
+    };
+  }
 }

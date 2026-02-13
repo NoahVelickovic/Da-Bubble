@@ -5,7 +5,7 @@
     <button class="back-button" *ngIf="layout.isMobile()" (click)="goBack()">
       <img src="/img/back-mobile.png" alt="Zurück">
     </button>
-    
+
     <img [src]="'/img/avatars/' + chatUser.avatar" alt="" class="avatar" />
     <span class="status-dot"
       [ngClass]="presence.userStatusMap()[chatUser.id] === 'online' ? 'online' : 'offline'"></span>
@@ -73,12 +73,10 @@
                 </span>
               </div>
 
-              <!--
-            <div class="response" *ngIf="m.repliesCount > 0">
-              <span class="count-answere" (click)="openThread(m)">{{ m.repliesCount }} Antworten</span>
-              <span class="answere">Letzte Antwort {{ timeOf(m.lastReplyTime) }}</span>
-            </div>
-            -->
+              <div class="response" *ngIf="m.repliesCount > 0">
+                <span class="count-answere" (click)="openThread(m)">{{ m.repliesCount }} Antworten</span>
+                <span class="answere">Letzte Antwort {{ timeOf(m.lastReplyTime) }}</span>
+              </div>
 
             </div>
           </div>
@@ -112,12 +110,10 @@
               <img class="hover" src="/img/add_reaction_purple.png" alt="">
             </span>
 
-            <!--
-          <span class="icon-box" (click)="openThread(m)">
-            <img class="default" src="/img/comment.png" alt="">
-            <img class="hover" src="/img/comment_purple.png" alt="">
-          </span>
-          -->
+            <span class="icon-box" (click)="openThread(m)">
+              <img class="default" src="/img/comment.png" alt="">
+              <img class="hover" src="/img/comment_purple.png" alt="">
+            </span>
 
             <span class="icon-box d-none" [class.you]="m.isYou" (click)="toggleEditMessagePanel(m, $event)">
               <img class="default" src="/img/more_vert.png" alt="">
