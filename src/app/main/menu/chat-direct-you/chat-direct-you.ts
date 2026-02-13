@@ -28,6 +28,9 @@ import { DateUtilsService, DaySeparated, TimeOfPipe } from '../../../services/da
 import { firstValueFrom } from 'rxjs';
 import { AnchorOverlayService } from '../../../services/anchor-overlay.service';
 
+import { ThreadStateService } from '../../../services/thread-state.service';
+
+
 type Message = {
   messageId: string;
   uid: string;
@@ -94,6 +97,7 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy, OnChange
   private emojiSvc = inject(EmojiService);
   public presence = inject(PresenceService);
   // private messageStoreSvc = inject(MessagesStoreService);
+  private threadStateSvc = inject(ThreadStateService);
   private dmMsgsStoreSvc = inject(DmMessagesStore);
   private dmThreadsStoreSvc = inject(DmThreadsStore);
   private unsub: Unsubscribe | null = null;
@@ -152,7 +156,7 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy, OnChange
 
   async ngOnInit() {
     this.directMessage$ = this.firebaseService.getCollection$('directMessages');
-    
+
     await this.currentUserService.hydrateFromLocalStorage();
     const u = this.currentUserService.getCurrentUser();
     if (u) {
@@ -624,4 +628,38 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy, OnChange
 
     return `Nachricht an @${messageRecipient}`;
   }
+
+  openThread(m: Message) {
+    if (!this.uid) return;
+
+    this.layout.openRight();
+    this.dmThreadsStoreSvc.refreshRootCounters(
+      this.uid, 'self', m.messageId, this.uid
+    );
+    this.threadStateSvc.open({
+      kind: 'directMessage',
+      uid: this.uid,
+      dmId: 'self',
+      peerUid: this.uid,
+      dmName: `${this.userName} (Du)`,
+      messageId: m.messageId,
+      root: {
+        author: { uid: m.uid, username: m.username, avatar: m.avatar },
+        createdAt: m.createdAt,
+        text: m.text,
+        reactions: m.reactions?.map(r => ({
+          emojiId: r.emojiId,
+          emojiCount: r.emojiCount,
+          youReacted: r.youReacted,
+          reactionUsers: r.reactionUsers.map(u => ({ userId: u.userId, username: u.username }))
+        })) ?? [],
+        isYou: m.isYou
+      }
+    });
+  }
+
+
+
+
+
 }

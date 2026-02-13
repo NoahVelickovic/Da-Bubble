@@ -28,7 +28,7 @@ export class ThreadsHeader {
   get subtitle(): string {
     const ctx = this.state.value;
     if (!ctx) return '';
-    return ctx.kind === 'channel' ? `# ${ctx.channelName}` : ctx.dmName;
+    return ctx.kind === 'channel' ? `# ${ctx.channelName}` : `${ctx.dmName ?? ''}`;
   }
 
   closeThread() {

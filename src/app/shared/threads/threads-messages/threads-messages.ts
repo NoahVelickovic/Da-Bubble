@@ -228,10 +228,10 @@ export class ThreadsMessages implements AfterViewInit {
             threadMessageId: d.id,
             username: d.author.username,
             avatar: d.author.avatar,
-            isYou: d.author.uid === this.uid,
+            isYou: d.author.uid === ctx.uid,
             createdAt: (d.createdAt as any) ?? new Date(),
             text: d.text,
-            reactions: this.mapReactions(d.reactions ?? [], this.uid),
+            reactions: this.mapReactions(d.reactions ?? [], ctx.uid),
           }));
 
           this.updateOwnMessagesProfile(false);
@@ -372,6 +372,8 @@ export class ThreadsMessages implements AfterViewInit {
     this.isSending = true;
 
     try {
+      const author = { uid: this.uid, username: this.name, avatar: this.avatar };
+
       if (this.editForId) {
         if (ctx.kind === 'channel') {
           await this.channelThreadsStore.updateThreadMessage(
@@ -379,8 +381,7 @@ export class ThreadsMessages implements AfterViewInit {
           );
         } else {
           await this.dmThreadsStore.updateThreadMessageBetween(
-            ctx.uid, ctx.peerUid, ctx.dmId, ctx.messageId,
-            this.editForId, text
+            ctx.uid, ctx.peerUid, ctx.dmId, ctx.messageId, this.editForId, text
           );
         }
 
@@ -388,22 +389,15 @@ export class ThreadsMessages implements AfterViewInit {
         this.draft = '';
         this.cdr.detectChanges();
         return;
-      }
-
-      const author = { uid: this.uid, username: this.name, avatar: this.avatar };
+      } 
 
       if (ctx.kind === 'channel') {
         await this.channelThreadsStore.sendThreadReply(
           ctx.uid, ctx.channelId, ctx.messageId, { text, author }
         );
       } else {
-
         await this.dmThreadsStore.sendThreadReplyBetween(
-          ctx.uid,
-          ctx.peerUid,
-          ctx.dmId,
-          ctx.messageId,
-          { text, author }
+          ctx.uid, ctx.peerUid, ctx.dmId, ctx.messageId, { text, author }
         );
       }
 
@@ -427,13 +421,7 @@ export class ThreadsMessages implements AfterViewInit {
       );
     } else {
       await this.dmThreadsStore.toggleThreadReactionBetween(
-        ctx.uid,
-        ctx.peerUid,
-        ctx.dmId,
-        ctx.messageId,
-        reply.threadMessageId,
-        emojiId,
-        you
+        ctx.uid, ctx.peerUid, ctx.dmId, ctx.messageId, reply.threadMessageId, emojiId, you
       );
     }
   }

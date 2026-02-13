@@ -1,7 +1,7 @@
 import { Injectable, inject, NgZone } from '@angular/core';
 import {
     Firestore, collection, doc, query, orderBy, onSnapshot,
-    serverTimestamp, writeBatch, runTransaction, increment, getDoc, updateDoc
+    serverTimestamp, writeBatch, runTransaction, increment, getDoc, getDocs, updateDoc, limit
 } from '@angular/fire/firestore';
 import type { Unsubscribe, Timestamp } from '@angular/fire/firestore';
 
@@ -61,22 +61,26 @@ export class DmThreadsStore {
         });
     }
 
-    /*
-    async sendThreadReplySelf(
+    async sendThreadReply(
         uid: string,
-        rootMessageId: string,
-        params: {
-            text: string;
-            author: {
-                uid: string;
-                username: string;
-                avatar: string
-            }
-        }
+        dmId: string,
+        messageId: string,
+        params: { text: string; author: { uid: string; username: string; avatar: string } },
+        peerUid?: string
     ) {
-        return this.sendReplyBetween(uid, uid, 'self', rootMessageId, params, true);
+        return this.sendThreadReplyBetween(uid, peerUid, dmId, messageId, params);
     }
-    */
+
+    async updateThreadMessage(
+        uid: string,
+        dmId: string,
+        messageId: string,
+        threadMessageId: string,
+        text: string,
+        peerUid?: string
+    ) {
+        return this.updateThreadMessageBetween(uid, peerUid, dmId, messageId, threadMessageId, text);
+    }
 
     async sendThreadReplyBetween(
         aUid: string,
@@ -104,74 +108,34 @@ export class DmThreadsStore {
             lastReplyTime: null
         };
 
-        {
-            const MAX = 500;
-            let batch = writeBatch(this.firestore);
-            let count = 0;
 
-            for (const uid of uids) {
-                const ref = this.dmThreadMsgDoc(uid, dmId, messageId, threadMessageId);
-                batch.set(ref, payload, { merge: false });
-                if (++count >= MAX) {
-                    await batch.commit();
-                    batch = writeBatch(this.firestore);
-                    count = 0;
-                }
+        const MAX = 500;
+        let batch = writeBatch(this.firestore);
+        let count = 0;
+
+        for (const uid of uids) {
+            const replyRef = this.dmThreadMsgDoc(uid, dmId, messageId, threadMessageId);
+            batch.set(replyRef, payload, { merge: false });
+
+            const rootRef = this.dmMsgDoc(uid, dmId, messageId);
+            batch.set(
+                rootRef,
+                {
+                    repliesCount: increment(1),
+                    lastReplyTime: serverTimestamp()
+                } as any,
+                { merge: true }
+            );
+
+            if (++count >= MAX) {
+                await batch.commit();
+                batch = writeBatch(this.firestore);
+                count = 0;
             }
-            if (count) await batch.commit();
         }
 
-        {
-            const MAX = 500;
-            let batch = writeBatch(this.firestore);
-            let count = 0;
-
-            for (const uid of uids) {
-                const rootRef = this.dmMsgDoc(uid, dmId, messageId);
-                batch.set(
-                    rootRef,
-                    {
-                        repliesCount: increment(1),
-                        lastReplyTime: serverTimestamp(),
-                    } as any,
-                    { merge: true }
-                );
-
-                if (++count >= MAX) {
-                    await batch.commit();
-                    batch = writeBatch(this.firestore);
-                    count = 0;
-                }
-            }
-            if (count) await batch.commit();
-        }
-
+        if (count) await batch.commit();
         return threadMessageId;
-
-
-        /*
-        const batch1 = writeBatch(this.firestore);
-        batch1.set(this.dmThreadDoc(aUid, dmId, rootMessageId, threadMessageId), payload, { merge: false });
-        if (!isSelf) batch1.set(this.dmThreadDoc(bUid, dmId, rootMessageId, threadMessageId), payload, { merge: false });
-        await batch1.commit();
-
-        const batch2 = writeBatch(this.firestore);
-        batch2.set(this.dmMsgDoc(aUid, dmId, rootMessageId), {
-            repliesCount: increment(1),
-            lastReplyTime: serverTimestamp()
-        } as any, { merge: true });
-
-        if (!isSelf) {
-            batch2.set(this.dmMsgDoc(bUid, dmId, rootMessageId), {
-                repliesCount: increment(1),
-                lastReplyTime: serverTimestamp()
-            } as any, { merge: true });
-        }
-
-        await batch2.commit();
-
-        return threadMessageId;
-        */
     }
 
     async updateThreadMessageBetween(
@@ -191,39 +155,28 @@ export class DmThreadsStore {
         for (const uid of uids) {
             const ref = this.dmThreadMsgDoc(uid, dmId, messageId, threadMessageId);
             batch.update(ref, { text });
+
             if (++count >= MAX) {
                 await batch.commit();
                 batch = writeBatch(this.firestore);
                 count = 0;
             }
         }
+
         if (count) await batch.commit();
     }
 
-    /*
     async toggleThreadReaction(
         uid: string,
         dmId: string,
-        rootMessageId: string,
+        messageId: string,
         threadMessageId: string,
         emojiId: string,
-        you: ReactionUserDoc
+        you: ReactionUserDoc,
+        peerUid?: string
     ) {
-        const ref = this.dmThreadDoc(uid, dmId, rootMessageId, threadMessageId);
-        let nextReactions: ReactionDoc[] = [];
-
-        await runTransaction(this.firestore, async tx => {
-            const snap = await tx.get(ref);
-            if (!snap.exists()) return;
-
-            const data = snap.data() as MessageDoc;
-            data.reactions ||= [];
-
-            nextReactions = mutateReactions([...data.reactions], emojiId, you);
-            tx.update(ref, { reactions: nextReactions });
-        });
+        return this.toggleThreadReactionBetween(uid, peerUid, dmId, messageId, threadMessageId, emojiId, you);
     }
-    */
 
     async toggleThreadReactionBetween(
         aUid: string,
@@ -247,6 +200,7 @@ export class DmThreadsStore {
             data.reactions ||= [];
 
             const idx = data.reactions.findIndex(r => r.emojiId === emojiId);
+
             if (idx >= 0) {
                 const rx = data.reactions[idx];
                 rx.reactionUsers ||= [];
@@ -267,8 +221,8 @@ export class DmThreadsStore {
                 data.reactions.push({ emojiId, emojiCount: 1, reactionUsers: [you] } as any);
             }
 
-            nextReactions = data.reactions;
-            tx.update(ownerRef, { reactions: nextReactions });
+            nextReactions = data.reactions as ReactionDoc[];
+            tx.update(ownerRef, { reactions: nextReactions } as any);
         });
 
         const MAX = 500;
@@ -278,18 +232,56 @@ export class DmThreadsStore {
         for (const uid of uids) {
             const ref = this.dmThreadMsgDoc(uid, dmId, messageId, threadMessageId);
             batch.set(ref, { reactions: nextReactions } as any, { merge: true });
+
             if (++count >= MAX) {
                 await batch.commit();
                 batch = writeBatch(this.firestore);
                 count = 0;
             }
         }
+
         if (count) await batch.commit();
     }
 
-    async refreshRootCounters(uid: string, dmId: string, messageId: string) {
-        const rootRef = this.dmMsgDoc(uid, dmId, messageId);
-        const snap = await getDoc(rootRef);
-        if (!snap.exists()) return;
+    async refreshRootCounters(
+        uid: string, 
+        dmId: string, 
+        messageId: string, 
+        peerUid?: string
+    ) {
+        const uids = this.participants(uid, peerUid);
+
+        const qy = query(this.dmThreadMsgsCol(uid, dmId, messageId), orderBy('createdAt', 'desc'), limit(1));
+        const lastSnap = await getDocs(qy);
+        const lastDoc = lastSnap.docs[0]?.data() as MessageDoc | undefined;
+
+        const allSnap = await getDocs(this.dmThreadMsgsCol(uid, dmId, messageId));
+        const repliesCount = allSnap.size;
+
+        const lastReplyTime = lastDoc?.createdAt ? lastDoc.createdAt : null;
+
+        const MAX = 450;
+        let batch = writeBatch(this.firestore);
+        let count = 0;
+
+        for (const u of uids) {
+            const rootRef = this.dmMsgDoc(u, dmId, messageId);
+            batch.set(
+                rootRef,
+                {
+                    repliesCount,
+                    lastReplyTime: lastReplyTime ? lastReplyTime : null
+                } as any,
+                { merge: true }
+            );
+
+            if (++count >= MAX) {
+                await batch.commit();
+                batch = writeBatch(this.firestore);
+                count = 0;
+            }
+        }
+
+        if (count) await batch.commit();
     }
 }
