@@ -4,8 +4,7 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Observable, map, firstValueFrom } from 'rxjs';
-import { setDoc, Firestore, doc, updateDoc, arrayUnion, collection, collectionData, getDoc } from '@angular/fire/firestore';
-import { writeBatch } from '@angular/fire/firestore';
+import { setDoc, Firestore, doc, updateDoc, arrayUnion, collection, collectionData, getDoc, writeBatch } from '@angular/fire/firestore';
 
 
 
@@ -197,8 +196,15 @@ async addMember() {
     });
 
     await batch.commit();
-    await this.updateChannelState(currentUid, channelId, memberUids);
     this.closeDialog();
+    if (this.data.channelState) {
+      const membershipRef = doc(this.firestore, `users/${currentUid}/memberships/${channelId}`);
+      const membershipSnap = await getDoc(membershipRef);
+      if (membershipSnap.exists()) {
+        const updatedChannelData = { id: channelId, ...membershipSnap.data() };
+        setTimeout(() => this.data.channelState.updateSelectedChannel(updatedChannelData), 0);
+      }
+    }
   } catch (error) {
     console.error('Fehler beim Hinzufügen von Mitgliedern:', error);
   }
@@ -330,7 +336,6 @@ async updateChannelState(currentUid: string, channelId: string, memberUids: stri
 
   create() {
     this.addMember();
-    console.log('erstellt');
   }
 
 }

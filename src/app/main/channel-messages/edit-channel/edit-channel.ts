@@ -283,12 +283,7 @@ async leaveChannel() {
       }
     }
 
-
-    // 3️⃣ Channel aus UI entfernen
-    this.channelState.removeChannel(channelId);
-    await this.channelState.loadFirstAvailableChannel();
     this.dialogRef.close({ action: 'left', channelId });
-
   } catch (error) {
     console.error('Fehler beim Verlassen des Channels:', error);
     alert('Fehler beim Verlassen des Channels');

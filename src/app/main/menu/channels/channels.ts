@@ -65,18 +65,22 @@ export class Channels implements OnInit {
 
       if (this.memberships.length > 0 && !currentChannel) {
         const generalOrFirst = this.memberships.find((m: any) => m.id === DEFAULT_CHANNEL_ID) ?? this.memberships[0];
-        this.selectChannelWithoutClosingMenu(generalOrFirst);
+        this.selectFirstChannel(generalOrFirst);
       }
       
       this.cdr.detectChanges();
     });
   }
 
-  // Channel auswählen ohne das Menu zu schließen (für automatische Auswahl)
-  private selectChannelWithoutClosingMenu(channel: any) {
+  // Ersten Channel auswählen (z. B. General) wenn noch keiner gesetzt ist – lädt Daten und setzt Auswahl
+  private async selectFirstChannel(channel: any) {
     this.selectedChannelId = channel.id;
-    // KEIN layout.showContent() - Menu bleibt offen
-    this.loadChannelDataInBackground(channel.id);
+    const full = await this.channelState.loadFullChannel(channel.id);
+    if (full) {
+      this.channelState.selectChannel(full);
+    } else {
+      this.channelState.selectChannel({ id: channel.id, ...channel });
+    }
   }
 
   // Vollständige Channel-Daten im Hintergrund laden

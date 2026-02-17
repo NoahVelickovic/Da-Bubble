@@ -181,6 +181,13 @@ export class ChannelMessagesHeader implements OnInit, OnDestroy {
         }
       }),
       data: { channel: channelData }
+    }).afterClosed().subscribe((result: { action?: string; channelId?: string } | undefined) => {
+      if (result?.action === 'left' && result.channelId) {
+        setTimeout(() => {
+          this.channelState.removeChannel(result.channelId!);
+          this.channelState.loadFirstAvailableChannel();
+        }, 0);
+      }
     });
   }
 

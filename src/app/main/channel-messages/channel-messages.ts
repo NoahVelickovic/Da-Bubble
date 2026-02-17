@@ -47,7 +47,13 @@ export class ChannelMessages implements OnInit, OnDestroy {
         this.members = channel.members || [];
         this.description = channel.description || '';
         this.createdBy = channel.createdBy || '';
-
+      } else {
+        this.fullChannel = null;
+        this.channelName = '';
+        this.channelId = '';
+        this.members = [];
+        this.description = '';
+        this.createdBy = '';
       }
     });
   }

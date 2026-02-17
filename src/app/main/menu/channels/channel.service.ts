@@ -1,4 +1,4 @@
-import { Injectable, signal, inject } from '@angular/core';
+import { Injectable, signal, inject, NgZone } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { getDocs, query, orderBy, collection, doc, Firestore, getDoc } from '@angular/fire/firestore';
 
@@ -11,7 +11,9 @@ export const DEFAULT_CHANNEL_ID = 'general';
 export class ChannelStateService {
   private selectedChannelSubject = new BehaviorSubject<any>(null);
   selectedChannel$ = this.selectedChannelSubject.asObservable();
-private firestore = inject(Firestore);  private _channels = signal<any[]>([]);
+  private firestore = inject(Firestore);
+  private ngZone = inject(NgZone);
+  private _channels = signal<any[]>([]);
   private _channelsSubject = new BehaviorSubject<any[]>([]);
   channels$ = this._channelsSubject.asObservable();
     private channelCache = new Map<string, any>();
@@ -98,10 +100,14 @@ private firestore = inject(Firestore);  private _channels = signal<any[]>([]);
           id: chosen.id,
           ...chosen.data()
         };
-        const fullChannel = await this.loadFullChannel(firstChannel.id);
-        this.selectChannel(fullChannel || firstChannel);
+        // In Angular-Zone ausführen, damit die UI sofort aktualisiert wird (ohne Klick)
+        this.ngZone.run(() => this.selectChannel(firstChannel));
+        // Optional: Vollständige Channel-Daten im Hintergrund nachladen
+        this.loadFullChannel(firstChannel.id).then((full) => {
+          if (full) this.ngZone.run(() => this.updateSelectedChannel(full));
+        }).catch(() => {});
       } else {
-        this.selectChannel(null);
+        this.ngZone.run(() => this.selectChannel(null));
       }
     } catch (error) {
       console.error('Fehler beim Laden des ersten Channels:', error);

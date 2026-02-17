@@ -11,9 +11,9 @@
 
 
 
-<section *ngIf="isVisible">
+<section *ngIf="isVisible && channelId">
 
-  <app-channel-messages-header [channel]="channelName" [channelId]="channelId" [members]="members"
+  <app-channel-messages-header [fullChannel]="fullChannel" [channel]="channelName" [channelId]="channelId" [members]="members"
     [description]="description" [createdBy]="createdBy">
   </app-channel-messages-header>
 
