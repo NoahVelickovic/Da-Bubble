@@ -173,6 +173,7 @@ export class ChannelMessagesHeader implements OnInit, OnDestroy {
       width: this.layout.isMobile() ? '100%' : dlgW + 'px',
       maxWidth: this.layout.isMobile() ? '100vw' : 'none',
       panelClass: 'edit-channel-dialog-panel',
+      autoFocus: false,
       ...(this.layout.isMobile() ? {} : {
         position: {
           top: `${r.bottom + gap}px`,

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, Input } from '@angular/core';
+import { Component, inject, OnInit, Input, AfterViewInit, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatDialogRef, MatDialog } from '@angular/material/dialog';
@@ -23,10 +23,11 @@ import { AddMembers } from '../add-members/add-members';
   templateUrl: './edit-channel.html',
   styleUrl: './edit-channel.scss',
 })
-export class EditChannel {
-    dialogRef = inject(MatDialogRef<EditChannel>);
+export class EditChannel implements OnInit, AfterViewInit {
+  dialogRef = inject(MatDialogRef<EditChannel>);
   data = inject(MAT_DIALOG_DATA);
   firestore = inject(Firestore);
+  private elementRef = inject(ElementRef<HTMLElement>);
 
   channel: any;
   editedName = '';
@@ -41,7 +42,11 @@ export class EditChannel {
   private dialog = inject(MatDialog);
   public presence = inject(PresenceService);
 
-  constructor(private cdr: ChangeDetectorRef, private channelState: ChannelStateService, private firebaseService: FirebaseService) {}
+  constructor(private cdr: ChangeDetectorRef, private channelState: ChannelStateService, private firebaseService: FirebaseService) {
+    this.dialogRef.afterOpened().subscribe(() => {
+      this.scrollDialogToTop();
+    });
+  }
 
  
 ngOnInit() {
@@ -60,6 +65,38 @@ ngOnInit() {
         this.userAvatar = avatar;
         this.cdr.detectChanges();
       }
+    });
+  }
+
+  ngAfterViewInit() {
+    this.scrollDialogToTop();
+  }
+
+  private scrollDialogToTop() {
+    const run = () => {
+      const el = this.elementRef.nativeElement;
+      const surface = el.closest('.mat-mdc-dialog-surface') as HTMLElement | null;
+      if (surface) {
+        surface.scrollTop = 0;
+        surface.scrollTo(0, 0);
+      }
+      // Alle scrollbaren Vorfahren auf 0 setzen (z. B. CDK-Overlay)
+      let parent: HTMLElement | null = el.parentElement;
+      while (parent && parent !== document.body) {
+        if (parent.scrollHeight > parent.clientHeight) {
+          parent.scrollTop = 0;
+          parent.scrollTo(0, 0);
+        }
+        parent = parent.parentElement;
+      }
+    };
+    run();
+    setTimeout(run, 0);
+    requestAnimationFrame(() => {
+      run();
+      setTimeout(run, 50);
+      setTimeout(run, 150);
+      setTimeout(run, 400);
     });
   }
 

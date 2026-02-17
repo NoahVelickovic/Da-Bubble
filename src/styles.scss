@@ -116,10 +116,11 @@ body {
   width: 872px !important;
   max-width: 872px !important;
   height: 616px;
-  border-top-right-radius: 30px !important;
-  border-bottom-right-radius: 30px !important;
-  border-bottom-left-radius: 30px !important;
-  overflow: hidden;
+  min-height: 616px;
+  max-height: 90vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-radius: 30px !important;
 }
 
 @media (max-width: 950px) {

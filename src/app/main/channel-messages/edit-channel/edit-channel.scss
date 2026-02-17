@@ -9,15 +9,16 @@
     width: 872px !important;
     max-width: 872px !important;
     border-radius: 30px !important;
-    height: 539px;
-    display: flex;
+    min-height: 539px;
+    height: auto;
+    display: block;
     padding: 40px;
     gap: 20px;
     opacity: 1;
-    display: block;
     margin: 0 auto;
     box-sizing: border-box;
     font-family: 'Nunito';
+    overflow-x: hidden;
 }
 
 @media (max-width: 950px) {
@@ -60,8 +61,10 @@
 }
 
 .name-div {
-    width: 750px;
-    height: 84px;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 84px;
+    height: auto;
     border-radius: 20px;
     border: 1px solid #ADB0D9;
     gap: 20px;
@@ -69,10 +72,19 @@
     left: 40px;
     padding: 20px;
     margin-bottom: 20px;
+
+    > p {
+        margin: 0;
+        min-height: 1.2em;
+        line-height: 1.4;
+        word-break: break-word;
+        overflow-wrap: break-word;
+    }
 }
 
 .beschreibung-div {
-    width: 750px;
+    width: 100%;
+    box-sizing: border-box;
     height: 223px;
     border-radius: 20px;
     border: 1px solid #ADB0D9;
@@ -84,13 +96,13 @@
 }
 
 .mitglieder-div {
-    width: 750px;
+    width: 100%;
+    box-sizing: border-box;
     min-height: 120px;
     border-radius: 20px;
     border: 1px solid #ADB0D9;
     padding: 20px;
     margin-bottom: 20px;
-    box-sizing: border-box;
    
 
     .mitglieder-title {
