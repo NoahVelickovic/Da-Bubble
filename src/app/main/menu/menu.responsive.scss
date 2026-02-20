@@ -1,19 +1,21 @@
+// FAB für neue Nachricht (zeigt sich bei Channel/DM-Ansicht auf Mobile)
 .mobile-message {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: max(20px, env(safe-area-inset-bottom, 20px));
+  right: max(20px, env(safe-area-inset-right, 20px));
   z-index: 100;
-  width: 60px;
-  height: 60px;
+  width: 56px;
+  height: 56px;
   cursor: pointer;
   transition: transform 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
 
   &:hover {
-    transform: scale(1.1);
+    transform: scale(1.05);
   }
 
   &:active {
-    transform: scale(0.95);
+    transform: scale(0.92);
   }
 }
 
@@ -230,16 +232,6 @@
       }
     }
 
-    .write-message {
-      width: 24px;
-      height: 24px;
-      cursor: pointer;
-      transition: filter 0.2s ease;
-
-      &:hover {
-        filter: invert(43%) sepia(63%) saturate(7492%) hue-rotate(229deg) brightness(97%) contrast(96%);
-      }
-    }
   }
 
   // Channels und Direktnachrichten Header

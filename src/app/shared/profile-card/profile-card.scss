@@ -197,3 +197,86 @@ $hoverBtn: #797EF3;
         }
     }
 }
+
+@media (max-width: 950px) {
+    .profile-main {
+        width: 100% !important;
+        max-width: 100%;
+        padding: 24px 16px 32px;
+        gap: 24px;
+    }
+
+    .profile-header {
+        margin-top: 0;
+
+        .icon-box {
+            min-width: 44px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+        }
+    }
+
+    .profile-img-div {
+        margin-top: 16px;
+
+        > img {
+            width: 140px;
+            height: 140px;
+        }
+    }
+
+    .profile-name {
+        margin-top: 16px;
+
+        > h2 {
+            font-size: 24px;
+        }
+    }
+
+    .status-div {
+        margin-top: -16px;
+
+        > p {
+            font-size: 16px;
+        }
+    }
+
+    .status-dot {
+        width: 10px;
+        height: 10px;
+    }
+
+    .email-div {
+        > p {
+            font-size: 16px;
+        }
+    }
+
+    .email-name {
+        font-size: 16px;
+        padding-left: 0;
+        margin-top: 4px;
+    }
+
+    .footer {
+        margin-top: 32px;
+
+        > .button {
+            width: 100%;
+            max-width: 100%;
+            justify-content: center;
+            padding: 14px 24px;
+            font-size: 16px;
+            min-height: 48px;
+            -webkit-tap-highlight-color: transparent;
+
+            img {
+                width: 22px;
+                height: 22px;
+            }
+        }
+    }
+}

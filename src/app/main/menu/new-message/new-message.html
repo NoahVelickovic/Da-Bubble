@@ -1,8 +1,8 @@
 <div class="main-container">
   <div class="header">
     <div class="header-title">
-      <button *ngIf="layout.isMobile()" class="back-button" (click)="goBack()">
-        <img src="/img/arrow_back.png" alt="Back">
+      <button *ngIf="layout.isMobile()" class="back-button" (click)="goBack()" aria-label="Zurück">
+        <span class="material-symbols-outlined">arrow_back</span>
       </button>
       <p>Neue Nachricht</p>
     </div>
@@ -11,8 +11,10 @@
       <!-- Chip direkt im Input -->
       <ng-container *ngFor="let person of selectedPeople">
         <span class="chip">
-          <img class="avatar" [src]="'/img/avatars/' + person.avatar" [alt]="person.name">
-          <span class="name">{{ person.name }}</span>
+          <img *ngIf="person.type !== 'channel' && person.avatar" class="avatar" [src]="'/img/avatars/' + person.avatar" [alt]="person.name">
+          <span *ngIf="person.type === 'channel'" class="chip-channel-icon">#</span>
+          <span *ngIf="person.type !== 'channel' && !person.avatar" class="chip-avatar-placeholder">{{ person.name?.charAt(0) || '?' }}</span>
+          <span class="name">{{ person.type === 'channel' ? '#' : '' }}{{ person.name }}</span>
           <span class="icon-box-remove" (click)="removePerson(person)">
             <img class="default" src="/img/close.png" alt="">
             <img class="hover" src="/img/close_purple.png" alt="">
@@ -27,13 +29,13 @@
 
     <!-- Dropdown -->
     <div class="dropdown" *ngIf="search && filteredPeople.length > 0">
-      <button class="option" *ngFor="let p of filteredPeople" (mousedown)="$event.preventDefault()"
+      <button type="button" class="option" *ngFor="let p of filteredPeople" (mousedown)="$event.preventDefault()"
         (click)="selectPerson(p)">
-        <img class="avatar" [src]="'/img/avatars/' + p.avatar" [alt]="p.name">
+        <img *ngIf="p.type === 'user' && p.avatar" class="avatar" [src]="'/img/avatars/' + p.avatar" [alt]="p.name">
+        <span *ngIf="p.type === 'channel'" class="channel-icon">#</span>
+        <span *ngIf="p.type === 'user' && !p.avatar" class="avatar-placeholder">{{ p.name?.charAt(0) || '?' }}</span>
         <div class="meta">
-          <div class="row">
-            <span class="name">{{ p.name }}</span>
-          </div>
+          <span class="name">{{ p.type === 'channel' ? '#' : '' }}{{ p.name }}</span>
         </div>
       </button>
     </div>

@@ -604,7 +604,7 @@ export class ChatDirectYou implements OnInit, AfterViewInit, OnDestroy, OnChange
   openProfile(member: any) {
     this.dialog.open(ProfileCard, {
       data: member,
-      panelClass: 'profile-dialog-panel'
+      panelClass: 'profile-dialog-panel',
     });
   }
 

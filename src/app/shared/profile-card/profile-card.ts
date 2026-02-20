@@ -4,6 +4,7 @@ import { directMessageContact } from '../../main/menu/direct-messages/direct-mes
 import { DirectChatService } from '../../services/direct-chat-service';
 import { Router } from '@angular/router';
 import { PresenceService } from '../../services/presence.service';
+import { LayoutService } from '../../services/layout.service';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -20,6 +21,7 @@ export class ProfileCard {
   private directChatService = inject(DirectChatService);
   private router = inject(Router);
   public presence = inject(PresenceService);
+  private layout = inject(LayoutService);
   dm: any;
 
   constructor(
@@ -48,6 +50,9 @@ export class ProfileCard {
     : null;
 
   if (this.data.uid === currentUserId) {
+    if (this.layout.isMobile()) {
+      this.layout.showContent();
+    }
     this.router.navigate(['/main/direct-you']);
     this.closeAllDialogs();
     return;
@@ -63,6 +68,9 @@ export class ProfileCard {
   };
 
   this.directChatService.openChat(dm);
+  if (this.layout.isMobile()) {
+    this.layout.showContent();
+  }
   this.router.navigate(['/main/direct-message', dm.name]);
   this.closeAllDialogs();
 }

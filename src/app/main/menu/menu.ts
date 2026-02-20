@@ -12,6 +12,7 @@ import { FirebaseService } from '../../services/firebase';
 import { ChannelStateService } from '../menu/channels/channel.service';
 import { DirectChatService } from '../../services/direct-chat-service';
 import { FormsModule } from '@angular/forms';
+import { LayoutService } from '../../services/layout.service';
 
 
 interface SearchResult {
@@ -45,7 +46,8 @@ export class Menu {
   isSearching = false;
 
   private channelState = inject(ChannelStateService);
-  private directChatService = inject(DirectChatService); 
+  private directChatService = inject(DirectChatService);
+  private layout = inject(LayoutService);
   private firestore = inject(Firestore);
 
   constructor(
@@ -68,8 +70,10 @@ export class Menu {
   }
 
   onOpenNewMessage() {
-    this.router.navigate(['/main/new-message']);   
-
+    this.router.navigate(['/main/new-message']);
+    if (this.isMobile) {
+      this.layout.showContent();
+    }
   }
 
   openDialog() {

@@ -14,7 +14,10 @@ import { CommonModule } from '@angular/common';
 import { map } from 'rxjs/operators';
 import { firstValueFrom } from 'rxjs';
 import { LayoutService } from '../../../services/layout.service';
+import { Router } from '@angular/router';
 import { AnchorOverlayService } from '../../../services/anchor-overlay.service';
+import { ChannelStateService } from '../../menu/channels/channel.service';
+import { DirectChatService } from '../../../services/direct-chat-service';
 
 @Component({
   selector: 'app-new-message',
@@ -33,7 +36,10 @@ export class NewMessage {
   private dmMsgsStoreSvc = inject(DmMessagesStore);
   private currentUserService = inject(CurrentUserService);
   public layout = inject(LayoutService);
+  private router = inject(Router);
   private anchorOverlaySvc = inject(AnchorOverlayService);
+  private channelState = inject(ChannelStateService);
+  private directChatService = inject(DirectChatService);
   selectedPeople: { uid: string, name: string, avatar: string, email: string, type?: 'user' | 'channel' }[] = [];
   allPeople: { uid: string, name: string, avatar: string, email: string }[] = [];
   filteredPeople: { uid: string, name: string, avatar: string, email: string, type: 'user' | 'channel' }[] = [];
@@ -97,9 +103,9 @@ export class NewMessage {
   }
 
   filterPeople() {
-    const value = this.inputName.toLowerCase().trim();
-    const startsWithAt = value.startsWith('@');
-    const startsWithHash = value.startsWith('#');
+    const value = this.inputName.trim();
+    const startsWithAt = value.toLowerCase().startsWith('@');
+    const startsWithHash = value.toLowerCase().startsWith('#');
 
     if (value.length < 1) {
       this.filteredPeople = [];
@@ -108,30 +114,24 @@ export class NewMessage {
     }
 
     const searchValue = (startsWithAt || startsWithHash)
-      ? value.substring(1).toLowerCase()
+      ? value.substring(1).trim().toLowerCase()
       : value.toLowerCase();
 
-    if (searchValue.length < 1) {
-      this.filteredPeople = [];
-      this.search = false;
-      return;
-    }
-
-    let filteredUsers: any[] = [];
-    let filteredChannels: any[] = [];
+    let filteredUsers: { uid: string; name: string; avatar: string; email: string; type: 'user' }[] = [];
+    let filteredChannels: { uid: string; name: string; avatar: string; email: string; type: 'channel' }[] = [];
 
     // Wenn @ eingegeben wurde, nur Personen durchsuchen
     if (startsWithAt) {
       filteredUsers = this.allPeople
-        .filter(u => u.name.toLowerCase().includes(searchValue))
         .filter(u => !this.selectedPeople.some(sp => sp.uid === u.uid))
+        .filter(u => searchValue.length === 0 || u.name.toLowerCase().includes(searchValue))
         .map(u => ({ ...u, type: 'user' as const }));
     }
     // Wenn # eingegeben wurde, nur Channels durchsuchen
     else if (startsWithHash) {
       filteredChannels = this.allChannels
-        .filter(c => c.name.toLowerCase().includes(searchValue))
         .filter(c => !this.selectedPeople.some(sp => sp.uid === c.uid))
+        .filter(c => searchValue.length === 0 || c.name.toLowerCase().includes(searchValue))
         .map(c => ({
           uid: c.uid,
           name: c.name,
@@ -188,7 +188,10 @@ export class NewMessage {
   }
 
   goBack() {
-    this.layout.showMenu();
+    if (this.layout.isMobile()) {
+      this.layout.showMenu();
+      this.router.navigate(['/main/channels']);
+    }
     this.close.emit();
   }
 
@@ -279,6 +282,30 @@ export class NewMessage {
         }
 
         this.draft = '';
+
+        // Navigation zum jeweiligen Chat (besonders wichtig auf Mobile)
+        if (channel) {
+          this.channelState.selectChannel({ id: channel.uid, name: channel.name });
+          if (this.layout.isMobile()) {
+            this.layout.showContent();
+          }
+          this.router.navigate(['/main/channels']);
+        } else if (users.length > 0) {
+          const firstUser = users[0];
+          this.directChatService.openChat({
+            id: firstUser.uid,
+            name: firstUser.name,
+            avatar: firstUser.avatar,
+            email: firstUser.email || '',
+            state: false,
+            createdAt: new Date()
+          });
+          if (this.layout.isMobile()) {
+            this.layout.showContent();
+          }
+          this.router.navigate(['/main/direct-message', firstUser.name]);
+        }
+
         this.close.emit();
       } catch (err) {
         console.error('sendMessage failed', err);
