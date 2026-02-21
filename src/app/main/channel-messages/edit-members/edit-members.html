@@ -20,7 +20,8 @@
       <img class="avatar" [src]="'img/avatars/' + u.avatar" [alt]="u.name" />
       <span
         class="status-dot"
-        [ngClass]="presence.userStatusMap()[u.uid] === 'online' ? 'online' : 'offline'"
+        [class.online]="isYou(u) || getStatus(u.uid) === 'online'"
+        [class.offline]="!isYou(u) && getStatus(u.uid) !== 'online'"
       ></span>
       <span class="name">{{ u.name }}</span>
     </li>

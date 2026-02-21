@@ -24,7 +24,7 @@
         <div #btn2 class="preview-members" (click)="openEditMembers(btn2)">
             <ng-container *ngFor="let m of renderMembers()">
                 <div class="avatar" role="img" [attr.aria-label]="m.name" [class.you]="m.isYou"
-     [style.background-image]="m.avatar ? 'url(img/avatars/' + m.avatar + ')' : ''">
+     [style.background-image]="m.avatar ? 'url(/dabubble/img/avatars/' + m.avatar + ')' : ''">
                     <span *ngIf="!m.avatar">{{ m.name.charAt(0) }}</span>
                 </div>
             </ng-container>

@@ -76,12 +76,13 @@
         *ngFor="let m of orderedMembers()"
         [class.you]="isYou(m)"
       >
-        <div class="avatar" [style.background-image]="m.avatar ? 'url(img/avatars/' + m.avatar + ')' : 'none'">
+        <div class="avatar" [style.background-image]="m.avatar ? 'url(/dabubble/img/avatars/' + m.avatar + ')' : 'none'">
           <span *ngIf="!m.avatar" class="avatar-fallback">{{ (m.name || '?').charAt(0) }}</span>
         </div>
         <span
           class="status-dot"
-          [ngClass]="presence.userStatusMap()[m.uid || m.id] === 'online' ? 'online' : 'offline'"
+          [class.online]="isYou(m) || presence.userStatusMap()[m.uid || m.id] === 'online'"
+          [class.offline]="!isYou(m) && presence.userStatusMap()[m.uid || m.id] !== 'online'"
         ></span>
         <span class="name">{{ m.name }}{{ isYou(m) ? ' (Du)' : '' }}</span>
       </li>

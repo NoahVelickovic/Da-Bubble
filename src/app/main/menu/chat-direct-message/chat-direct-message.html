@@ -46,7 +46,8 @@
             <span *ngIf="!m.avatar"></span>
 
             <span class="status-dot"
-              [ngClass]="presence.userStatusMap()[uid] === 'online' ? 'online' : 'offline'"></span>
+              [class.online]="m.isYou || presence.userStatusMap()[m.uid] === 'online'"
+              [class.offline]="!m.isYou && presence.userStatusMap()[m.uid] !== 'online'"></span>
           </div>
 
           <div class="message-body" [class.you]="m.isYou">

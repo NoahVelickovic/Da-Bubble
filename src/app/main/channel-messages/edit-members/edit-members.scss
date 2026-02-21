@@ -188,11 +188,12 @@ $text: #000000;
     margin-left: -24px;
 }
 
-.online {
+.status-dot.online {
     background: #2ecc71;
     box-shadow: 0 0 8px #2ecc71;
 }
 
-.offline {
+.status-dot.offline {
     background: #e74c3c;
+    box-shadow: 0 0 8px rgba(231, 76, 60, 0.45);
 }

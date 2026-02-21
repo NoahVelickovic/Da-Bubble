@@ -101,12 +101,15 @@ export class EditMembers implements OnDestroy {
     this.membershipSubscription = docData(membershipRef).subscribe((channelData: any) => {
       if (!channelData?.members) return;
 
-      const updatedMembers = channelData.members.map((m: Member) => {
-        if (m.uid === this.currentUserId) {
+      const updatedMembers = channelData.members.map((m: any) => {
+        const uid = m.uid || m.id || '';
+
+        if (uid === this.currentUserId) {
           const currentName = this.firebaseService.currentNameValue || 'Du';
-          return { ...m, name: `${currentName} (Du)` };
+          return { ...m, uid, name: `${currentName} (Du)` };
         }
-        return m;
+
+        return { ...m, uid };
       });
 
       this.membersSignal.set(updatedMembers);
@@ -166,7 +169,8 @@ export class EditMembers implements OnDestroy {
     });
   }
 
-  getStatus(uid: string): 'online' | 'offline' {
+  getStatus(uid?: string): 'online' | 'offline' {
+    if (!uid) return 'offline';
     const map = this.presence.userStatusMap();
     return map[uid] ?? 'offline';
   }
