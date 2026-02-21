@@ -5,12 +5,12 @@
     (click)="onChannelClick(membership)"
     [class.active]="router.url.startsWith('/main/channels') && selectedChannelId === membership.id"
   >
-    <img src="/img/tag-black.png" alt="">
+    <img src="img/tag-black.png" alt="">
     <p>{{ membership.name }}</p>
   </div>
 </section>
 
 <div class="add-container" (click)="openDialog()">
-  <img src="/img/add-circle-channel.png" alt="">
+  <img src="img/add-circle-channel.png" alt="">
   <p>Channel hinzufügen</p>
 </div>

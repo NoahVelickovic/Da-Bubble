@@ -1,7 +1,7 @@
 <div class="add-channel-main" *ngIf="channel">
   <div class="add-channel-header">
     <h2># {{ channel.name }}</h2>
-    <img src="/img/close-channel.png" alt="Schließen" (click)="close()">
+    <img src="img/close-channel.png" alt="Schließen" (click)="close()">
   </div>
 <div *ngIf="!channel" class="error-message">
   <p>Fehler: Keine Channel-Daten verfügbar</p>
@@ -76,7 +76,7 @@
         *ngFor="let m of orderedMembers()"
         [class.you]="isYou(m)"
       >
-        <div class="avatar" [style.background-image]="m.avatar ? 'url(/img/avatars/' + m.avatar + ')' : 'none'">
+        <div class="avatar" [style.background-image]="m.avatar ? 'url(img/avatars/' + m.avatar + ')' : 'none'">
           <span *ngIf="!m.avatar" class="avatar-fallback">{{ (m.name || '?').charAt(0) }}</span>
         </div>
         <span
@@ -88,8 +88,8 @@
     </ul>
     <div class="mitglieder-add" (click)="openAddMembers()">
       <span class="icon-box">
-        <img class="default" src="/img/person_add.png" alt="">
-        <img class="hover" src="/img/person_add_purple.png" alt="">
+        <img class="default" src="img/person_add.png" alt="">
+        <img class="hover" src="img/person_add_purple.png" alt="">
       </span>
       <span>Mitglieder hinzufügen</span>
     </div>

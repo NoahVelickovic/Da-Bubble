@@ -3,19 +3,19 @@
   <mat-drawer #drawer class="sidenav" mode="side" [(opened)]="isMenuOpen">
     <div class="header-menu">
       <div>
-        <img src="/img/logo-menu-devspace.png" alt="">
+        <img src="img/logo-menu-devspace.png" alt="">
         <h2>Devspace</h2>
       </div>
-      <img src="/img/edit-square.png" alt="" class="write-message" (click)="onOpenNewMessage()">
+      <img src="img/edit-square.png" alt="" class="write-message" (click)="onOpenNewMessage()">
     </div>
 
     <div class="header-menu-channels">
       <div (click)="toggleChannels()">
-        <img src="/img/arrow-drop-menu.png" alt="" class="arrow-icon" [class.arrow-collapsed]="!showChannels">
-        <img src="/img/channel.png" alt="">
+        <img src="img/arrow-drop-menu.png" alt="" class="arrow-icon" [class.arrow-collapsed]="!showChannels">
+        <img src="img/channel.png" alt="">
         <h3>Channels</h3>
       </div>
-      <img src="/img/add-channel.png" alt="" class="write-message" matButton (click)="openDialog()">
+      <img src="img/add-channel.png" alt="" class="write-message" matButton (click)="openDialog()">
     </div>
     
     <div class="channel-list" *ngIf="showChannels">
@@ -24,8 +24,8 @@
 
     <div class="header-menu-channels" (click)="toggleMessages()">
       <div>
-        <img src="/img/arrow-drop-menu.png" alt="" class="arrow-icon" [class.arrow-collapsed]="!showMessages">
-        <img src="/img/direct-person.png" alt="">
+        <img src="img/arrow-drop-menu.png" alt="" class="arrow-icon" [class.arrow-collapsed]="!showMessages">
+        <img src="img/direct-person.png" alt="">
         <h3>Direktnachrichten</h3>
       </div>
     </div>
@@ -66,7 +66,7 @@
             </div>
           </div>
           <div class="result-content" *ngIf="result.type === 'direct'">
-            <img class="result-avatar" [src]="'/img/avatars/' + (result.avatar || 'avatar-0.png')" alt="">
+            <img class="result-avatar" [src]="'img/avatars/' + (result.avatar || 'avatar-0.png')" alt="">
             <div class="result-details">
               <p class="result-title">{{ result.title }}</p>
               <small class="result-subtitle">{{ result.subtitle }}</small>
@@ -79,18 +79,18 @@
 
   <div class="header-menu">
     <div>
-      <img src="/img/logo-menu-devspace.png" alt="">
+      <img src="img/logo-menu-devspace.png" alt="">
       <h2>Devspace</h2>
     </div>
   </div>
 
   <div class="header-menu-channels">
     <div (click)="toggleChannels()">
-      <img src="/img/arrow-drop-menu.png" alt="" class="arrow-icon" [class.arrow-collapsed]="!showChannels">
-      <img src="/img/channel.png" alt="">
+      <img src="img/arrow-drop-menu.png" alt="" class="arrow-icon" [class.arrow-collapsed]="!showChannels">
+      <img src="img/channel.png" alt="">
       <h3>Channels</h3>
     </div>
-    <img src="/img/add-channel.png" alt="" class="write-message" matButton (click)="openDialog()">
+    <img src="img/add-channel.png" alt="" class="write-message" matButton (click)="openDialog()">
   </div>
   
   <div class="channel-list" *ngIf="showChannels">
@@ -99,8 +99,8 @@
 
   <div class="header-menu-channels" (click)="toggleMessages()">
     <div>
-      <img src="/img/arrow-drop-menu.png" alt="" class="arrow-icon" [class.arrow-collapsed]="!showMessages">
-      <img src="/img/direct-person.png" alt="">
+      <img src="img/arrow-drop-menu.png" alt="" class="arrow-icon" [class.arrow-collapsed]="!showMessages">
+      <img src="img/direct-person.png" alt="">
       <h3>Direktnachrichten</h3>
     </div>
   </div>
@@ -110,4 +110,4 @@
   </div>
 </div>
 
-<img src="/img/mobile-new-message.png" alt="" *ngIf="isMobile" class="mobile-message" (click)="onOpenNewMessage()">
+<img src="img/mobile-new-message.png" alt="" *ngIf="isMobile" class="mobile-message" (click)="onOpenNewMessage()">
